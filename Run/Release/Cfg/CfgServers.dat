@@ -1,0 +1,55 @@
+[ServerInfo]
+; [Indicator]
+;基础指标服务器
+;BaseIndicator=http://10.139.111.222/api/func/;http://10.1.5.187:8080/api/func/;http://GFServer.gildata.com/api/func/
+BaseIndicator=http://10.1.5.187:8080/api/func/
+;资产指标服务器
+;AssetIndicator=http://10.1.5.147:8180/api/func/;http://10.1.5.233:8180/api/func/;http://10.1.5.188:8381/api/func/
+AssetIndicator=http://10.1.5.188:8381/api/func/
+
+; [HQ]
+; LevelI 行情服务器
+LevelI=Level1A.gildata.com:443;
+; LevelII 行情服务器
+LevelII=Level2A.gildata.com:8525;Level2B.gildata.com:8525
+; 期货行情服务器
+Futues=FutuesA.gildata.com:9990;FutuesB.gildata.com:9990
+; 港股实时行情服务器
+HKReal=HKRealA.gildata.com:9999;HKRealB.gildata.com:9999
+; 港股延时行情服务器
+HKDelay=HKRelayA.gildata.com:9999;HKRelayB.gildata.com:9999
+; 龙虎看盘行情服务器
+DDE=DDEA.gildata.com:8525
+; 美股行情服务器
+USStock=114.55.69.211:9999;10.50.6.209:9999
+
+; [Web]
+; 个股F10
+F10=10.139.112.148:8080
+; 公网新闻、资讯、研报页面服务器
+News=10.139.112.148:8080
+; 新闻、资讯、研报文件服务器
+NewsFile=FAISFile.gildata.com
+; 资产页面服务器
+Asset=10.1.5.148
+; FOF(FOF网页和FastMC工程)
+FOF=10.1.5.56:8080
+; 模拟组合页面服务器
+Simulation=10.1.5.148
+; 中科服务器
+ZhongKe=https://120.26.118.42:8181
+; 银行间报价
+InterBankPrice=http://192.168.49.204:10008
+; Fly量化
+FlyQuantification=http://192.168.120.249:8000
+
+; [Update]
+; 终端升级服务器
+Upgrade= http://download.gildata.com/download/FAISUpdate/Update_%s_%s/
+
+; [Hundsun]
+; 用户行为统计服务器
+ActionAnalysis=nc.hsstr.com
+
+
+

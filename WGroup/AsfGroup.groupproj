@@ -1,0 +1,144 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{CAEEE71E-FE96-453A-AEF2-1C21B224AC55}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="AsfMain\AsfMain.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfService\AsfService.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfAuth\AsfAuth.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfCache\AsfCache.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfMem\AsfMem.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfUI\AsfUI.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfResources\AsfResources.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfSkinsBlack\AsfSkinsBlack.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfSkinsWhite\AsfSkinsWhite.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AsfSkinsClassic\AsfSkinsClassic.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="AsfMain">
+        <MSBuild Projects="AsfMain\AsfMain.dproj"/>
+    </Target>
+    <Target Name="AsfMain:Clean">
+        <MSBuild Projects="AsfMain\AsfMain.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfMain:Make">
+        <MSBuild Projects="AsfMain\AsfMain.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfService">
+        <MSBuild Projects="AsfService\AsfService.dproj"/>
+    </Target>
+    <Target Name="AsfService:Clean">
+        <MSBuild Projects="AsfService\AsfService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfService:Make">
+        <MSBuild Projects="AsfService\AsfService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfAuth">
+        <MSBuild Projects="AsfAuth\AsfAuth.dproj"/>
+    </Target>
+    <Target Name="AsfAuth:Clean">
+        <MSBuild Projects="AsfAuth\AsfAuth.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfAuth:Make">
+        <MSBuild Projects="AsfAuth\AsfAuth.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfCache">
+        <MSBuild Projects="AsfCache\AsfCache.dproj"/>
+    </Target>
+    <Target Name="AsfCache:Clean">
+        <MSBuild Projects="AsfCache\AsfCache.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfCache:Make">
+        <MSBuild Projects="AsfCache\AsfCache.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfMem">
+        <MSBuild Projects="AsfMem\AsfMem.dproj"/>
+    </Target>
+    <Target Name="AsfMem:Clean">
+        <MSBuild Projects="AsfMem\AsfMem.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfMem:Make">
+        <MSBuild Projects="AsfMem\AsfMem.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfUI">
+        <MSBuild Projects="AsfUI\AsfUI.dproj"/>
+    </Target>
+    <Target Name="AsfUI:Clean">
+        <MSBuild Projects="AsfUI\AsfUI.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfUI:Make">
+        <MSBuild Projects="AsfUI\AsfUI.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfResources">
+        <MSBuild Projects="AsfResources\AsfResources.dproj"/>
+    </Target>
+    <Target Name="AsfResources:Clean">
+        <MSBuild Projects="AsfResources\AsfResources.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfResources:Make">
+        <MSBuild Projects="AsfResources\AsfResources.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfSkinsBlack">
+        <MSBuild Projects="AsfSkinsBlack\AsfSkinsBlack.dproj"/>
+    </Target>
+    <Target Name="AsfSkinsBlack:Clean">
+        <MSBuild Projects="AsfSkinsBlack\AsfSkinsBlack.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfSkinsBlack:Make">
+        <MSBuild Projects="AsfSkinsBlack\AsfSkinsBlack.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfSkinsWhite">
+        <MSBuild Projects="AsfSkinsWhite\AsfSkinsWhite.dproj"/>
+    </Target>
+    <Target Name="AsfSkinsWhite:Clean">
+        <MSBuild Projects="AsfSkinsWhite\AsfSkinsWhite.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfSkinsWhite:Make">
+        <MSBuild Projects="AsfSkinsWhite\AsfSkinsWhite.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfSkinsClassic">
+        <MSBuild Projects="AsfSkinsClassic\AsfSkinsClassic.dproj"/>
+    </Target>
+    <Target Name="AsfSkinsClassic:Clean">
+        <MSBuild Projects="AsfSkinsClassic\AsfSkinsClassic.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfSkinsClassic:Make">
+        <MSBuild Projects="AsfSkinsClassic\AsfSkinsClassic.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="AsfMain;AsfService;AsfAuth;AsfCache;AsfMem;AsfUI;AsfResources;AsfSkinsBlack;AsfSkinsWhite;AsfSkinsClassic"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="AsfMain:Clean;AsfService:Clean;AsfAuth:Clean;AsfCache:Clean;AsfMem:Clean;AsfUI:Clean;AsfResources:Clean;AsfSkinsBlack:Clean;AsfSkinsWhite:Clean;AsfSkinsClassic:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="AsfMain:Make;AsfService:Make;AsfAuth:Make;AsfCache:Make;AsfMem:Make;AsfUI:Make;AsfResources:Make;AsfSkinsBlack:Make;AsfSkinsWhite:Make;AsfSkinsClassic:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
