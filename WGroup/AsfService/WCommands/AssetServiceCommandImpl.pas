@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FAssetService := TAssetServiceImpl.Create(FAppContext) as IAssetService;
     FAppContext.RegisterInteface(FId, FAssetService);
   end;
-end;
-
-procedure TAssetServiceCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TAssetServiceCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TAssetServiceCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

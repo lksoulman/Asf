@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FBasicService := TBasicServiceImpl.Create(FAppContext) as IBasicService;
     FAppContext.RegisterInteface(FId, FBasicService);
   end;
-end;
-
-procedure TBasicServiceCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TBasicServiceCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TBasicServiceCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

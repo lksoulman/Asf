@@ -42,10 +42,16 @@ type
 
     // UpdateTables
     procedure UpdateTables;
-    // AsyncUpdateTables
+    // AsyncUpdate
     procedure AsyncUpdateTables;
+    // ReplaceCreateCacheTables
+    procedure ReplaceCreateCacheTables;
+    // UpdateTable
+    procedure UpdateTable(AName: string);
     // AsyncUpdateTable
     procedure AsyncUpdateTable(AName: string);
+    // NoExistUpdateTable
+    procedure NoExistUpdateTable(AName: string);
     // Query
     function Query(ASql: WideString): IWNDataSet;
     // Async Query
@@ -86,9 +92,58 @@ begin
   DoAsyncUpdateCacheTables;
 end;
 
-procedure TBaseCacheImpl.AsyncUpdateTable(AName: string);
+procedure TBaseCacheImpl.ReplaceCreateCacheTables;
 begin
-  DoAsyncUpdateCacheTable(AName);
+  DoReplaceCreateCacheTables;
+end;
+
+procedure TBaseCacheImpl.UpdateTable(AName: string);
+var
+  LTable: TCacheTable;
+begin
+  if FCacheTableDic.TryGetValue(AName, LTable) then begin
+    LTable.Lock;
+    try
+      DoUpdateCacheTable(LTable);
+      LTable.LastUpdateTime := Now;
+    finally
+      LTable.UnLock;
+    end;
+  end;
+end;
+
+procedure TBaseCacheImpl.AsyncUpdateTable(AName: string);
+var
+  LTable: TCacheTable;
+begin
+  if FCacheTableDic.TryGetValue(AName, LTable) then begin
+    LTable.Lock;
+    try
+      DoAsyncUpdateCacheTable(LTable);
+      LTable.LastUpdateTime := Now;
+    finally
+      LTable.UnLock;
+    end;
+  end;
+end;
+
+procedure TBaseCacheImpl.NoExistUpdateTable(AName: string);
+var
+  LTable: TCacheTable;
+begin
+  if FCacheTableDic.TryGetValue(AName, LTable) then begin
+    LTable.Lock;
+    try
+      if not LTable.IsCreate then begin
+        FSQLiteAdapter.ExecuteSql(LTable.CreateSql);
+        LTable.IsCreate := True;
+      end;
+      DoUpdateCacheTable(LTable);
+      LTable.LastUpdateTime := Now;
+    finally
+      LTable.UnLock;
+    end;
+  end;
 end;
 
 function TBaseCacheImpl.Query(ASql: WideString): IWNDataSet;

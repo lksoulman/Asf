@@ -145,13 +145,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win32\Debug\AsfSkinsWhite.dll" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\bin\Debug\AsfSkinsWhite.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AsfSkinsWhite.dll</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\bin\Debug\AsfSkinsWhite.dll" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="Win32\Debug\AsfSkinsWhite.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AsfSkinsWhite.dll</RemoteName>
                         <Overwrite>true</Overwrite>

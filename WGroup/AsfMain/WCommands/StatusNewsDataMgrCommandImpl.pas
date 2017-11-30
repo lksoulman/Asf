@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -69,26 +63,26 @@ begin
 end;
 
 procedure TStatusNewsDataMgrCommandImpl.Execute(AParams: string);
+var
+  LFuncName: string;
 begin
   if FStatusNewsDataMgr = nil then begin
     FStatusNewsDataMgr := TStatusNewsDataMgrImpl.Create(FAppContext) as IStatusNewsDataMgr;
     FAppContext.RegisterInteface(FId, FStatusNewsDataMgr);
   end;
-end;
 
-procedure TStatusNewsDataMgrCommandImpl.ExecuteEx(AParams: array of string);
-begin
+  if (AParams = '')
+    or (FStatusNewsDataMgr = nil) then Exit;
 
-end;
-
-procedure TStatusNewsDataMgrCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TStatusNewsDataMgrCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
+  BeginSplitParams(AParams);
+  try
+    ParamsVal('FuncName', LFuncName);
+    if LFuncName = 'Update' then begin
+      FStatusNewsDataMgr.Update;
+    end;
+  finally
+    EndSplitParams;
+  end;
 end;
 
 end.

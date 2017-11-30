@@ -67,12 +67,6 @@ type
     function GetShortKey: Integer;
     // Execute
     procedure Execute(AParams: string); virtual;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); virtual;
-    // Execute
-    procedure ExecuteAsync(AParams: string); virtual;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); virtual;
   end;
 
 implementation
@@ -138,21 +132,6 @@ begin
 end;
 
 procedure TCommandImpl.Execute(AParams: string);
-begin
-
-end;
-
-procedure TCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TCommandImpl.ExecuteAsyncEx(AParams: array of string);
 begin
 
 end;

@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -94,21 +88,6 @@ begin
   finally
     EndSplitParams;
   end;
-end;
-
-procedure TMasterMgrCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TMasterMgrCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TMasterMgrCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

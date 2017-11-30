@@ -23,7 +23,7 @@ type
     FId: Int64;
     FTitle: string;
     FWidth: Integer;
-    FDateTimeStr: string;
+    FDateStr: string;
     FDateTime: TDateTime;
   end;
 
@@ -43,8 +43,6 @@ type
     function GetDataCount: Integer;
     // Get StatusNewsData
     function GetData(AIndex: Integer): PStatusNewsData;
-    // Find Data
-    function FindData(AId: Integer): PStatusNewsData;
   end;
 
 implementation

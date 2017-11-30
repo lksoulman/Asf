@@ -12,12 +12,13 @@ unit AbstractCacheImpl;
 interface
 
 uses
-  Vcl.Forms,
   GFData,
   CacheGF,
   Windows,
   Classes,
   SysUtils,
+  DateUtils,
+  Vcl.Forms,
   NativeXml,
   GFDataSet,
   CacheTable,
@@ -72,10 +73,11 @@ type
     procedure DoClearCacheTables;
     // ReplaceCreateSysTable
     procedure DoReplaceCreateSysTable;
+    // DoReplaceCreateCacheTables
+    procedure DoReplaceCreateCacheTables;
     // LoadCacheTableInfoFromSysTable
     procedure DoLoadCacheTableInfoFromSysTable;
-    // ReplaceCreateNoExistCacheTables
-    procedure DoReplaceCreateNoExistCacheTables;
+
 
     // Get Table By Index
     function GetTableByIndex(AIndex: Integer): TCacheTable;
@@ -83,8 +85,12 @@ type
     function CreateTableByNode(ANode: TXmlNode): TCacheTable;
     // UpdateSysTable
     procedure DoUpdateSysTable(ATable: TCacheTable);
+    // InsertCacheTable
+    procedure DoInsertCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
+    // DeleteCacheTable
+    procedure DoDeleteCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
     // UpdateDataFromCacheTable
-    procedure DoUpdateDataSetToCacheTable(ADataSet: IWNDataSet; ATable: TCacheTable;
+    procedure DoInsertDataSetToCacheTable(ADataSet: IWNDataSet; ATable: TCacheTable;
       AFields: TList<IWNField>; AJSIDField: IWNField);
     // DeleteDataFromCacheTable
     procedure DoDeleteDataSetToCacheTable(ADataSet: IWNDataSet; ATable: TCacheTable;
@@ -99,16 +105,19 @@ type
     // Delete Temp Delete Table
     procedure DeleteTempDeleteTable(ATable: TCacheTable);
 
+    // CommitCacheTables
+    procedure DoCommitCacheTables;
     // UpdateCacheTables
     procedure DoUpdateCacheTables;
     // AsyncUpdateCacheTables
     procedure DoAsyncUpdateCacheTables;
-    // AsyncUpdateCacheTable
-    procedure DoAsyncUpdateCacheTable(AName: string);
+
+    // CommitCacheTable
+    procedure DoCommitCacheTable(ATable: TCacheTable); virtual;
     // UpdateCacheTable
-    procedure DoUpdateCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
-    // DeleteCacheTable
-    procedure DoDeleteCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
+    procedure DoUpdateCacheTable(ATable: TCacheTable); virtual;
+    // AsyncUpdateCacheTable
+    procedure DoAsyncUpdateCacheTable(ATable: TCacheTable); virtual;
 
     // GFUpdateDataArrive
     procedure DoGFUpdateDataArrive(AGFData: IGFData);
@@ -136,19 +145,7 @@ uses
   LogLevel;
 
 const
-  // XML ≈‰÷√Œƒº˛
-  XML_NODE_TABLE = 'Table';
-  XML_NODE_SYSTable = 'SysTable';
-  XML_NODE_NAME = 'Name';
-  XML_NODE_VERSION = 'Version';
-  XML_NODE_UPDATEMEM = 'UpdateMem';
-  XML_NODE_UPDATEMEMFIELDKEY = 'UpdateMemFieldKey';
-  XML_NODE_CREATESQL = 'CreateSql';
-  XML_NODE_INSERTSQL = 'InsertSql';
-  XML_NODE_DELETESQL = 'DeleteSql';
-  XML_NODE_COLFIELDS = 'ColFields';
-  XML_NODE_INDICATOR = 'Indicator';
-  XML_NODE_DELETEINDICATOR = 'DeleteIndicator';
+  
 
   FIELD_JSID = 'JSID';
 
@@ -249,17 +246,17 @@ begin
         LXml.XmlFormat := xfReadable;
         LNode := LXml.Root;
 
-        FSysTable := CreateTableByNode(LNode.FindNode(XML_NODE_SYSTable));
+        FSysTable := CreateTableByNode(LNode.FindNode('SysTable'));
         if FSysTable = nil then begin
           if FAppContext <> nil then begin
-            FAppContext.SysLog(llError, Format('[%s][LoadTables][%s] Cache create table is nil.', [Self.ClassName, XML_NODE_SYSTable]));
+            FAppContext.SysLog(llError, Format('[%s][DoLoadTablesCfg][%s] Cache create table is nil.', [Self.ClassName, 'SysTable']));
           end;
           Exit;
         end;
 
         LNodeList := TList.Create;
         try
-          LNode.FindNodes(XML_NODE_TABLE, LNodeList);
+          LNode.FindNodes('Table', LNodeList);
           for LIndex := 0 to LNodeList.Count - 1 do begin
             LTable := CreateTableByNode(LNodeList.Items[LIndex]);
             if LTable <> nil then begin
@@ -267,7 +264,7 @@ begin
               FCacheTableDic.AddOrSetValue(LTable.Name, LTable);
             end else begin
               if FAppContext <> nil then begin
-                FAppContext.SysLog(llError, Format('[%s][LoadTables] Cache create table is nil.', [Self.ClassName]));
+                FAppContext.SysLog(llError, Format('[%s][DoLoadTablesCfg] Cache create table is nil.', [Self.ClassName]));
               end;
               Exit;
             end;
@@ -311,6 +308,38 @@ end;
 procedure TAbstractCacheImpl.DoReplaceCreateSysTable;
 begin
   FSQLiteAdapter.ExecuteSql(FSysTable.CreateSql);
+end;
+
+procedure TAbstractCacheImpl.DoReplaceCreateCacheTables;
+var
+{$IFDEF DEBUG}
+  LTick: Cardinal;
+{$ENDIF}
+  LIndex: Integer;
+  LTable: TCacheTable;
+begin
+{$IFDEF DEBUG}
+  LTick := GetTickCount;
+  try
+{$ENDIF}
+
+    for LIndex := 0 to FCacheTables.Count - 1 do begin
+      LTable := FCacheTables.Items[LIndex];
+      if (LTable <> nil) and (not LTable.IsCreate) then begin
+        FSQLiteAdapter.ExecuteSql(LTable.CreateSql);
+        DoUpdateSysTable(LTable);
+        LTable.IsCreate := True;
+      end;
+    end;
+
+{$IFDEF DEBUG}
+  finally
+    LTick := GetTickCount - LTick;
+    if FAppContext <> nil then begin
+      FAppContext.SysLog(llSLOW, Format('[%s][DoReplaceCreateNoExistCacheTables] Execute use time is %d ms.', [Self.ClassName, LTick]), LTick);
+    end;
+  end;
+{$ENDIF}
 end;
 
 procedure TAbstractCacheImpl.DoLoadCacheTableInfoFromSysTable;
@@ -363,54 +392,22 @@ begin
 {$ENDIF}
 end;
 
-procedure TAbstractCacheImpl.DoReplaceCreateNoExistCacheTables;
-var
-{$IFDEF DEBUG}
-  LTick: Cardinal;
-{$ENDIF}
-  LIndex: Integer;
-  LTable: TCacheTable;
-begin
-{$IFDEF DEBUG}
-  LTick := GetTickCount;
-  try
-{$ENDIF}
-
-    for LIndex := 0 to FCacheTables.Count - 1 do begin
-      LTable := FCacheTables.Items[LIndex];
-      if (LTable <> nil) and (not LTable.IsCreate) then begin
-        FSQLiteAdapter.ExecuteSql(LTable.CreateSql);
-        DoUpdateSysTable(LTable);
-        LTable.IsCreate := True;
-      end;
-    end;
-
-{$IFDEF DEBUG}
-  finally
-    LTick := GetTickCount - LTick;
-    if FAppContext <> nil then begin
-      FAppContext.SysLog(llSLOW, Format('[%s][DoLoadCacheTablesData] Execute use time is %d ms.', [Self.ClassName, LTick]), LTick);
-    end;
-  end;
-{$ENDIF}
-end;
-
 function TAbstractCacheImpl.CreateTableByNode(ANode: TXmlNode): TCacheTable;
 begin
   Result := nil;
   if ANode = nil then Exit;
 
   Result := TCacheTable.Create;
-  Result.Name := Utils.GetStringByChildNodeName(ANode, XML_NODE_NAME);
-  Result.Version := Utils.GetIntegerByChildNodeName(ANode, XML_NODE_VERSION, Result.Version);
-  Result.UpdateMem := Utils.GetIntegerByChildNodeName(ANode, XML_NODE_UPDATEMEM, Result.UpdateMem);
-  Result.UpdateMemFieldKey := Utils.GetStringByChildNodeName(ANode, XML_NODE_UPDATEMEMFIELDKEY);
-  Result.CreateSql := Utils.GetStringByChildNodeName(ANode, XML_NODE_CREATESQL);
-  Result.InsertSql := Utils.GetStringByChildNodeName(ANode, XML_NODE_INSERTSQL);
-  Result.DeleteSql := Utils.GetStringByChildNodeName(ANode, XML_NODE_DELETESQL);
-  Result.Indicator := Utils.GetStringByChildNodeName(ANode, XML_NODE_INDICATOR);
-  Result.DeleteIndicator := Utils.GetStringByChildNodeName(ANode, XML_NODE_DELETEINDICATOR);
-  Result.ColFields.DelimitedText := Utils.GetStringByChildNodeName(ANode, XML_NODE_COLFIELDS);
+  Result.Name := Utils.GetStringByChildNodeName(ANode, 'Name');
+  Result.Version := Utils.GetIntegerByChildNodeName(ANode, 'Version', Result.Version);
+  Result.UpdateSecs := Utils.GetIntegerByChildNodeName(ANode, 'UpdateSecs', MaxInt);
+  Result.CommitSecs := Utils.GetIntegerByChildNodeName(ANode, 'CommitSecs', MaxInt);
+  Result.CreateSql := Utils.GetStringByChildNodeName(ANode, 'CreateSql');
+  Result.InsertSql := Utils.GetStringByChildNodeName(ANode, 'InsertSql');
+  Result.DeleteSql := Utils.GetStringByChildNodeName(ANode, 'DeleteSql');
+  Result.Indicator := Utils.GetStringByChildNodeName(ANode, 'ColFields');
+  Result.DeleteIndicator := Utils.GetStringByChildNodeName(ANode, 'Indicator');
+  Result.ColFields.DelimitedText := Utils.GetStringByChildNodeName(ANode, 'DeleteIndicator');
 end;
 
 function TAbstractCacheImpl.GetTableByIndex(AIndex: Integer): TCacheTable;
@@ -428,7 +425,55 @@ begin
       ATable.Storage, ATable.Version, ATable.MaxJSID, ATable.DelJSID]));
 end;
 
-procedure TAbstractCacheImpl.DoUpdateDataSetToCacheTable(ADataSet: IWNDataSet; ATable: TCacheTable;
+procedure TAbstractCacheImpl.DoInsertCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
+var
+  LIndex: Integer;
+  LIsUpdate: Boolean;
+  LFields: TList<IWNField>;
+  LField, LJSIDField: IWNField;
+begin
+  LFields := TList<IWNField>.Create;
+  try
+    LIsUpdate := True;
+    LJSIDField := ADataSet.FieldByName(FIELD_JSID);
+    for LIndex := 0 to ATable.ColFields.Count - 1 do begin
+      LField := ADataSet.FieldByName(ATable.ColFields.Strings[LIndex]);
+      if LField <> nil then begin
+        LFields.Add(LField);
+      end else begin
+        LIsUpdate := False;
+        break;
+      end;
+    end;
+    if LIsUpdate then begin
+      DoInsertDataSetToCacheTable(ADataSet, ATable, LFields, LJSIDField);
+    end;
+  finally
+    LFields.Free;
+  end;
+end;
+
+procedure TAbstractCacheImpl.DoDeleteCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
+var
+  LFields: TList<IWNField>;
+  LIDField, LJSIDField: IWNField;
+begin
+  LFields := TList<IWNField>.Create;
+  try
+    if (ADataSet.RecordCount > 0)
+      and (ADataSet.FieldCount > 0) then begin
+      LIDField := ADataSet.Fields(0);
+      if LIDField <> nil then begin
+        LJSIDField := ADataSet.FieldByName(FIELD_JSID);
+        DoDeleteDataSetToCacheTable(ADataSet, ATable, LIDField, LJSIDField);
+      end;
+    end;
+  finally
+    LFields.Free;
+  end;
+end;
+
+procedure TAbstractCacheImpl.DoInsertDataSetToCacheTable(ADataSet: IWNDataSet; ATable: TCacheTable;
   AFields: TList<IWNField>; AJSIDField: IWNField);
 var
   LIndex: Integer;
@@ -571,6 +616,49 @@ begin
   FSQLiteAdapter.ExecuteSql(Format(SQL_TEMP_TABLE_DELETE, [ATable.TempDelName]));
 end;
 
+procedure TAbstractCacheImpl.DoCommitCacheTables;
+var
+{$IFDEF DEBUG}
+  LTick: Cardinal;
+  LTableTick: Cardinal;
+{$ELSE}
+  LTableTick: Cardinal;
+{$ENDIF}
+  LIndex: Integer;
+  LTable: TCacheTable;
+begin
+{$IFDEF DEBUG}
+  LTick := GetTickCount;
+  try
+{$ENDIF}
+
+    for LIndex := 0 to FCacheTables.Count - 1 do begin
+
+      Application.ProcessMessages;
+      LTable := FCacheTables.Items[LIndex];
+      if LTable <> nil then begin
+        LTableTick := GetTickCount;
+        try
+          DoCommitCacheTable(LTable);
+        finally
+          LTableTick := GetTickCount - LTableTick;
+          if FAppContext <> nil then begin
+            FAppContext.SysLog(llSLOW, Format('[%s][DoCommitCacheTables][Table][%s] Sync use time is %d ms.', [Self.ClassName, LTable.Name, LTableTick]), LTableTick);
+          end;
+        end;
+      end;
+    end;
+
+{$IFDEF DEBUG}
+  finally
+    LTick := GetTickCount - LTick;
+    if FAppContext <> nil then begin
+      FAppContext.SysLog(llSLOW, Format('[%s][DoCommitCacheTables] Execute use time is %d ms.', [Self.ClassName, LTick]), LTick);
+    end;
+  end;
+{$ENDIF}
+end;
+
 procedure TAbstractCacheImpl.DoUpdateCacheTables;
 var
 {$IFDEF DEBUG}
@@ -580,15 +668,12 @@ var
   LTableTick: Cardinal;
 {$ENDIF}
   LIndex: Integer;
-  LIndicator: string;
   LTable: TCacheTable;
-  LDataSet: IWNDataSet;
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
   try
 {$ENDIF}
-    DoReplaceCreateNoExistCacheTables;
 
     for LIndex := 0 to FCacheTables.Count - 1 do begin
 
@@ -597,24 +682,12 @@ begin
       if LTable <> nil then begin
         LTableTick := GetTickCount;
         try
-          if LTable.Indicator <> '' then begin
-            LIndicator := StringReplace(LTable.Indicator, REPLACE_STR_JSID,
-              IntToStr(LTable.MaxJSID), [rfReplaceAll]);
-            LDataSet := FAppContext.GFPrioritySyncQuery(FServiceType, LIndicator, INFINITE);
-            if LDataSet <> nil then begin
-              DoUpdateCacheTable(LTable, LDataSet);
-              LDataSet := nil;
-            end;
-          end;
-
-          if LTable.DeleteIndicator <> '' then begin
-            LIndicator := StringReplace(LTable.DeleteIndicator, REPLACE_STR_JSID,
-              IntToStr(LTable.DelJSID), [rfReplaceAll]);
-            LDataSet := FAppContext.GFPrioritySyncQuery(FServiceType, LIndicator, INFINITE);
-            if LDataSet <> nil then begin
-              DoDeleteCacheTable(LTable, LDataSet);
-              LDataSet := nil;
-            end;
+          LTable.Lock;
+          try
+            DoUpdateCacheTable(LTable);
+            LTable.LastUpdateTime := Now;
+          finally
+            LTable.UnLock;
           end;
         finally
           LTableTick := GetTickCount - LTableTick;
@@ -640,29 +713,28 @@ var
 {$IFDEF DEBUG}
   LTick: Cardinal;
 {$ENDIF}
-  LIndex: Integer;
+
   LIndicator: string;
   LTable: TCacheTable;
+  LIndex, LSecs: Integer;
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
   try
 {$ENDIF}
-    DoReplaceCreateNoExistCacheTables;
 
     for LIndex := 0 to FCacheTables.Count - 1 do begin
       LTable := FCacheTables.Items[LIndex];
       if LTable <> nil then begin
-        if LTable.Indicator <> '' then begin
-          LIndicator := StringReplace(LTable.Indicator, REPLACE_STR_JSID,
-            IntToStr(LTable.MaxJSID), [rfReplaceAll]);
-          FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFUpdateDataArrive, LTable.IndexID);
-        end;
-
-        if LTable.DeleteIndicator <> '' then begin
-          LIndicator := StringReplace(LTable.DeleteIndicator, REPLACE_STR_JSID,
-            IntToStr(LTable.DelJSID), [rfReplaceAll]);
-          FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFUpdateDataArrive, LTable.IndexID);
+        LTable.Lock;
+        try
+          LSecs := SecondsBetween(Now, LTable.LastUpdateTime);
+          if LSecs > LTable.UpdateSecs then begin
+            DoAsyncUpdateCacheTable(LTable);
+            LTable.LastUpdateTime := Now;
+          end;
+        finally
+          LTable.UnLock;
         end;
       end;
     end;
@@ -677,73 +749,51 @@ begin
 {$ENDIF}
 end;
 
-procedure TAbstractCacheImpl.DoAsyncUpdateCacheTable(AName: string);
+procedure TAbstractCacheImpl.DoCommitCacheTable(ATable: TCacheTable);
+begin
+
+end;
+
+procedure TAbstractCacheImpl.DoUpdateCacheTable(ATable: TCacheTable);
 var
   LIndicator: string;
-  LTable: TCacheTable;
+  LDataSet: IWNDataSet;
 begin
-  if FCacheTableDic.TryGetValue(AName, LTable) then begin
-    if LTable <> nil then begin
-      if LTable.Indicator <> '' then begin
-        LIndicator := StringReplace(LTable.Indicator, REPLACE_STR_JSID,
-          IntToStr(LTable.MaxJSID), [rfReplaceAll]);
-        FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFUpdateDataArrive, LTable.IndexID);
-      end;
+  if ATable.Indicator <> '' then begin
+    LIndicator := StringReplace(ATable.Indicator, REPLACE_STR_JSID,
+      IntToStr(ATable.MaxJSID), [rfReplaceAll]);
+    LDataSet := FAppContext.GFPrioritySyncQuery(FServiceType, LIndicator, INFINITE);
+    if LDataSet <> nil then begin
+      DoInsertCacheTable(ATable, LDataSet);
+      LDataSet := nil;
+    end;
+  end;
 
-      if LTable.DeleteIndicator <> '' then begin
-        LIndicator := StringReplace(LTable.DeleteIndicator, REPLACE_STR_JSID,
-          IntToStr(LTable.DelJSID), [rfReplaceAll]);
-        FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFUpdateDataArrive, LTable.IndexID);
-      end;
+  if ATable.DeleteIndicator <> '' then begin
+    LIndicator := StringReplace(ATable.DeleteIndicator, REPLACE_STR_JSID,
+      IntToStr(ATable.DelJSID), [rfReplaceAll]);
+    LDataSet := FAppContext.GFPrioritySyncQuery(FServiceType, LIndicator, INFINITE);
+    if LDataSet <> nil then begin
+      DoDeleteCacheTable(ATable, LDataSet);
+      LDataSet := nil;
     end;
   end;
 end;
 
-procedure TAbstractCacheImpl.DoUpdateCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
+procedure TAbstractCacheImpl.DoAsyncUpdateCacheTable(ATable: TCacheTable);
 var
-  LIndex: Integer;
-  LIsUpdate: Boolean;
-  LFields: TList<IWNField>;
-  LField, LJSIDField: IWNField;
+  LIndicator: string;
 begin
-  LFields := TList<IWNField>.Create;
-  try
-    LIsUpdate := True;
-    LJSIDField := ADataSet.FieldByName(FIELD_JSID);
-    for LIndex := 0 to ATable.ColFields.Count - 1 do begin
-      LField := ADataSet.FieldByName(ATable.ColFields.Strings[LIndex]);
-      if LField <> nil then begin
-        LFields.Add(LField);
-      end else begin
-        LIsUpdate := False;
-        break;
-      end;
-    end;
-    if LIsUpdate then begin
-      DoUpdateDataSetToCacheTable(ADataSet, ATable, LFields, LJSIDField);
-    end;
-  finally
-    LFields.Free;
+  if ATable.Indicator <> '' then begin
+    LIndicator := StringReplace(ATable.Indicator, REPLACE_STR_JSID,
+      IntToStr(ATable.MaxJSID), [rfReplaceAll]);
+    FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFUpdateDataArrive, ATable.IndexID);
   end;
-end;
 
-procedure TAbstractCacheImpl.DoDeleteCacheTable(ATable: TCacheTable; ADataSet: IWNDataSet);
-var
-  LFields: TList<IWNField>;
-  LIDField, LJSIDField: IWNField;
-begin
-  LFields := TList<IWNField>.Create;
-  try
-    if (ADataSet.RecordCount > 0)
-      and (ADataSet.FieldCount > 0) then begin
-      LIDField := ADataSet.Fields(0);
-      if LIDField <> nil then begin
-        LJSIDField := ADataSet.FieldByName(FIELD_JSID);
-        DoDeleteDataSetToCacheTable(ADataSet, ATable, LIDField, LJSIDField);
-      end;
-    end;
-  finally
-    LFields.Free;
+  if ATable.DeleteIndicator <> '' then begin
+    LIndicator := StringReplace(ATable.DeleteIndicator, REPLACE_STR_JSID,
+      IntToStr(ATable.DelJSID), [rfReplaceAll]);
+    FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFUpdateDataArrive, ATable.IndexID);
   end;
 end;
 
@@ -800,7 +850,7 @@ begin
               begin
                 LTable := GetTableByIndex(LCacheGF.ID);
                 if LTable <> nil then begin
-                  DoUpdateCacheTable(LTable, LCacheGF.DataSet);
+                  DoInsertCacheTable(LTable, LCacheGF.DataSet);
                   LCacheGF.DataSet := nil;
                 end;
               end;

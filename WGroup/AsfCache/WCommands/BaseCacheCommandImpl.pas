@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -96,21 +90,6 @@ begin
   finally
     EndSplitParams;
   end;
-end;
-
-procedure TBaseCacheCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TBaseCacheCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TBaseCacheCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

@@ -4,10 +4,8 @@
 		<Name>SysTable<Name>
 		<Version>0</Version>
 		<Operate>0</Operate>
-		<UpdateInterval>0</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>0</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			CREATE TABLE IF NOT EXISTS SysTable(
 				"TableName" VARCHAR(50) NOT NULL PRIMARY KEY,
@@ -31,10 +29,8 @@
 		<Name>ZQZB</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>1</UpdateMem>
-		<UpdateMemFieldKey>innerCode<UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS ZQZB;
 			CREATE TABLE IF NOT EXISTS ZQZB(
@@ -75,10 +71,8 @@
 		<Name>QT_AdjustingFactor</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS QT_AdjustingFactor;
 			CREATE TABLE IF NOT EXISTS QT_AdjustingFactor(
@@ -105,10 +99,8 @@
 		<Name>HK_AdjustingFactor</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS HK_AdjustingFactor;
 			CREATE TABLE IF NOT EXISTS HK_AdjustingFactor(
@@ -135,10 +127,8 @@
 		<Name>NQ_AdjustFactor</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS NQ_AdjustFactor;
 			CREATE TABLE IF NOT EXISTS NQ_AdjustFactor(
@@ -165,10 +155,8 @@
 		<Name>HSCODE</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS HSCODE;
 			CREATE TABLE IF NOT EXISTS HSCODE(
@@ -194,10 +182,8 @@
 		<Name>DW_PlateInfo</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS DW_PlateInfo;
 			CREATE TABLE IF NOT EXISTS DW_PlateInfo(
@@ -229,10 +215,8 @@
 		<Name>DW_PlateComponent</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS DW_PlateComponent;
 			CREATE TABLE IF NOT EXISTS DW_PlateComponent(
@@ -257,10 +241,8 @@
 		<Name>DW_SecuBasicInfo</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS DW_SecuBasicInfo;
 			CREATE TABLE IF NOT EXISTS DW_SecuBasicInfo(
@@ -299,10 +281,8 @@
 		<Name>DW_DerivativeQT</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS DW_DerivativeQT;
 			CREATE TABLE IF NOT EXISTS DW_DerivativeQT(
@@ -349,10 +329,8 @@
 		<Name>DW_Superimposedvariety</Name>
 		<Version>0</Version>
 		<Operate>1</Operate>
-		<UpdateInterval>20</UpdateInterval>
-		<CommitInterval>0</CommitInterval>
-		<UpdateMem>0</UpdateMem>
-		<UpdateMemFieldKey><UpdateMemFieldKey>
+		<UpdateSecs>20</UpdateSecs>
+		<CommitSecs>0</CommitSecs>
 		<CreateSql>
 			DROP TABLE IF EXISTS DW_Superimposedvariety;
 			CREATE TABLE IF NOT EXISTS DW_Superimposedvariety(

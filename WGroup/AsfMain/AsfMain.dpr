@@ -96,6 +96,8 @@ begin
 //        LoadCache;
 //        LoadMemory;
         LoadMaster;
+        LoadCronJobs;
+        LoadDelayJobs;
         Application.Run;
       end;
     finally

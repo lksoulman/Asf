@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FKeySearchEngine := TKeySearchEngineImpl.Create(FAppContext) as IKeySearchEngine;
     FAppContext.RegisterInteface(FId, FKeySearchEngine);
   end;
-end;
-
-procedure TKeySearchEngineCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TKeySearchEngineCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TKeySearchEngineCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

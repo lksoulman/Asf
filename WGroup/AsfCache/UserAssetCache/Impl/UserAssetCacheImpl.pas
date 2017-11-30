@@ -87,7 +87,7 @@ end;
 
 procedure TUserAssetCacheImpl.AsyncUpdateTable(AName: string);
 begin
-  DoAsyncUpdateCacheTable(AName);
+//  DoAsyncUpdateCacheTable(AName);
 end;
 function TUserAssetCacheImpl.SyncQuery(ASql: WideString): IWNDataSet;
 begin

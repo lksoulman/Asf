@@ -67,12 +67,6 @@ type
     function GetShortKey: Integer;
     // Execute
     procedure Execute(AParams: string);
-    // Execute
-    procedure ExecuteEx(AParams: array of string);
-    // Execute
-    procedure ExecuteAsync(AParams: string);
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string);
   end;
 
 implementation

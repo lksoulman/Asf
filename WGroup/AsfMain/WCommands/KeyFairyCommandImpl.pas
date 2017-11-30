@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FKeyFairy := TKeyFairyImpl.Create(FAppContext) as IKeyFairy;
     FAppContext.RegisterInteface(FId, FKeyFairy);
   end;
-end;
-
-procedure TKeyFairyCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TKeyFairyCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TKeyFairyCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

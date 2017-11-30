@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FStatusServerDataMgr := TStatusServerDataMgrImpl.Create(FAppContext) as IStatusServerDataMgr;
     FAppContext.RegisterInteface(FId, FStatusServerDataMgr);
   end;
-end;
-
-procedure TStatusServerDataMgrCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TStatusServerDataMgrCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TStatusServerDataMgrCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

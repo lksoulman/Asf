@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FShortKeyDataMgr := TShortKeyDataMgrImpl.Create(FAppContext) as IShortKeyDataMgr;
     FAppContext.RegisterInteface(FId, FShortKeyDataMgr);
   end;
-end;
-
-procedure TShortKeyDataMgrCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TShortKeyDataMgrCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TShortKeyDataMgrCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

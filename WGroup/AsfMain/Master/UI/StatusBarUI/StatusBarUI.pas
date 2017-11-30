@@ -149,6 +149,8 @@ type
     // StatusHqDataMgr
     FStatusHqDataMgr: IStatusHqDataMgr;
   protected
+    // ClearQueue
+    procedure DoClearQueue;
     // Calc Rect
     procedure DoCalcRect; override;
   public
@@ -172,8 +174,9 @@ type
   TNewsInfo = packed record
     FId: Int64;
     FRect: TRect;
-    FTitle: string;
     FWidth: Integer;
+    FTitle: string;
+    FDateStr: string;
   end;
 
   // NewsInfo
@@ -208,7 +211,11 @@ type
     // StatusNewsDataMgr
     FStatusNewsDataMgr: IStatusNewsDataMgr;
   protected
-    // Pt In NewsInfo
+    // ClearQueue
+    procedure DoClearQueue;
+    // GetNextStatusNewsData
+    function GetNextStatusNewsData: PStatusNewsData;
+    // PtInNewsInfo
     function DoPtInNewsInfo(APt: TPoint; var ANewsInfo: PNewsInfo): Boolean;
   public
     // Constructor
@@ -496,10 +503,24 @@ end;
 
 destructor TStatusHqItem.Destroy;
 begin
+  DoClearQueue;
   FHqInfoQueue.Free;
   FHqInfoPool.Free;
   FStatusHqDataMgr := nil;
   inherited;
+end;
+
+procedure TStatusHqItem.DoClearQueue;
+var
+  LIndex: Integer;
+  LHqInfo: PHqInfo;
+begin
+  for LIndex := 0 to FHqInfoQueue.GetCount - 1 do begin
+    LHqInfo := FHqInfoQueue.GetElement(LIndex);
+    if LHqInfo <> nil then begin
+      Dispose(LHqInfo);
+    end;
+  end;
 end;
 
 procedure TStatusHqItem.DoCalcRect;
@@ -565,7 +586,7 @@ end;
 
 function TStatusHqItem.Scroll: Boolean;
 const
-  START_SCROLL = 15;
+  START_SCROLL = 30;
 var
   LHqInfo: PHqInfo;
   LNextIndex: Integer;
@@ -731,10 +752,40 @@ end;
 
 destructor TStatusNewsItem.Destroy;
 begin
+  DoClearQueue;
   FDrawNewsInfoQueue.Free;
   FNewsInfoPool.Free;
   FStatusNewsDataMgr := nil;
   inherited;
+end;
+
+procedure TStatusNewsItem.DoClearQueue;
+var
+  LIndex: Integer;
+  LNewInfo: PNewsInfo;
+begin
+  for LIndex := 0 to FDrawNewsInfoQueue.GetCount - 1 do begin
+    LNewInfo := FDrawNewsInfoQueue.GetElement(LIndex);
+    if LNewInfo <> nil then begin
+      Dispose(LNewInfo);
+    end;
+  end;
+end;
+
+function TStatusNewsItem.GetNextStatusNewsData: PStatusNewsData;
+begin
+  Result := nil;
+  if FStatusNewsDataMgr = nil then Exit;
+
+  FStatusNewsDataMgr.Lock;
+  try
+    Result := FStatusNewsDataMgr.GetData(FCurrIndex);
+    if FStatusNewsDataMgr.GetDataCount > 0 then begin
+      FCurrIndex := (FCurrIndex + 1) mod FStatusNewsDataMgr.GetDataCount;
+    end;
+  finally
+    FStatusNewsDataMgr.UnLock;
+  end;
 end;
 
 function TStatusNewsItem.Scroll: Boolean;
@@ -779,12 +830,12 @@ begin
 
   while LRight <= FRectEx.Right do begin
 
-    if LCount >= 10 then Exit;
+    if LCount >= 3 then Exit;
 
-    LStatusNewsData := FStatusNewsDataMgr.GetData(FCurrIndex);
+    LStatusNewsData := GetNextStatusNewsData;
     if LStatusNewsData <> nil then begin
       if LStatusNewsData^.FWidth = 0 then begin
-        LTitle := LStatusNewsData^.FDateTimeStr + ' ' + LStatusNewsData^.FTitle;
+        LTitle := LStatusNewsData^.FDateStr + '  ' + LStatusNewsData^.FTitle;
         GetTextSizeX(FStatusBarUI.FFrameRenderDC.MemDC,
           FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight20,
           LTitle,
@@ -797,7 +848,8 @@ begin
       LNewsInfo := PNewsInfo(FNewsInfoPool.Allocate);
       if LNewsInfo <> nil then begin
         LNewsInfo^.FId := LStatusNewsData^.FId;
-        LNewsInfo^.FTitle := LStatusNewsData^.FDateTimeStr + ' ' + LStatusNewsData^.FTitle;
+        LNewsInfo^.FTitle := LStatusNewsData^.FTitle;
+        LNewsInfo^.FDateStr := LStatusNewsData^.FDateStr;
         LNewsInfo^.FWidth := LStatusNewsData^.FWidth;
         LNewsInfo^.FRect := FRectEx;
         LNewsInfo^.FRect.Left := LRight;
@@ -805,9 +857,6 @@ begin
         FDrawNewsInfoQueue.PushElement(LNewsInfo);
         LRight := LNewsInfo^.FRect.Right + 100;
       end;
-    end;
-    if FStatusNewsDataMgr.GetDataCount > 0 then begin
-      FCurrIndex := (FCurrIndex + 1) mod FStatusNewsDataMgr.GetDataCount;
     end;
     Inc(LCount);
   end;
@@ -826,6 +875,7 @@ function TStatusNewsItem.Draw(ARenderDC: TRenderDC): Boolean;
 var
   LOBJ: HGDIOBJ;
   LClipRgn: HRGN;
+  LTitle: string;
   LIndex: Integer;
   LNewsInfo: PNewsInfo;
 begin
@@ -842,7 +892,8 @@ begin
       for LIndex := 0 to FDrawNewsInfoQueue.GetCount - 1 do begin
         LNewsInfo := FDrawNewsInfoQueue.GetElement(LIndex);
         if LNewsInfo <> nil then begin
-          DrawTextX(ARenderDC.MemDC, LNewsInfo^.FRect, LNewsInfo^.FTitle,
+          LTitle := LNewsInfo^.FDateStr + '  ' + LNewsInfo^.FTitle;
+          DrawTextX(ARenderDC.MemDC, LNewsInfo^.FRect, LTitle,
                 FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefMasterStatusBarText,
                 dtaLeft, False, False);
         end;

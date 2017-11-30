@@ -22,12 +22,16 @@ type
   // BaseCache Interface
   IBaseCache = Interface(IInterface)
     ['{D3E280F2-E5F1-4D74-818B-1F0BFC0016AE}']
-    // Update
+    // UpdateTables
     procedure UpdateTables;
     // AsyncUpdate
     procedure AsyncUpdateTables;
+    // UpdateTable
+    procedure UpdateTable(AName: string);
     // AsyncUpdateTable
     procedure AsyncUpdateTable(AName: string);
+    // NoExistUpdateTable
+    procedure NoExistUpdateTable(AName: string);
     // Query
     function Query(ASql: WideString): IWNDataSet;
     // Async Query

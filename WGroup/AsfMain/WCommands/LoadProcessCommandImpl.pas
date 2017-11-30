@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -81,21 +75,6 @@ begin
     FLoadProcess.Show;
   end;
   FLoadProcess.ShowInfo(AParams);
-end;
-
-procedure TLoadProcessCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TLoadProcessCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TLoadProcessCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

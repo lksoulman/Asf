@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FLogin := TLoginImpl.Create(FAppContext) as ILogin;
     FAppContext.RegisterInteface(FId, FLogin);
   end;
-end;
-
-procedure TLoginCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TLoginCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TLoginCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

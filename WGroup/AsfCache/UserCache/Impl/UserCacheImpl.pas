@@ -17,6 +17,7 @@ uses
   SysUtils,
   UserCache,
   CacheType,
+  CacheTable,
   AppContext,
   WNDataSetInf,
   AbstractCacheImpl;
@@ -85,8 +86,12 @@ begin
 end;
 
 procedure TUserCacheImpl.AsyncUpdateTable(AName: string);
+var
+  LTable: TCacheTable;
 begin
-  DoAsyncUpdateCacheTable(AName);
+  if FCacheTableDic.TryGetValue(AName, LTable) then begin
+    DoAsyncUpdateCacheTable(LTable);
+  end;
 end;
 function TUserCacheImpl.SyncQuery(ASql: WideString): IWNDataSet;
 begin

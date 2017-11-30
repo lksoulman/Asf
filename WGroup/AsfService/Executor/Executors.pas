@@ -308,6 +308,7 @@ begin
             end;
 
             if THttpContext(LObject).WaitMode = wmNoBlocking then begin
+              FFinishQueue.Enqueue(LObject);
               DoPostMessage(WM_EVENT_DATA, 0, 0);
             end else begin
               THttpContext(LObject).SetWaitFinish;

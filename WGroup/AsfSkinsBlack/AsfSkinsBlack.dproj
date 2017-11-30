@@ -137,7 +137,7 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment>
-                <DeployFile LocalName="..\..\Run\Debug\Bin\AsfSkinsBlack.dll" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="Win32\Debug\AsfSkinsBlack.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AsfSkinsBlack.dll</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -157,7 +157,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win32\Debug\AsfSkinsBlack.dll" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\..\Run\Debug\Bin\AsfSkinsBlack.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AsfSkinsBlack.dll</RemoteName>
                         <Overwrite>true</Overwrite>

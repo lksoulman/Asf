@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -89,21 +83,6 @@ begin
   finally
     EndSplitParams;
   end;
-end;
-
-procedure THqAuthCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure THqAuthCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure THqAuthCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

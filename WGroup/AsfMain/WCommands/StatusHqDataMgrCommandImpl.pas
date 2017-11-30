@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FStatusHqDataMgr := TStatusHqDataMgrImpl.Create(FAppContext) as IStatusHqDataMgr;
     FAppContext.RegisterInteface(FId, FStatusHqDataMgr);
   end;
-end;
-
-procedure TStatusHqDataMgrCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TStatusHqDataMgrCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TStatusHqDataMgrCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

@@ -38,12 +38,6 @@ type
 
     // Execute
     procedure Execute(AParams: string); override;
-    // Execute
-    procedure ExecuteEx(AParams: array of string); override;
-    // Execute
-    procedure ExecuteAsync(AParams: string); override;
-    // Execute
-    procedure ExecuteAsyncEx(AParams: array of string); override;
   end;
 
 implementation
@@ -74,21 +68,6 @@ begin
     FCommandCookieMgr := TCommandCookieMgrImpl.Create(FAppContext) as ICommandCookieMgr;
     FAppContext.RegisterInteface(FId, FCommandCookieMgr);
   end;
-end;
-
-procedure TCommandCookieMgrCommandImpl.ExecuteEx(AParams: array of string);
-begin
-
-end;
-
-procedure TCommandCookieMgrCommandImpl.ExecuteAsync(AParams: string);
-begin
-
-end;
-
-procedure TCommandCookieMgrCommandImpl.ExecuteAsyncEx(AParams: array of string);
-begin
-
 end;
 
 end.

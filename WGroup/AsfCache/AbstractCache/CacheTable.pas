@@ -16,6 +16,7 @@ uses
   Classes,
   SysUtils,
   CommonLock,
+  CommonRefCounter,
   Generics.Collections;
 
 const
@@ -26,7 +27,7 @@ const
 
 type
 
-  TCacheTable = class
+  TCacheTable = class(TAutoObject)
   private
     // 表名称
     FName: string;
@@ -38,14 +39,14 @@ type
     FVersion: Integer;
     // Operate
     FOperate: Integer;
-    // 更新间隔
-    FUpdateInterval: Cardinal;
-    // 提交间隔
-    FCommitInterval: Cardinal;
-    // LastUpdateTime
-    FLastUpdateTime: Cardinal;
-    // LastCommitTime
-    FLastCommitTime: Cardinal;
+    // 更新间隔秒数
+    FUpdateSecs: Integer;
+    // 提交间隔秒数
+    FCommitSecs: Integer;
+    // 上次更新的时间
+    FLastUpdateTime: TDateTime;
+    // 上次提交的时间
+    FLastCommitTime: TDateTime;
     // 更新最大 JSID
     FMaxJSID: Int64;
     // 删除最大 JSID
@@ -62,35 +63,26 @@ type
     FIndicator: string;
     // 请求删除数据的指标
     FDeleteIndicator: string;
-
-    // 存储列明的
-    FColFields: TStringList;
     // 数据锁
     FLock: TCSLock;
-    // 更新表的时候更新内存的数据 (0: 表示不更新; 1: 表示更新内存数据)
-    FUpdateMem: Integer;
-    // 更新的数据集 key 对应的列明
-    FUpdateMemFieldKey: string;
-    // 存放内存需要更新的数据
-    FUpdateMemDic: TDictionary<string, string>;
+    // 存储列明的
+    FColFields: TStringList;
   protected
     // 获取临时表名称
     function GetTempTableName: string;
     // 获取临时删除表名称
     function GetTempDelTableName: string;
   public
-    // 构造方法
-    constructor Create;
-    // 析构函数
+    // Constructor
+    constructor Create; override;
+    // Destructor
     destructor Destroy; override;
-    // 设置数据的列名
+    // Lock
+    procedure Lock;
+    // UnLock
+    procedure UnLock;
+    // SetColFields
     procedure SetColFields(AColFields: string);
-    // 添加更新数据的 Key
-    procedure AddUpdateMem(AUpdateKey: string);
-    // 获取更新数据的 Key
-    function GetUpdateMemKeys: string;
-    // 获取更新数据的 Key 的个数
-    function GetUpdateMemKeyCount: Integer;
 
     property Name: string read FName write FName;
     property TempName: string read GetTempTableName;
@@ -101,10 +93,10 @@ type
     property Operate: Integer read FOperate write FOperate;
     property MaxJSID: Int64 read FMaxJSID write FMaxJSID;
     property DelJSID: Int64 read FDelJSID write FDelJSID;
-    property UpdateInterval: Cardinal read FUpdateInterval write FUpdateInterval;
-    property CommitInterval: Cardinal read FCommitInterval write FCommitInterval;
-    property LastUpdateTime: Cardinal read FLastUpdateTime write FLastUpdateTime;
-    property LastCommitTime: Cardinal read FLastCommitTime write FLastCommitTime;
+    property UpdateSecs: Integer read FUpdateSecs write FUpdateSecs;
+    property CommitSecs: Integer read FCommitSecs write FCommitSecs;
+    property LastUpdateTime: TDateTime read FLastUpdateTime write FLastUpdateTime;
+    property LastCommitTime: TDateTime read FLastCommitTime write FLastCommitTime;
     property IsCreate: Boolean read FIsCreate write FIsCreate;
     property CreateSql: string read FCreateSql write FCreateSql;
     property InsertSql: string read FInsertSql write FInsertSql;
@@ -112,8 +104,6 @@ type
     property Indicator: string read FIndicator write FIndicator;
     property DeleteIndicator: string read FDeleteIndicator write FDeleteIndicator;
     property ColFields: TStringList read FColFields;
-    property UpdateMem: Integer read FUpdateMem write FUpdateMem;
-    property UpdateMemFieldKey: string read FUpdateMemFieldKey write FUpdateMemFieldKey;
   end;
 
 implementation
@@ -122,20 +112,22 @@ implementation
 
 constructor TCacheTable.Create;
 begin
+  inherited;
   FIndexID := 0;
   FStorage := 0;
   FVersion := 0;
   FMaxJSID := 0;
   FDelJSID := 0;
-  FUpdateMem := 0;
+  FUpdateSecs := MaxInt;
+  FCommitSecs := MaxInt;
+  FLastUpdateTime := 0;
+  FLastCommitTime := 0;
   FLock := TCSLock.Create;
   FColFields := TStringList.Create;
-  FUpdateMemDic := TDictionary<string, string>.Create;
 end;
 
 destructor TCacheTable.Destroy;
 begin
-  FUpdateMemDic.Free;
   FColFields.Free;
   FLock.Free;
   inherited;
@@ -151,55 +143,19 @@ begin
   Result := 'TempDel_' + FName;
 end;
 
+procedure TCacheTable.Lock;
+begin
+  FLock.Lock;
+end;
+
+procedure TCacheTable.UnLock;
+begin
+  FLock.UnLock;
+end;
+
 procedure TCacheTable.SetColFields(AColFields: string);
 begin
   FColFields.DelimitedText := AColFields;
-end;
-
-procedure TCacheTable.AddUpdateMem(AUpdateKey: string);
-begin
-  if AUpdateKey = '' then Exit;
-  
-  FLock.Lock;
-  try
-    FUpdateMemDic.AddOrSetValue(AUpdateKey, AUpdateKey);
-  finally
-    FLock.UnLock;
-  end;
-end;
-
-function TCacheTable.GetUpdateMemKeys: string;
-var
-  LEnum: TDictionary<string, string>.TPairEnumerator;
-begin
-  FLock.Lock;
-  try
-    Result := '';
-    if FUpdateMemDic.Count <= 0 then begin
-      Exit;
-    end;
-
-    LEnum := FUpdateMemDic.GetEnumerator;
-    while LEnum.MoveNext do begin
-      if Result = '' then begin
-        Result := LEnum.Current.Key;
-      end else begin
-        Result := LEnum.Current.Key + ',' + Result;
-      end;
-    end;
-  finally
-    FLock.UnLock;
-  end;
-end;
-
-function TCacheTable.GetUpdateMemKeyCount: Integer;
-begin
-  FLock.Lock;
-  try
-    Result := FUpdateMemDic.Count;
-  finally
-    FLock.UnLock;
-  end;
 end;
 
 end.

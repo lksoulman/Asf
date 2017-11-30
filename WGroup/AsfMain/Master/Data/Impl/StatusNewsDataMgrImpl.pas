@@ -56,8 +56,6 @@ type
     FStatusNewsPool: TStatusNewsPool;
     // StatusNewsDatas
     FStatusNewsDatas: TList<PStatusNewsData>;
-    // StatusNewsDataDic
-    FStatusNewsDataDic: TDictionary<Int64, PStatusNewsData>;
   protected
     // ClearDatas
     procedure DoClearDatas;
@@ -85,8 +83,6 @@ type
     function GetDataCount: Integer;
     // Get Data
     function GetData(AIndex: Integer): PStatusNewsData;
-    // Find Data
-    function FindData(AId: Integer): PStatusNewsData;
   end;
 
 implementation
@@ -126,14 +122,12 @@ begin
   FLock := TCSLock.Create;
   FStatusNewsPool := TStatusNewsPool.Create(20);
   FStatusNewsDatas := TList<PStatusNewsData>.Create;
-  FStatusNewsDataDic := TDictionary<Int64, PStatusNewsData>.Create;
-  DoAddTestDatas;
+//  DoAddTestDatas;
 end;
 
 destructor TStatusNewsDataMgrImpl.Destroy;
 begin
   DoClearDatas;
-  FStatusNewsDataDic.Free;
   FStatusNewsDatas.Free;
   FStatusNewsPool.Free;
   FLock.Free;
@@ -145,7 +139,6 @@ var
   LIndex: Integer;
   LStatusNewsData: PStatusNewsData;
 begin
-  FStatusNewsDataDic.Clear;
   for LIndex := 0 to FStatusNewsDatas.Count - 1 do begin
     LStatusNewsData := FStatusNewsDatas.Items[LIndex];
     if LStatusNewsData <> nil then begin
@@ -166,63 +159,56 @@ begin
   LStatusNewsData^.FWidth := 0;
   LStatusNewsData^.FTitle := '精英智通中标1996万元配套弱电工程';
   LStatusNewsData^.FDateTime := Now;
-  LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', Now);
+  LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', Now);
   FStatusNewsDatas.Add(LStatusNewsData);
-  FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
 
   New(LStatusNewsData);
   LStatusNewsData^.FId := 0;
   LStatusNewsData^.FWidth := 0;
   LStatusNewsData^.FTitle := '智房科技与巨匠建设签订3000万元工程分包合同';
   LStatusNewsData^.FDateTime := Now;
-  LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', Now);
+  LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', Now);
   FStatusNewsDatas.Add(LStatusNewsData);
-  FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
 
   New(LStatusNewsData);
   LStatusNewsData^.FId := 0;
   LStatusNewsData^.FWidth := 0;
   LStatusNewsData^.FTitle := '金力股份收到889万元河北省专项资金补贴';
   LStatusNewsData^.FDateTime := Now;
-  LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', Now);
+  LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', Now);
   FStatusNewsDatas.Add(LStatusNewsData);
-  FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
 
   New(LStatusNewsData);
   LStatusNewsData^.FId := 0;
   LStatusNewsData^.FWidth := 0;
   LStatusNewsData^.FTitle := '新宁物流:停牌筹划购买资产事项';
   LStatusNewsData^.FDateTime := Now;
-  LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', Now);
+  LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', Now);
   FStatusNewsDatas.Add(LStatusNewsData);
-  FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
 
   New(LStatusNewsData);
   LStatusNewsData^.FId := 0;
   LStatusNewsData^.FWidth := 0;
   LStatusNewsData^.FTitle := '中富通:股东拟合计减持不超4.56%股份';
   LStatusNewsData^.FDateTime := Now;
-  LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', Now);
+  LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', Now);
   FStatusNewsDatas.Add(LStatusNewsData);
-  FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
 
   New(LStatusNewsData);
   LStatusNewsData^.FId := 0;
   LStatusNewsData^.FWidth := 0;
   LStatusNewsData^.FTitle := '天和防务:实控人拟增持不超5000万元';
   LStatusNewsData^.FDateTime := Now;
-  LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', Now);
+  LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', Now);
   FStatusNewsDatas.Add(LStatusNewsData);
-  FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
 
   New(LStatusNewsData);
   LStatusNewsData^.FId := 0;
   LStatusNewsData^.FWidth := 0;
   LStatusNewsData^.FTitle := '普华永道:中资地产商积极寻求海外市场机会';
   LStatusNewsData^.FDateTime := Now;
-  LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', Now);
+  LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', Now);
   FStatusNewsDatas.Add(LStatusNewsData);
-  FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
 end;
 
 procedure TStatusNewsDataMgrImpl.DoUpdate(AGFDataSet: TGFDataSet);
@@ -256,11 +242,11 @@ begin
               LDate := FormatDateTime('YYYYMMDD', LStatusNewsData^.FDateTime);
               if LNowDate <> LDate then begin
                 LStatusNewsData^.FDateTime := LupdateTime.AsDateTime;
-                LStatusNewsData^.FDateTimeStr := FormatDateTime('MM-DD', LStatusNewsData^.FDateTime);
+                LStatusNewsData^.FDateStr := FormatDateTime('MM-DD', LStatusNewsData^.FDateTime);
               end else begin
-                LStatusNewsData^.FDateTimeStr := FormatDateTime('hh:nn:ss', LStatusNewsData^.FDateTime);
+                LStatusNewsData^.FDateStr := FormatDateTime('hh:nn:ss', LStatusNewsData^.FDateTime);
               end;
-              FStatusNewsDataDic.AddOrSetValue(LStatusNewsData^.FId, LStatusNewsData);
+              FStatusNewsDatas.Add(LStatusNewsData);
             end;
           end;
           AGFDataSet.Next;
@@ -298,10 +284,16 @@ begin
 end;
 
 procedure TStatusNewsDataMgrImpl.Update;
+var
+  LIndicator: string;
 begin
-
-//       FGFData.Cancel;
-//  FGFData := FAppContext.GFAsyncQuery(stBasic, '', DoGFDataArrive, 0);
+  if FGFData <> nil then begin
+    FGFData.Cancel;
+    FGFData := nil;
+  end;
+  LIndicator := Format('C_INFOFIN_NEWSLIST_TEXT4delphi("%s", "%s", ["1","100","true","updateTime.DESC","true"])',
+    [FormatDateTime('YYYY-MM-DD 00:00:00.000', Now), FormatDateTime('YYYY-MM-DD 00:00:00.000', Now)]);
+  FGFData := FAppContext.GFAsyncQuery(stBasic, LIndicator, DoGFDataArrive, 0);
 end;
 
 function TStatusNewsDataMgrImpl.GetDataCount: Integer;
@@ -315,13 +307,6 @@ begin
     and (AIndex < FStatusNewsDatas.Count) then begin
     Result := FStatusNewsDatas.Items[AIndex];
   end else begin
-    Result := nil;
-  end;
-end;
-
-function TStatusNewsDataMgrImpl.FindData(AId: Integer): PStatusNewsData;
-begin
-  if not FStatusNewsDataDic.TryGetValue(AId, Result) then begin
     Result := nil;
   end;
 end;

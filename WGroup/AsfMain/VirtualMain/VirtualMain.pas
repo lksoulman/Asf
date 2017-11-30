@@ -28,6 +28,10 @@ type
   procedure LoadMemory;
   // Load Master
   procedure LoadMaster;
+  // LoadCronJobs
+  procedure LoadCronJobs;
+  // LoadDelayJobs
+  procedure LoadDelayJobs;
   // Load ProcessEx
   procedure LoadProcessEx;
   // UnLoad ProcessEx
@@ -77,6 +81,8 @@ uses
   procedure LoadCache;
   begin
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, '');
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=NoExistUpdateTable@Params=ZQZB');
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=ReplaceCreateCacheTables');
   end;
 
   // Load Memory
@@ -89,6 +95,25 @@ uses
   procedure LoadMaster;
   begin
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_MASTERMGR, 'FuncName=NewMaster');
+  end;
+
+  // LoadCronJobs
+  procedure LoadCronJobs;
+  begin
+    // 状态栏新闻数据获取定时任务
+    G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_STATUSNEWSDATAMGR, 'FuncName=Update', 600);
+
+    // 异步方式同步基础缓存数据定时任务
+    G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 10);
+  end;
+
+  // LoadDelayJobs
+  procedure LoadDelayJobs;
+  begin
+    // 状态栏新闻数据获取延时任务
+    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSNEWSDATAMGR, 'FuncName=Update', 5);
+    // 异步方式同步基础缓存数据延时任务
+    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 10);
   end;
 
   // LoadProcessEx
