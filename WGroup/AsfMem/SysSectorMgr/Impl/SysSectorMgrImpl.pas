@@ -18,12 +18,12 @@ uses
   SysUtils,
   AppContext,
   SysSectorMgr,
-  SectorMgrImpl;
+  AppContextObject;
 
 type
 
   // System Sector Manager Interface implementation
-  TSysSectorMgrImpl = class(TSectorMgrImpl, ISysSectorMgr)
+  TSysSectorMgrImpl = class(TAppContextObject, ISysSectorMgr)
   private
   protected
   public
@@ -34,14 +34,6 @@ type
 
     { ISectorUserMgr }
 
-    // 读加锁
-    procedure BeginRead; safecall;
-    // 读解锁
-    procedure EndRead; safecall;
-    // 写加锁
-    procedure BeginWrite; safecall;
-    // 写解锁
-    procedure EndWrite; safecall;
     // 获取根结点板块
     function GetRootSector: ISector; safecall;
   end;
@@ -62,29 +54,10 @@ begin
   inherited;
 end;
 
-procedure TSysSectorMgrImpl.BeginRead;
-begin
-  FReadWriteLock.BeginRead;
-end;
-
-procedure TSysSectorMgrImpl.EndRead;
-begin
-  FReadWriteLock.EndRead;
-end;
-
-procedure TSysSectorMgrImpl.BeginWrite;
-begin
-  FReadWriteLock.BeginWrite;
-end;
-
-procedure TSysSectorMgrImpl.EndWrite;
-begin
-  FReadWriteLock.EndWrite;
-end;
 
 function TSysSectorMgrImpl.GetRootSector: ISector;
 begin
-  Result := FRootSector;
+
 end;
 
 end.

@@ -86,6 +86,8 @@ begin
       if LParam <> '' then begin
         FBaseCache.AsyncUpdateTable(LParam);
       end;
+    end else if LFuncName = 'ReplaceCreateCacheTables' then begin
+      FBaseCache.ReplaceCreateCacheTables;
     end;
   finally
     EndSplitParams;

@@ -2,7 +2,7 @@ unit UserInfoImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description： User Info Interface Implementation
+// Description： UserInfo Implementation
 // Author：      lksoulman
 // Date：        2017-7-22
 // Comments：
@@ -18,64 +18,67 @@ uses
   IniFiles,
   UserInfo,
   AppContext,
+  AppContextObject,
   CommonRefCounter;
 
 type
 
-  // User Info Interface Implementation
-  TUserInfoImpl = class(TAutoInterfacedObject, IUserInfo)
+  // UserInfo Implementation
+  TUserInfoImpl = class(TAppContextObject, IUserInfo)
   private
-    // Product No
+    // ProductNo
     FProNo: string;
-    // Org No
+    // OrgNo
     FOrgNo: string;
-    // Asset No
+    // AssetNo
     FAssetNo: string;
-    // Bind Info
+    // BindInfo
     FBindInfo: TBindInfo;
-    // Save Password
+    // SavePassword
     FSavePassword: Integer;         // 0 表示不保存密码  1 表示保存密码
-    // Account Type
+    // AccountType
     FAccountType: TAccountType;
-    // Gil Account Info
+    // GilAccountInfo
     FGilAccountInfo: TAccountInfo;
-    // UFX Account Info
+    // UFXAccountInfo
     FUFXAccountInfo: TAccountInfo;
-    // PBox Acount Info
+    // PBoxAcountInfo
     FPBoxAccountInfo: TAccountInfo;
-    // Password Expire
+    // PasswordExpire
     FPasswordExpire: Integer;       // 0 Not Need System Hint   1 Need System Hint
-    // Password Expire Days
+    // PasswordExpireDays
     FPasswordExpireDays: Integer;
-    // Password Expire Hint Date
+    // PasswordExpireHintDate
     FPasswordExpireHintDate: string;
-    // Verify Code
+    // VerifyCode
     FVerifyCode: Integer;           // 0 表示没有验证码服务  1 表示有验证码服务
-    // Application Context
-    FAppContext: IAppContext;
   protected
-    // Int To TAccountType
+    // IntToTAccountType
     function IntToAccountType(AValue: Integer): TAccountType;
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
     { IUserInfo }
 
-    // Initialize resources(only execute once)
-    procedure Initialize(AContext: IInterface);
-    // Releasing resources(only execute once)
-    procedure UnInitialize;
-    // Save Cache
-    procedure SaveCache;
-    // Load Cache
-    procedure LoadCache;
     // Reset
     procedure ResetBindInfo;
-    // Read
-    procedure Read(AFile: TIniFile);
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteServerCacheCfg
+    procedure WriteServerCacheCfg;
+    // ReadSysCfg
+    procedure ReadSysCfg(AFile: TIniFile);
+    // GetDir
+    function GetDir: WideString;
     // Get Product No
     function GetProNo: WideString;
     // Get Org No
@@ -122,13 +125,15 @@ uses
 
 { TUserInfoImpl }
 
-constructor TUserInfoImpl.Create;
+constructor TUserInfoImpl.Create(AContext: IAppContext);
 begin
   inherited;
   FVerifyCode := 0;
   FSavePassword := 0;
   FPasswordExpire := 0;
   FPasswordExpireDays := 0;
+
+
 end;
 
 destructor TUserInfoImpl.Destroy;
@@ -153,17 +158,78 @@ begin
   end;
 end;
 
-procedure TUserInfoImpl.Initialize(AContext: IInterface);
+procedure TUserInfoImpl.ResetBindInfo;
 begin
-  FAppContext := AContext as IAppContext;
+  case FAccountType of
+    atUFX:
+      begin
+        FGilAccountInfo.FUserName := '';
+        FBindInfo.FLicense := '';
+        FBindInfo.FOrgSign := '';
+      end;
+    atGIL:
+      begin
+
+        FBindInfo.FLicense := '';
+        FBindInfo.FOrgSign := '';
+      end;
+    atPBOX:
+      begin
+        FGilAccountInfo.FUserName := '';
+        FBindInfo.FLicense := '';
+        FBindInfo.FOrgSign := '';
+      end;
+  end;
 end;
 
-procedure TUserInfoImpl.UnInitialize;
+procedure TUserInfoImpl.ReadLocalCacheCfg;
+var
+  LStringList: TStringList;
 begin
-  FAppContext := nil;
+  LStringList := TStringList.Create;
+  try
+    LStringList.Delimiter := ';';
+    LStringList.DelimitedText := FAppContext.GetCfg.GetUserCacheCfg.GetLocalValue('UserInfo');
+    if LStringList.DelimitedText <> '' then begin
+      FSavePassword := StrToIntDef(LStringList.Values['SavePassword'], 0);
+      FGilAccountInfo.FUserName := LStringList.Values['GilUserName'];
+      FGilAccountInfo.FPassword := LStringList.Values['GilPassword'];
+      FUFXAccountInfo.FUserName := LStringList.Values['UFXUserName'];
+      FUFXAccountInfo.FPassword := LStringList.Values['UFXPassword'];
+      FPBoxAccountInfo.FUserName := LStringList.Values['PBoxUserName'];
+      FPBoxAccountInfo.FPassword := LStringList.Values['PBoxPassword'];
+      FBindInfo.FLicense := LStringList.Values['License'];
+      FBindInfo.FOrgSign := LStringList.Values['OrgSign'];
+    end;
+  finally
+    LStringList.Free;
+  end;
 end;
 
-procedure TUserInfoImpl.SaveCache;
+procedure TUserInfoImpl.ReadServerCacheCfg;
+begin
+
+end;
+
+procedure TUserInfoImpl.ReadCurrentAccountInfo;
+begin
+  case FAccountType of
+    atUFX:
+      begin
+        FUFXAccountInfo.FUserName := FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserName;
+      end;
+    atGIL:
+      begin
+        FGilAccountInfo.FUserName := FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserName;
+      end;
+    atPBOX:
+      begin
+        FPBoxAccountInfo.FUserName := FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserName;
+      end;
+  end;
+end;
+
+procedure TUserInfoImpl.WriteLocalCacheCfg;
 var
   LValue, LGilPassword, LUFXPassword, LPBoxPassword: string;
 begin
@@ -196,66 +262,38 @@ begin
                    FBindInfo.FLicense,
                    FBindInfo.FOrgSign,
                    FPasswordExpireHintDate]);
-  FAppContext.GetCfg.GetSysCacheCfg.SetValue('UserInfo', LValue);
+  FAppContext.GetCfg.GetUserCacheCfg.SaveLocal('UserInfo', LValue);
 end;
 
-procedure TUserInfoImpl.LoadCache;
-var
-  LStringList: TStringList;
+procedure TUserInfoImpl.WriteServerCacheCfg;
 begin
-  if FAppContext <> nil then begin
-    LStringList := TStringList.Create;
-    try
-      LStringList.Delimiter := ';';
-      LStringList.DelimitedText := FAppContext.GetCfg.GetSysCacheCfg.GetValue('UserInfo');
-      if LStringList.DelimitedText <> '' then begin
-        FSavePassword := StrToIntDef(LStringList.Values['SavePassword'], 0);
-        FGilAccountInfo.FUserName := LStringList.Values['GilUserName'];
-        FGilAccountInfo.FPassword := LStringList.Values['GilPassword'];
-        FUFXAccountInfo.FUserName := LStringList.Values['UFXUserName'];
-        FUFXAccountInfo.FPassword := LStringList.Values['UFXPassword'];
-        FPBoxAccountInfo.FUserName := LStringList.Values['PBoxUserName'];
-        FPBoxAccountInfo.FPassword := LStringList.Values['PBoxPassword'];
-        FBindInfo.FLicense := LStringList.Values['License'];
-        FBindInfo.FOrgSign := LStringList.Values['OrgSign'];
-      end;
-    finally
-      LStringList.Free;
-    end;
-  end;
+
 end;
 
-procedure TUserInfoImpl.ResetBindInfo;
-begin
-  case FAccountType of
-    atUFX:
-      begin
-        FGilAccountInfo.FUserName := '';
-        FBindInfo.FLicense := '';
-        FBindInfo.FOrgSign := '';
-      end;
-    atGIL:
-      begin
-
-        FBindInfo.FLicense := '';
-        FBindInfo.FOrgSign := '';
-      end;
-    atPBOX:
-      begin
-        FGilAccountInfo.FUserName := '';
-        FBindInfo.FLicense := '';
-        FBindInfo.FOrgSign := '';
-      end;
-  end;
-end;
-
-procedure TUserInfoImpl.Read(AFile: TIniFile);
+procedure TUserInfoImpl.ReadSysCfg(AFile: TIniFile);
 begin
   if AFile = nil then Exit;
+
   FProNo := AFile.ReadString('UserInfo', 'ProNo', '');
   FOrgNo := AFile.ReadString('UserInfo', 'OrgNo', '');
   FAssetNo := AFile.ReadString('UserInfo', 'AssetNo', '');
   FAccountType := IntToAccountType(AFile.ReadInteger('UserInfo', 'AccountType', 0));
+end;
+
+function TUserInfoImpl.GetDir: WideString;
+begin
+  case FAccountType of
+    atUFX, atGIL:
+      begin
+        Result := FUFXAccountInfo.FUserName;
+      end;
+  else
+    Result := FPBoxAccountInfo.FUserName;
+  end;
+
+  if Result <> '' then begin
+    Result := FAppContext.GetCfg.GetUsersPath + Result + '\';
+  end;
 end;
 
 function TUserInfoImpl.GetProNo: WideString;

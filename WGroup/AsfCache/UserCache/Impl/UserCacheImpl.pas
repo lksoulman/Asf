@@ -42,8 +42,12 @@ type
     procedure UpdateTables;
     // AsyncUpdateTables
     procedure AsyncUpdateTables;
+    // ReplaceCreateCacheTables
+    procedure ReplaceCreateCacheTables;
     // AsyncUpdateTable
-    procedure AsyncUpdateTable(AName: string);
+    procedure AsyncUpdateTable(ATable: string);
+    // ExecuteSql
+    procedure ExecuteSql(ATable, ASql: string);
     //  Synchronous query data
     function SyncQuery(ASql: WideString): IWNDataSet;
     // Asynchronous query data
@@ -71,8 +75,8 @@ end;
 
 procedure TUserCacheImpl.DoLoadCfgBefore;
 begin
-  FSQLiteAdapter.DataBaseName := (FAppContext.GetCfg as ICfg).GetUserCachePath + 'UserDB';
   FCfgFile := FAppContext.GetCfg.GetCfgPath + 'Cache/UserCfg.xml';
+  FSQLiteAdapter.DataBaseName := (FAppContext.GetCfg as ICfg).GetUserCachePath + 'UserDB';
 end;
 
 procedure TUserCacheImpl.UpdateTables;
@@ -85,14 +89,39 @@ begin
   DoAsyncUpdateCacheTables;
 end;
 
-procedure TUserCacheImpl.AsyncUpdateTable(AName: string);
+procedure TUserCacheImpl.ReplaceCreateCacheTables;
+begin
+  DoReplaceCreateCacheTables;
+end;
+
+procedure TUserCacheImpl.AsyncUpdateTable(ATable: string);
 var
   LTable: TCacheTable;
 begin
-  if FCacheTableDic.TryGetValue(AName, LTable) then begin
-    DoAsyncUpdateCacheTable(LTable);
+  if FCacheTableDic.TryGetValue(ATable, LTable) then begin
+    LTable.Lock;
+    try
+      DoAsyncUpdateCacheTable(LTable);
+    finally
+      LTable.UnLock;
+    end;
   end;
 end;
+
+procedure TUserCacheImpl.ExecuteSql(ATable, ASql: string);
+var
+  LTable: TCacheTable;
+begin
+  if FCacheTableDic.TryGetValue(ATable, LTable) then begin
+    LTable.Lock;
+    try
+
+    finally
+      LTable.UnLock;
+    end;
+  end;
+end;
+
 function TUserCacheImpl.SyncQuery(ASql: WideString): IWNDataSet;
 begin
   Result := FSQLiteAdapter.QuerySql(ASql);

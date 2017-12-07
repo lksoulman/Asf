@@ -2,7 +2,7 @@ unit ProxyInfo;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Proxy Info Interface
+// Description£º ProxyInfo Interface
 // Author£º      lksoulman
 // Date£º        2017-7-21
 // Comments£º
@@ -20,21 +20,23 @@ uses
 
 type
 
-  // Proxy Info Interface
+  // ProxyInfo Interface
   IProxyInfo = Interface(IInterface)
     ['{32F1B998-39F2-4411-87B3-763A1EE39A9A}']
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // UnInit
-    procedure UnInitialize;
-    // Save Cache
-    procedure SaveCache;
-    // Load Cache
-    procedure LoadCache;
     // Restore Default
     procedure RestoreDefault;
-    // Read File
-    procedure Read(AFile: TIniFile);
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteServerCacheCfg
+    procedure WriteServerCacheCfg;
+    // ReadSysCfg
+    procedure ReadSysCfg(AFile: TIniFile);
     // Get Proxy
     function GetProxy: PProxy;
     // Get Is Use Proxy

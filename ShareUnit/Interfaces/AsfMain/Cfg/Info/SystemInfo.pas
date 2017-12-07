@@ -39,16 +39,18 @@ type
   // SysCfg Info Interface
   ISystemInfo = Interface(IInterface)
     ['{694C57FE-D4B2-416B-B33C-16CD955B4113}']
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // UnInit
-    procedure UnInitialize;
-    // Read
-    procedure Read(AFile: TIniFile);
-    // Save Cache
-    procedure SaveCache;
-    // Load Cache
-    procedure LoadCache;
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteServerCacheCfg
+    procedure WriteServerCacheCfg;
+    // ReadSysCfg
+    procedure ReadSysCfg(AFile: TIniFile);
     // Get System Info
     function GetSystemInfo: PSystemInfo;
   end;

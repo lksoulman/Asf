@@ -77,9 +77,6 @@ end;
 function TLoginImpl.Login: Boolean;
 begin
   if FLogin.ShowLoginMainUI = mrOk then begin
-    if FAppContext.GetCfg.GetSysCfg.GetUserInfo.GetSavePassword then begin
-      FAppContext.GetCfg.GetSysCfg.GetUserInfo.SaveCache;
-    end;
     Result := True;
   end else begin
     Result := False;

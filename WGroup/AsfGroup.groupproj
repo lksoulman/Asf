@@ -9,6 +9,9 @@
         <Projects Include="AsfService\AsfService.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="AsfHqService\AsfHqService.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="AsfAuth\AsfAuth.dproj">
             <Dependencies/>
         </Projects>
@@ -58,6 +61,15 @@
     </Target>
     <Target Name="AsfService:Make">
         <MSBuild Projects="AsfService\AsfService.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AsfHqService">
+        <MSBuild Projects="AsfHqService\AsfHqService.dproj"/>
+    </Target>
+    <Target Name="AsfHqService:Clean">
+        <MSBuild Projects="AsfHqService\AsfHqService.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AsfHqService:Make">
+        <MSBuild Projects="AsfHqService\AsfHqService.dproj" Targets="Make"/>
     </Target>
     <Target Name="AsfAuth">
         <MSBuild Projects="AsfAuth\AsfAuth.dproj"/>
@@ -132,13 +144,13 @@
         <MSBuild Projects="AsfSkinsClassic\AsfSkinsClassic.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="AsfMain;AsfService;AsfAuth;AsfCache;AsfMem;AsfUI;AsfResources;AsfSkinsBlack;AsfSkinsWhite;AsfSkinsClassic"/>
+        <CallTarget Targets="AsfMain;AsfService;AsfHqService;AsfAuth;AsfCache;AsfMem;AsfUI;AsfResources;AsfSkinsBlack;AsfSkinsWhite;AsfSkinsClassic"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AsfMain:Clean;AsfService:Clean;AsfAuth:Clean;AsfCache:Clean;AsfMem:Clean;AsfUI:Clean;AsfResources:Clean;AsfSkinsBlack:Clean;AsfSkinsWhite:Clean;AsfSkinsClassic:Clean"/>
+        <CallTarget Targets="AsfMain:Clean;AsfService:Clean;AsfHqService:Clean;AsfAuth:Clean;AsfCache:Clean;AsfMem:Clean;AsfUI:Clean;AsfResources:Clean;AsfSkinsBlack:Clean;AsfSkinsWhite:Clean;AsfSkinsClassic:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AsfMain:Make;AsfService:Make;AsfAuth:Make;AsfCache:Make;AsfMem:Make;AsfUI:Make;AsfResources:Make;AsfSkinsBlack:Make;AsfSkinsWhite:Make;AsfSkinsClassic:Make"/>
+        <CallTarget Targets="AsfMain:Make;AsfService:Make;AsfHqService:Make;AsfAuth:Make;AsfCache:Make;AsfMem:Make;AsfUI:Make;AsfResources:Make;AsfSkinsBlack:Make;AsfSkinsWhite:Make;AsfSkinsClassic:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

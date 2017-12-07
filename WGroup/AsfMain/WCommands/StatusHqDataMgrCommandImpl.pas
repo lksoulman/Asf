@@ -63,10 +63,25 @@ begin
 end;
 
 procedure TStatusHqDataMgrCommandImpl.Execute(AParams: string);
+var
+  LFuncName: string;
 begin
   if FStatusHqDataMgr = nil then begin
     FStatusHqDataMgr := TStatusHqDataMgrImpl.Create(FAppContext) as IStatusHqDataMgr;
     FAppContext.RegisterInteface(FId, FStatusHqDataMgr);
+  end;
+
+  if (AParams = '')
+    or (FStatusHqDataMgr = nil) then Exit;
+
+  BeginSplitParams(AParams);
+  try
+    ParamsVal('FuncName', LFuncName);
+    if LFuncName = 'Subcribe' then begin
+      FStatusHqDataMgr.Subcribe;
+    end;
+  finally
+    EndSplitParams;
   end;
 end;
 

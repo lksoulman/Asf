@@ -2,7 +2,7 @@ unit Cfg;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Config Interface
+// Description£º Cfg Interface
 // Author£º      lksoulman
 // Date£º        2017-7-24
 // Comments£º
@@ -17,8 +17,8 @@ uses
   Windows,
   Classes,
   SysUtils,
-  CacheCfg,
-  ServerCfg;
+  ServerCfg,
+  UserCacheCfg;
 
 type
 
@@ -27,43 +27,43 @@ type
     ['{8E49C2C0-9AAC-4855-B3A4-9073AC5B1427}']
     // Initialize
     procedure Initialize;
-    // Force User Dirs
-    function InitUserDirs: Boolean;
-    // Get System Cfg
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // GetSysCfg
     function GetSysCfg: ISysCfg;
-    // Get Web Cfg
+    // GetWebCfg
     function GetWebCfg: IWebCfg;
-    // Get Server Cfg
+    // GetServerCfg
     function GetServerCfg: IServerCfg;
-    // Get Sys Cache Cfg
-    function GetSysCacheCfg: ICacheCfg;
-    // Get User Cache Cfg
-    function GetUserCacheCfg: ICacheCfg;
-    // Get App Path
+    // GetUserCacheCfg
+    function GetUserCacheCfg: IUserCacheCfg;
+    // GetAppPath
     function GetAppPath: WideString;
-    // Get Bin Path
+    // GetBinPath
     function GetBinPath: WideString;
-    // Get Cfg Path
+    // GetCfgPath
     function GetCfgPath: WideString;
-    // Get Log Path
+    // GetLogPath
     function GetLogPath: WideString;
-    // Get Skin Path
+    // GetSkinPath
     function GetSkinPath: WideString;
-    // Get User Path
+    // GetUserPath
     function GetUserPath: WideString;
-    // Get Users Path
+    // GetUsersPath
     function GetUsersPath: WideString;
-    // Get User Cfg Path
+    // GetUserCfgPath
     function GetUserCfgPath: WideString;
-    // Get Cache Path
+    // GetCachePath
     function GetCachePath: WideString;
-    // Get HQ Cache Path
+    // GetHQCachePath
     function GetHQCachePath: WideString;
-    // Get Base Cache Path
+    // GetBaseCachePath
     function GetBaseCachePath: WideString;
-    // Get User Cache Path
+    // GetUserCachePath
     function GetUserCachePath: WideString;
-    // Get System Update Path
+    // GetSysUpdatePath
     function GetSysUpdatePath: WideString;
   end;
 

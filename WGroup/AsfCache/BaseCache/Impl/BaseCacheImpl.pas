@@ -47,11 +47,11 @@ type
     // ReplaceCreateCacheTables
     procedure ReplaceCreateCacheTables;
     // UpdateTable
-    procedure UpdateTable(AName: string);
+    procedure UpdateTable(ATable: string);
     // AsyncUpdateTable
-    procedure AsyncUpdateTable(AName: string);
+    procedure AsyncUpdateTable(ATable: string);
     // NoExistUpdateTable
-    procedure NoExistUpdateTable(AName: string);
+    procedure NoExistUpdateTable(ATable: string);
     // Query
     function Query(ASql: WideString): IWNDataSet;
     // Async Query
@@ -78,8 +78,8 @@ end;
 
 procedure TBaseCacheImpl.DoLoadCfgBefore;
 begin
-  FSQLiteAdapter.DataBaseName := FAppContext.GetCfg.GetCachePath + 'Base/BaseDB';
   FCfgFile := FAppContext.GetCfg.GetCfgPath + 'Cache/BaseCfg.xml';
+  FSQLiteAdapter.DataBaseName := FAppContext.GetCfg.GetCachePath + 'Base/BaseDB';
 end;
 
 procedure TBaseCacheImpl.UpdateTables;
@@ -97,11 +97,11 @@ begin
   DoReplaceCreateCacheTables;
 end;
 
-procedure TBaseCacheImpl.UpdateTable(AName: string);
+procedure TBaseCacheImpl.UpdateTable(ATable: string);
 var
   LTable: TCacheTable;
 begin
-  if FCacheTableDic.TryGetValue(AName, LTable) then begin
+  if FCacheTableDic.TryGetValue(ATable, LTable) then begin
     LTable.Lock;
     try
       DoUpdateCacheTable(LTable);
@@ -112,11 +112,11 @@ begin
   end;
 end;
 
-procedure TBaseCacheImpl.AsyncUpdateTable(AName: string);
+procedure TBaseCacheImpl.AsyncUpdateTable(ATable: string);
 var
   LTable: TCacheTable;
 begin
-  if FCacheTableDic.TryGetValue(AName, LTable) then begin
+  if FCacheTableDic.TryGetValue(ATable, LTable) then begin
     LTable.Lock;
     try
       DoAsyncUpdateCacheTable(LTable);
@@ -127,11 +127,11 @@ begin
   end;
 end;
 
-procedure TBaseCacheImpl.NoExistUpdateTable(AName: string);
+procedure TBaseCacheImpl.NoExistUpdateTable(ATable: string);
 var
   LTable: TCacheTable;
 begin
-  if FCacheTableDic.TryGetValue(AName, LTable) then begin
+  if FCacheTableDic.TryGetValue(ATable, LTable) then begin
     LTable.Lock;
     try
       if not LTable.IsCreate then begin

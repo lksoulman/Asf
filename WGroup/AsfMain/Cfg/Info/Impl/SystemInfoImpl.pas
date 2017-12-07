@@ -20,17 +20,16 @@ uses
   SystemInfo,
   AppContext,
   LanguageType,
+  AppContextObject,
   CommonRefCounter;
 
 type
 
   // System Info Interface Implementation
-  TSystemInfoImpl = class(TAutoInterfacedObject, ISystemInfo)
+  TSystemInfoImpl = class(TAppContextObject, ISystemInfo)
   private
     // System Info
     FSystemInfo: TSystemInfo;
-    // Application Context
-    FAppContext: IAppContext;
   protected
     // Init HardDisk Id
     procedure InitHardDiskId;
@@ -44,22 +43,24 @@ type
     function LanguageTypeToStr(ALanguageType: TLanguageType): string;
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
     { ISystemInfo }
 
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // UnInit
-    procedure UnInitialize;
-    // Read
-    procedure Read(AFile: TIniFile);
-    // Save Cache
-    procedure SaveCache;
-    // Load Cache
-    procedure LoadCache;
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteServerCacheCfg
+    procedure WriteServerCacheCfg;
+    // ReadSysCfg
+    procedure ReadSysCfg(AFile: TIniFile);
     // Get System Info
     function GetSystemInfo: PSystemInfo;
   end;
@@ -72,7 +73,7 @@ uses
 
 { TSystemInfoImpl }
 
-constructor TSystemInfoImpl.Create;
+constructor TSystemInfoImpl.Create(AContext: IAppContext);
 begin
   inherited;
   FSystemInfo.FLogLevel := llINFO;
@@ -82,6 +83,8 @@ begin
   FSystemInfo.FMacAddress := '';
   FSystemInfo.FHardDiskId := '';
   FSystemInfo.FLanguageType := ltChinese;
+
+  InitHardDiskId;
 end;
 
 destructor TSystemInfoImpl.Destroy;
@@ -177,61 +180,62 @@ begin
   end;
 end;
 
-procedure TSystemInfoImpl.Initialize(AContext: IInterface);
+procedure TSystemInfoImpl.ReadLocalCacheCfg;
+var
+  LStringList: TStringList;
 begin
-  FAppContext := AContext as IAppContext;
-  InitHardDiskId;
+  LStringList := TStringList.Create;
+  try
+    LStringList.Delimiter := ';';
+      LStringList.DelimitedText := FAppContext.GetCfg.GetUserCacheCfg.GetLocalValue('SystemInfo');
+    if LStringList.DelimitedText <> '' then begin
+      FSystemInfo.FLogLevel := StrToLogLevel(LStringList.Values['LogLevel']);
+      FSystemInfo.FFontRatio := LStringList.Values['FontRatio'];
+      FSystemInfo.FSkinStyle := LStringList.Values['SkinStyle'];
+      FSystemInfo.FLanguageType := StrToLanguageType(LStringList.Values['LanguageType']);
+    end;
+  finally
+    LStringList.Free;
+  end;
 end;
 
-procedure TSystemInfoImpl.UnInitialize;
+procedure TSystemInfoImpl.ReadServerCacheCfg;
 begin
-  FAppContext := nil;
+
 end;
 
-procedure TSystemInfoImpl.Read(AFile: TIniFile);
+procedure TSystemInfoImpl.ReadCurrentAccountInfo;
+begin
+
+end;
+
+procedure TSystemInfoImpl.WriteLocalCacheCfg;
+var
+  LValue: string;
+begin
+  LValue := Format('FontRatio=%s;'
+                 + 'SkinStyle=%s;'
+                 + 'LanguageType=%s',
+                  [FSystemInfo.FFontRatio,
+                   FSystemInfo.FSkinStyle,
+                   LanguageTypeToStr(FSystemInfo.FLanguageType)]);
+  FAppContext.GetCfg.GetUserCacheCfg.SaveLocal('SystemInfo', LValue);
+end;
+
+procedure TSystemInfoImpl.WriteServerCacheCfg;
+begin
+
+end;
+
+procedure TSystemInfoImpl.ReadSysCfg(AFile: TIniFile);
 begin
   if AFile = nil then Exit;
+
   FSystemInfo.FLogLevel := StrToLogLevel(AFile.ReadString('SystemInfo', 'LogLevel', ''));
   FSystemInfo.FReLoginTime := AFile.ReadInteger('SystemInfo', 'ReLoginTimeout', FSystemInfo.FReLoginTime);
   FSystemInfo.FFontRatio := AFile.ReadString('SystemInfo', 'FontRatio', FSystemInfo.FFontRatio);
   FSystemInfo.FSkinStyle := AFile.ReadString('SystemInfo', 'SkinStyle', FSystemInfo.FSkinStyle);
   FSystemInfo.FLanguageType := StrToLanguageType(AFile.ReadString('SystemInfo', 'LanguageType', ''));
-end;
-
-procedure TSystemInfoImpl.SaveCache;
-var
-  LValue: string;
-begin
-  if FAppContext <> nil then begin
-    LValue := Format('FontRatio=%s;'
-                   + 'SkinStyle=%s;'
-                   + 'LanguageType=%s',
-                    [FSystemInfo.FFontRatio,
-                     FSystemInfo.FSkinStyle,
-                     LanguageTypeToStr(FSystemInfo.FLanguageType)]);
-    FAppContext.GetCfg.GetSysCacheCfg.SetValue('SystemInfo', LValue);
-  end;
-end;
-
-procedure TSystemInfoImpl.LoadCache;
-var
-  LStringList: TStringList;
-begin
-  if FAppContext <> nil then begin
-    LStringList := TStringList.Create;
-    try
-      LStringList.Delimiter := ';';
-        LStringList.DelimitedText := FAppContext.GetCfg.GetSysCacheCfg.GetValue('SystemInfo');
-      if LStringList.DelimitedText <> '' then begin
-        FSystemInfo.FLogLevel := StrToLogLevel(LStringList.Values['LogLevel']);
-        FSystemInfo.FFontRatio := LStringList.Values['FontRatio'];
-        FSystemInfo.FSkinStyle := LStringList.Values['SkinStyle'];
-        FSystemInfo.FLanguageType := StrToLanguageType(LStringList.Values['LanguageType']);
-      end;
-    finally
-      LStringList.Free;
-    end;
-  end;
 end;
 
 function TSystemInfoImpl.GetSystemInfo: PSystemInfo;

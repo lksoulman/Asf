@@ -26,8 +26,12 @@ type
     procedure UpdateTables;
     // AsyncUpdateTables
     procedure AsyncUpdateTables;
+    // ReplaceCreateCacheTables
+    procedure ReplaceCreateCacheTables;
     // AsyncUpdateTable
-    procedure AsyncUpdateTable(AName: string);
+    procedure AsyncUpdateTable(ATable: string);
+    // ExecuteSql
+    procedure ExecuteSql(ATable, ASql: string);
     //  Synchronous query data
     function SyncQuery(ASql: WideString): IWNDataSet;
     // Asynchronous query data

@@ -14,7 +14,8 @@ interface
 uses
   Windows,
   Classes,
-  SysUtils;
+  SysUtils,
+  QuoteStruct;
 
 type
 
@@ -25,7 +26,15 @@ type
     FNowPrice: Double;        // Now Price
     FPreClose: Double;        // Prev Price
     FTurnover: Double;        // Turnover
+    FCodeInfo: TCodeInfo;     // CodeInfo
+    FIsHasCodeInfo: Boolean;  // IsHasCodeInfo
+    FColorValue: Integer;
+    FTurnoverStr: string;
+    FNowPriceHLStr: string;
 
+
+    // Calc
+    procedure Calc;
     // Get Turnover
     function GetTurnover: string;
     // Get NowPriceHL
@@ -44,11 +53,11 @@ type
     procedure Lock;
     // UnLock
     procedure UnLock;
-    // Update
-    procedure Update;
-    // Get Count
+    // Subcribe
+    procedure Subcribe;
+    // GetCount
     function GetDataCount: Integer;
-    // Get Data
+    // GetData
     function GetData(AIndex: Integer): PStatusHqData;
   end;
 
@@ -59,19 +68,54 @@ uses
 
 { TStatusHqData }
 
+procedure TStatusHqData.Calc;
+var
+  LPriceHL: Double;
+  LNowPriceHLStr: string;
+begin
+  if FPreClose > 0 then begin
+    if FTurnover >= 100000000 then begin
+      FTurnoverStr := FormatFloat('0.вк', FTurnover / 100000000);
+    end else if FTurnover >= 10000 then begin
+      FTurnoverStr := FormatFloat('0.Эђ', FTurnover / 10000);
+    end else begin
+      FTurnoverStr := FormatFloat('0.', FTurnover);
+    end;
+
+
+    if FNowPrice > 0 then begin
+      LPriceHL := FNowPrice - FPreClose;
+      LNowPriceHLStr := FormatFloat('0.000', FNowPrice);
+      LNowPriceHLStr := LNowPriceHLStr + ' ' + FormatFloat('+0.000;-0.000;0.000', LPriceHL);
+      LNowPriceHLStr := LNowPriceHLStr + ' ' + FormatFloat('+0.00%;-0.00%;0.00%', (LPriceHL * 100 / FPreClose) );
+      FColorValue := CompareValue(LPriceHL, 0);
+    end else begin
+      FColorValue := 0;
+      LNowPriceHLStr := '--  --  --';
+    end;
+    FNowPriceHLStr := LNowPriceHLStr;
+
+  end else begin
+    FColorValue := 0;
+    FTurnoverStr := '--';
+    FNowPriceHLStr := '--  --  --';
+  end;
+end;
+
 function TStatusHqData.GetTurnover: string;
 begin
-  Result := '--';
+  Result := FTurnoverStr;
 end;
 
 function TStatusHqData.GetNowPriceHL: string;
 begin
-  Result := '-- -- --';
+  Result := FNowPriceHLStr;
 end;
 
 function TStatusHqData.GetColorValue: Integer;
 begin
-  Result := CompareValue(FNowPrice, FPreClose, 0.000001);
+
+  Result := FColorValue;
 end;
 
 end.

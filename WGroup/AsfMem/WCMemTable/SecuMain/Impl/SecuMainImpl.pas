@@ -16,6 +16,7 @@ uses
   MsgType,
   Windows,
   Classes,
+  StrUtils,
   SysUtils,
   SecuMain,
   AppContext,
@@ -26,6 +27,7 @@ uses
   WNDataSetInf,
   ExecutorThread,
   CommonDynArray,
+  SecuMainAdapter,
   KeySearchEngine,
   AppContextObject,
   CommonRefCounter,
@@ -38,10 +40,12 @@ type
   private
     // Lock
     FLock: TCSLock;
-    // Is Updating table
+    // IsUpdating
     FIsUpdating: Boolean;
     // SecuMainItem Capacity
     FItemCapacity: Integer;
+    // SecuMainAdapter
+    FSecuMainAdapter: ISecuMainAdapter;
     // KeySearchEngine
     FKeySearchEngine: IKeySearchEngine;
     // Asynchronous update Thread
@@ -50,16 +54,22 @@ type
     FSecuMainItems: TDynArray<PSecuMainItem>;
     // SecuMainItem Dictionary
     FSecuMainItemDic: TDictionary<Integer, PSecuMainItem>;
+    // SecuMarket20HsCodeDic
+    FSecuMarket20HsCodeDic: TDictionary<Integer, string>;
 
-    // To SecuMarket
+    // ToMarket
     function ToMarket(AValue: Integer): UInt8;
-    // To SecuCategory
+    // ToCategory
     function ToCategory(AValue: Integer): UInt16;
-    // To SecuMarkInfo
+    // ToMarkInfo
     function ToMarkInfo(AMargin, AThrough: Integer): UInt8;
+    // ToCodeInfoStr
+    function ToCodeInfoStr(ASecuMainItem: PSecuMainItem; ACodeByAgent, ACompanyCode: string): string;
   protected
     // Clear
     procedure DoClearItems;
+    // AddSecuMarket20HsCodes
+    procedure AddSecuMarket20HsCodes;
     // Async Update Excecute
     procedure DoAsyncUpdateExecute(AObject: TObject);
 
@@ -85,9 +95,9 @@ type
       ASecuSuffix,
       AFormerAbbr,
       AFormerSpell: IWNField);
-    // Updating Get Item
+    // UpdatingGetItem
     function DoGetItemUpdating(AInnerCode: Integer): PSecuMainItem;
-    // No Updating Get Item
+    // NoUpdatingGetItem
     function DoGetItemNoUpdating(AInnerCode: Integer): PSecuMainItem;
   public
     // Constructor
@@ -109,8 +119,6 @@ type
     function GetItemCount: Integer;
     // Get Item
     function GetItem(AIndex: Integer): PSecuMainItem;
-    // Get Item By InnerCode
-    function GetItemByInnerCode(AInnerCode: Integer): PSecuMainItem;
 
     { ISecuMainQuery }
 
@@ -136,6 +144,7 @@ const
 	+' ZQJC AS SecuAbbr,    '
 	+' PYDM AS SecuSpell,   '
 	+' ZQSC AS SecuMarket,  '
+  +' GSDM as CompanyCode, '
 	+' SSZT AS ListedState, '
 	+' oZQLB AS SecuCategory,          '
 	+' FormerName AS FormerAbbr,       '
@@ -157,21 +166,27 @@ begin
   inherited;
   FIsUpdating := False;
   FLock := TCSLock.Create;
-  FItemCapacity := 200000;
+  FItemCapacity := 220000;
   FAsyncUpdateThread := TExecutorThread.Create;
   FAsyncUpdateThread.ThreadMethod := DoAsyncUpdateExecute;
   FSecuMainItems := TDynArray<PSecuMainItem>.Create(FItemCapacity);
   FSecuMainItemDic := TDictionary<Integer, PSecuMainItem>.Create(FItemCapacity);
+  FSecuMarket20HsCodeDic := TDictionary<Integer, string>.Create(27);
 
+  FSecuMainAdapter := FAppContext.FindInterface(ASF_COMMAND_ID_SECUMAINADAPTER) as ISecuMainAdapter;
   FKeySearchEngine := FAppContext.FindInterface(ASF_COMMAND_ID_KEYSEARCHENGINE) as IKeySearchEngine;
+
+  AddSecuMarket20HsCodes;
 end;
 
 destructor TSecuMainImpl.Destroy;
 begin
   FKeySearchEngine := nil;
+  FSecuMainAdapter := nil;
 
   FAsyncUpdateThread.ShutDown;
   DoClearItems;
+  FSecuMarket20HsCodeDic.Free;
   FSecuMainItemDic.Free;
   FSecuMainItems.Free;
   FLock.Free;
@@ -216,18 +231,13 @@ begin
   Result := FSecuMainItems.GetElement(AIndex);
 end;
 
-function TSecuMainImpl.GetItemByInnerCode(AInnerCode: Integer): PSecuMainItem;
+function TSecuMainImpl.GetSecurity(AInnerCode: Integer): PSecuMainItem;
 begin
   if FIsUpdating then begin
     Result := DoGetItemUpdating(AInnerCode);
   end else begin
     Result := DoGetItemNoUpdating(AInnerCode);
   end;
-end;
-
-function TSecuMainImpl.GetSecurity(AInnerCode: Integer): PSecuMainItem;
-begin
-  Result := GetItemByInnerCode(AInnerCode);
 end;
 
 function TSecuMainImpl.GetSecuritys(AInnerCodes: TIntegerDynArray; var ASecuMainItems: TSecuMainItemDynArray): Boolean;
@@ -242,7 +252,7 @@ begin
 
   LCount := 0;
   for LIndex := 0 to LTotalCount - 1 do begin
-    LSecuMainItem := GetItemByInnerCode(AInnerCodes[LIndex]);
+    LSecuMainItem := GetSecurity(AInnerCodes[LIndex]);
     if LSecuMainItem <> nil then begin
       ASecuMainItems[LCount] := LSecuMainItem;
       Inc(LCount);
@@ -284,6 +294,128 @@ begin
   Result := LMargin or LThrough;
 end;
 
+function TSecuMainImpl.ToCodeInfoStr(ASecuMainItem: PSecuMainItem; ACodeByAgent, ACompanyCode: string): string;
+var
+  LHSCode: string;
+  LSecuMarket, LSecuCategory, LListedState: Integer;
+
+  function GetCodeInfoStr(AHSCode: string): string;
+  begin
+    if (LSecuMarket in [76,77,78,79]) then begin
+      Result := AHSCode;
+    end else begin
+      Result := Copy(AHSCode, 1, 6);
+    end;
+    if LSecuCategory = 110 then begin
+      Result := AHSCode + '_' + SUFFIX_OPT; // 个股期权
+      Exit;
+    end;
+
+    case LSecuMarket of
+      83:
+        begin // 上海市场
+          if (LSecuCategory = 4) then begin // 指数
+            if (Pos('2D', AHsCode) = 1)
+              or (ASecuMainItem.FSecuSuffix = 'CSI') then begin// 中证/申万指数
+              Result := Result + '_' + SUFFIX_OT
+            end else if (Pos('CI', AHsCode) = 1) then begin // 中信指数
+              Result := Copy(AHsCode, 3, 100) + '_' + SUFFIX_ZXI
+            end else begin
+              Result := Result + '_' + SUFFIX_SH;
+            end;
+          end else begin  // 上海证券交易所
+            Result := Result + '_' + SUFFIX_SH;
+          end;
+        end;
+      90:
+        Result := Result + '_' + SUFFIX_SZ; // 深圳证券交易所
+      81:
+        Result := Result + '_' + SUFFIX_OC; // 三板市场
+      10, 13, 15, 19, 20:
+        Result := Result + '_' + SUFFIX_FU; // 期货
+      72:
+        Result := Result + '_' + SUFFIX_HK; // 香港联交所
+      76,77,78,79:
+        Result := Result + '_' + SUFFIX_US; // 美股
+      84:
+        begin
+          case LSecuCategory of
+            910, 930:
+              begin
+                Result := Copy(Result, 3, 6) + '_' + SUFFIX_OT; // 概念板块去掉前面的28
+              end;
+            920:
+              begin
+                Result := 'DY' + Copy(AHsCode, 5, 6) + '_' + SUFFIX_OT; // 地域板块前面的2800替换为DY
+              end;
+          else
+            Result := Result + '_' + SUFFIX_OT; // 其他指数
+          end;
+        end;
+      89:
+        Result := AHsCode + '_' + SUFFIX_IB; // 银行间债券
+          0:
+        case LSecuCategory of
+          910, 930:
+            begin
+              Result := Copy(Result, 3, 6) + '_' + SUFFIX_OT; // 概念板块去掉前面的28
+            end;
+          920:
+            begin
+              Result := 'DY' + Copy(AHsCode, 5, 6) + '_' + SUFFIX_OT; // 地域板块前面的2800替换为DY
+            end;
+        end;
+    end;
+  end;
+begin
+  Result := '';
+  LSecuMarket := ASecuMainItem^.ToGilMarket;
+  LListedState := ASecuMainItem^.FListedState;
+  LSecuCategory := ASecuMainItem^.ToGilCategory;
+
+  if ((LSecuMarket in [83,90,81,10,13,15,19,20,72,89,76,77,78,79]) and (LListedState in [1, 3]))
+    or ((LSecuMarket = 84) and (LSecuCategory = 4) and (LListedState = 1))
+    or ((LSecuCategory = 920) and (LListedState = 1))
+    or ((LSecuCategory = 930) and (LListedState = 1))
+    or ((LSecuCategory = 1) and (LSecuMarket = 9)) then begin
+
+    if (ASecuMainItem^.FSecuSuffix = 'CSI') then begin  // 中证指数
+      LHSCode := '';
+    end else if LSecuCategory = 110 then begin    // 个股期权
+      LHSCode := ACompanyCode;
+    end else begin
+      if LSecuMarket = 20 then begin // 中金所
+        if not FSecuMarket20HsCodeDic.TryGetValue(ASecuMainItem^.FInnerCode, LHSCode) then begin
+          LHSCode := '';
+        end;
+      end else if (LSecuMarket = 83) then begin // 根据恒生提供的转换规则，对沪深指数中以‘000’开头的指数代码做转化
+        if (Pos('000', ASecuMainItem^.FSecuCode) = 1)
+          and (LSecuCategory = 4) then begin
+          if (ASecuMainItem^.FSecuCode = '000001') then begin
+            LHSCode := '1A0001'
+          end else if (ASecuMainItem^.FSecuCode = '000002') then begin
+            LHSCode := '1A0002'
+          end else if (ASecuMainItem^.FSecuCode = '000003') then begin
+            LHSCode := '1A0003'
+          end else begin
+            LHSCode := ReplaceStr(ASecuMainItem^.FSecuCode, '000', '1B0');
+          end;
+        end else begin
+          LHSCode := ACodeByAgent;
+        end;
+      end else begin
+        LHSCode := ACodeByAgent;
+      end;
+    end;
+
+    if Trim(LHSCode) = '' then begin
+      LHSCode := ASecuMainItem^.FSecuCode;
+    end;
+
+    Result := GetCodeInfoStr(LHSCode);
+  end;
+end;
+
 procedure TSecuMainImpl.DoClearItems;
 var
   LIndex: Integer;
@@ -295,6 +427,28 @@ begin
       Dispose(LPSecuMainItem);
     end;
   end;
+end;
+
+procedure TSecuMainImpl.AddSecuMarket20HsCodes;
+begin
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006539, 'IC0001');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006540, 'IC0002');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006541, 'IC0003');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006542, 'IC0004');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2000440, 'IF0001');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2000441, 'IF0002');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2000442, 'IF0003');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2000443, 'IF0004');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006535, 'IH0001');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006536, 'IH0002');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006537, 'IH0003');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006538, 'IH0004');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006532, 'T0001');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006533, 'T0002');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2006534, 'T0003');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2004449, 'TF0001');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2004450, 'TF0002');
+  FSecuMarket20HsCodeDic.AddOrSetValue(2004441, 'TF0003');
 end;
 
 procedure TSecuMainImpl.DoAsyncUpdateExecute(AObject: TObject);
@@ -381,7 +535,9 @@ var
   LSecuSpell,
   LSecuSuffix,
   LFormerAbbr,
-  LFormerSpell: IWNField;
+  LFormerSpell,
+  LCodeByAgent,
+  LCompanyCode: IWNField;
   LSecuMainItem: PSecuMainItem;
 begin
 {$IFDEF DEBUG}
@@ -407,6 +563,8 @@ begin
     LSecuSuffix := ADataSet.FieldByName('Suffix');
     LFormerAbbr := ADataSet.FieldByName('FormerAbbr');
     LFormerSpell := ADataSet.FieldByName('FormerSpell');
+    LCodeByAgent := ADataSet.FieldByName('CodeByAgent');
+    LCompanyCode := ADataSet.FieldByName('CompanyCode');
     while not ADataSet.Eof do begin
       // 防止线程退出了循环还没有退出
       if FAsyncUpdateThread.IsTerminated then Exit;
@@ -424,7 +582,8 @@ begin
         FSecuMainItems.Add(LSecuMainItem);
       end;
 
-      DoLoadSecuMainItem(LSecuMainItem, LSecuMarket,
+      DoLoadSecuMainItem(LSecuMainItem,
+        LSecuMarket,
         LListedState,
         LSecuCategory,
         LMargin,
@@ -438,12 +597,30 @@ begin
 
       LSecuMainItem.SetUpdate;
 
+      if FSecuMainAdapter <> nil then begin
+        LSecuMainItem.FCodeInfoStr := ToCodeInfoStr(LSecuMainItem, LCodeByAgent.AsString, LCompanyCode.AsString);
+        FSecuMainAdapter.AddSecuMainItem(LSecuMainItem);
+      end;
+
       if FKeySearchEngine <> nil then begin
         FKeySearchEngine.AddSecuMainItem(LSecuMainItem);
       end;
 
       ADataSet.Next;
     end;
+
+    LInnerCodeF := nil;
+    LSecuMarket := nil;
+    LListedState := nil;
+    LSecuCategory := nil;
+    LMargin := nil;
+    LThrough := nil;
+    LSecuAbbr := nil;
+    LSecuCode := nil;
+    LSecuSpell := nil;
+    LSecuSuffix := nil;
+    LFormerAbbr := nil;
+    LFormerSpell := nil;
   finally
     if FKeySearchEngine <> nil then begin
       FKeySearchEngine.SetIsUpdate(False);
@@ -471,7 +648,6 @@ procedure TSecuMainImpl.DoLoadSecuMainItem(ASecuMainItem: PSecuMainItem;
   AFormerAbbr,
   AFormerSpell: IWNField);
 begin
-//  ASecuMainItem^.FInnerCode := ;
   ASecuMainItem^.FSecuMarket := ToMarket(StrToIntDef(ASecuMarket.AsString, 0));
   ASecuMainItem^.FListedState := AListedState.AsInteger;
   ASecuMainItem^.FSecuCategory := ToCategory(ASecuCategory.AsInteger);

@@ -218,7 +218,7 @@ begin
     end else begin
       LPProxy^.FType := ptNo;
     end;
-    FCfg.GetSysCfg.GetProxyInfo.SaveCache;
+    FCfg.GetSysCfg.GetProxyInfo.WriteLocalCacheCfg;
   end;
 end;
 

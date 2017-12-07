@@ -336,7 +336,7 @@ begin
   finally
     LTick := GetTickCount - LTick;
     if FAppContext <> nil then begin
-      FAppContext.SysLog(llSLOW, Format('[%s][DoReplaceCreateNoExistCacheTables] Execute use time is %d ms.', [Self.ClassName, LTick]), LTick);
+      FAppContext.SysLog(llSLOW, Format('[%s][DoReplaceCreateCacheTables] Execute use time is %d ms.', [Self.ClassName, LTick]), LTick);
     end;
   end;
 {$ENDIF}
@@ -405,9 +405,9 @@ begin
   Result.CreateSql := Utils.GetStringByChildNodeName(ANode, 'CreateSql');
   Result.InsertSql := Utils.GetStringByChildNodeName(ANode, 'InsertSql');
   Result.DeleteSql := Utils.GetStringByChildNodeName(ANode, 'DeleteSql');
-  Result.Indicator := Utils.GetStringByChildNodeName(ANode, 'ColFields');
-  Result.DeleteIndicator := Utils.GetStringByChildNodeName(ANode, 'Indicator');
-  Result.ColFields.DelimitedText := Utils.GetStringByChildNodeName(ANode, 'DeleteIndicator');
+  Result.Indicator := Utils.GetStringByChildNodeName(ANode, 'Indicator');
+  Result.DeleteIndicator := Utils.GetStringByChildNodeName(ANode, 'DeleteIndicator');
+  Result.ColFields.DelimitedText := Utils.GetStringByChildNodeName(ANode, 'ColFields');
 end;
 
 function TAbstractCacheImpl.GetTableByIndex(AIndex: Integer): TCacheTable;

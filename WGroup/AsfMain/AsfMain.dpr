@@ -10,8 +10,8 @@ uses
   EDCryptImpl in 'EDCrypt\Impl\EDCryptImpl.pas',
   CfgImpl in 'Cfg\Impl\CfgImpl.pas',
   WebCfgImpl in 'Cfg\WebCfg\Impl\WebCfgImpl.pas',
-  CacheCfgImpl in 'Cfg\CacheCfg\Impl\CacheCfgImpl.pas',
   ServerCfgImpl in 'Cfg\ServerCfg\Impl\ServerCfgImpl.pas',
+  UserCacheCfgImpl in 'Cfg\UserCacheCfg\Impl\UserCacheCfgImpl.pas',
   SysCfgImpl in 'Cfg\SysCfg\Impl\SysCfgImpl.pas',
   WebInfoImpl in 'Cfg\Info\Impl\WebInfoImpl.pas',
   UserInfoImpl in 'Cfg\Info\Impl\UserInfoImpl.pas',
@@ -31,7 +31,6 @@ uses
   LoginImpl in 'Login\Impl\LoginImpl.pas',
   ResourceCfgImpl in 'Resource\Impl\ResourceCfgImpl.pas',
   ResourceSkinImpl in 'Resource\Impl\ResourceSkinImpl.pas',
-
   LoginCommandImpl in 'WCommands\LoginCommandImpl.pas',
   WDLLFactory in 'WDLLFactory\WDLLFactory.pas',
   WDLLFactoryImpl in 'WDLLFactory\Impl\WDLLFactoryImpl.pas',
@@ -93,8 +92,8 @@ begin
       LoadCmds;
       if G_AppContext.Login then begin
         LoadAuth;
-//        LoadCache;
-//        LoadMemory;
+        LoadCache;
+        LoadMemory;
         LoadMaster;
         LoadCronJobs;
         LoadDelayJobs;

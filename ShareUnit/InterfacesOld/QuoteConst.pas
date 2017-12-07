@@ -47,6 +47,7 @@ const
   Update_RealTime_Level_RealTimeData = $0006;
 
   Update_RealTime_RealTimeDataExt = $0007;
+  Update_RealTime_RealTimeInt64DataExt = $1007;
 
   Update_RealTime_Server_Calc = $0008;
 
@@ -199,6 +200,7 @@ const
   RT_LEVEL_TRANSACTION = $020D; // LEVEL2逐笔成交
   RT_QHARB_REALTIME = $020E; // 期货套利报价 maxy add
   RT_REALTIME_EXT = $020F; // 扩展的行情报价盘 maxy add
+  RT_REALTIME_EXT_INT64 = $120F; // 64位扩展的行情报价盘 maxy add
 
   RT_REALTIME_EXT_DELAY = $0223; // 用于美股延时
 
@@ -304,6 +306,7 @@ const
   RT_LEVEL_SORDERQUEUE_AUTOPUSH = $0A0D; // LEVEL2买卖队列卖方向主推
   RT_LEVEL_TRANSACTION_AUTOPUSH = $0A0E; // LEVEL2逐笔成交主推
   RT_AUTOPUSH_EXT = $0A0F; // 扩展的常用主推 maxy add
+  RT_AUTOPUSH_EXT_INT64 = $1A0F; // 64位协议扩展的常用主推 maxy add
 
   RT_AUTOPUSH_EXT_DELAY = $0A1F; // 延时扩展主推，主要用于美股
 

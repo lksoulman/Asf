@@ -15,8 +15,10 @@ uses
   Windows,
   Classes,
   SysUtils,
+  Command,
   AppContext,
   CommonLock,
+  ServerDataMgr,
   AppContextObject,
   CommonRefCounter,
   StatusServerDataMgr,
@@ -31,12 +33,16 @@ type
     FLock: TCSLock;
     // IsConnected
     FIsConnected: Boolean;
+    // ServerDataMgr
+    FServerDataMgr: IServerDataMgr;
     // ResourceStream Connect
     FResourceStreamConnect: TResourceStream;
     // ResourceStream Dis Connect
     FResourceStreamDisConnect: TResourceStream;
     // StatusServerDatas
     FStatusServerDatas: TList<PStatusServerData>;
+    // StatusServerDataDic
+    FStatusServerDataDic: TDictionary<string, PStatusServerData>;
   protected
     // ClearDatas
     procedure DoClearDatas;
@@ -75,16 +81,20 @@ implementation
 constructor TStatusServerDataMgrImpl.Create(AContext: IAppContext);
 begin
   inherited;
+  FServerDataMgr := FAppContext.FindInterface(ASF_COMMAND_ID_SERVERDATAMGR) as IServerDataMgr;
   FLock := TCSLock.Create;
   FStatusServerDatas := TList<PStatusServerData>.Create;
+  FStatusServerDataDic := TDictionary<string, PStatusServerData>.Create;
   DoAddTestDatas;
 end;
 
 destructor TStatusServerDataMgrImpl.Destroy;
 begin
   DoClearDatas;
+  FStatusServerDataDic.Free;
   FStatusServerDatas.Free;
   FLock.Free;
+  FServerDataMgr := nil;
   inherited;
 end;
 
@@ -109,8 +119,34 @@ begin
 end;
 
 procedure TStatusServerDataMgrImpl.DoUpdate;
+var
+  LIndex: Integer;
+  LHqServerInfo: THqServerInfo;
+  LStatusServerData: PStatusServerData;
 begin
+  if FServerDataMgr = nil then Exit;
 
+  FServerDataMgr.Lock;
+  try
+    FIsConnected := True;
+    for LIndex := 0 to FServerDataMgr.GetCount - 1 do begin
+      LHqServerInfo := FServerDataMgr.GetServerInfo(LIndex);
+      if LHqServerInfo <> nil then begin
+        if FStatusServerDataDic.TryGetValue(LHqServerInfo.ServerName, LStatusServerData) then begin
+          LStatusServerData.FIsConnected := (LHqServerInfo.ConnectStatus = csConnected);
+          FIsConnected := LStatusServerData.FIsConnected and FIsConnected;
+        end else begin
+          New(LStatusServerData);
+          LStatusServerData.FServerName := LHqServerInfo.ServerName;
+          LStatusServerData.FIsConnected := (LHqServerInfo.ConnectStatus = csConnected);
+          FStatusServerDataDic.AddOrSetValue(LStatusServerData.FServerName, LStatusServerData);
+          FIsConnected := LStatusServerData.FIsConnected and FIsConnected;
+        end;
+      end;
+    end;
+  finally
+    FServerDataMgr.UnLock;
+  end;
 end;
 
 procedure TStatusServerDataMgrImpl.Lock;
@@ -125,8 +161,12 @@ end;
 
 procedure TStatusServerDataMgrImpl.Update;
 begin
-  DoClearDatas;
-  DoAddTestDatas;
+  FLock.Lock;
+  try
+    DoUpdate;
+  finally
+    FLock.UnLock;
+  end;
 end;
 
 function TStatusServerDataMgrImpl.GetDataCount: Integer;

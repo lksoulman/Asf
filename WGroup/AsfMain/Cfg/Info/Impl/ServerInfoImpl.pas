@@ -2,7 +2,7 @@ unit ServerInfoImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Server Info Interface Implementation
+// Description£º ServerInfo Implementation
 // Author£º      lksoulman
 // Date£º        2017-7-21
 // Comments£º
@@ -23,7 +23,7 @@ uses
 
 type
 
-  // Server Info Interface Implementation
+  // ServerInfo Implementation
   TServerInfoImpl = class(TAutoInterfacedObject, IServerInfo)
   private
     // Server Mame
@@ -34,8 +34,6 @@ type
     FAttemptCount: Integer;
     // Server List
     FServerList: TStringList;
-    // Application Context Interface
-    FAppContext: IAppContext;
   protected
   public
     // Constructor
@@ -45,28 +43,22 @@ type
 
     { IServerInfo }
 
-    // Init
-    procedure Initialize(AContext: IInterface); safecall;
-    // Un Init
-    procedure UnInitialize; safecall;
-    // Save Cache
-    procedure SaveCache; safecall;
     // Load File
-    procedure LoadFile(AFile: TIniFile); safecall;
+    procedure LoadFile(AFile: TIniFile);
     // Next
-    procedure NextServer; safecall;
+    procedure NextServer;
     // First
-    procedure FirstServer; safecall;
+    procedure FirstServer;
     // Is EOF
-    function IsEOF: boolean; safecall;
+    function IsEOF: boolean;
     // Get Server Index
-    function GetServerIndex: Integer; safecall;
+    function GetServerIndex: Integer;
     // Get Server Url
-    function GetServerUrl: WideString; safecall;
+    function GetServerUrl: WideString;
     // Get Server Urls
-    function GetServerUrls: WideString; safecall;
+    function GetServerUrls: WideString;
     // Get Server Name
-    function GetServerName: WideString; safecall;
+    function GetServerName: WideString;
   end;
 
 implementation
@@ -90,23 +82,6 @@ destructor TServerInfoImpl.Destroy;
 begin
   FServerList.Free;
   inherited;
-end;
-
-procedure TServerInfoImpl.Initialize(AContext: IInterface);
-begin
-  FAppContext := AContext as IAppContext;
-
-end;
-
-procedure TServerInfoImpl.UnInitialize;
-begin
-
-  FAppContext := nil;
-end;
-
-procedure TServerInfoImpl.SaveCache;
-begin
-
 end;
 
 procedure TServerInfoImpl.LoadFile(AFile: TIniFile);

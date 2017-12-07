@@ -59,7 +59,10 @@ type
 
     // String MD5
     function StringMD5(AString: AnsiString): AnsiString;
-
+    // StringEncodeBase64
+    function StringEncodeBase64(AString: AnsiString): AnsiString;
+    // StringDecodeBase64
+    function StringDecodeBase64(AString: AnsiString): AnsiString;
     { AES }
 
     // Encrypt AES
@@ -219,6 +222,34 @@ begin
     on Ex: Exception do begin
       Result := '';
       FAppContext.SysLog(llError, Format('[TEDCryptImpl][EncryptAES] FCipherMD5.GetStringMD5 Exception is %s.', [Ex.Message]));
+    end;
+  end;
+end;
+
+function TEDCryptImpl.StringEncodeBase64(AString: AnsiString): AnsiString;
+begin
+  Result := '';
+  if AString = '' then Exit;
+  try
+    Result := Base64EncodeStr(AString);
+  except
+    on Ex: Exception do begin
+      Result := '';
+      FAppContext.SysLog(llError, Format('[TEDCryptImpl][StringEncodeBase64] StringEncodeBase64 Exception is %s.', [Ex.Message]));
+    end;
+  end;
+end;
+
+function TEDCryptImpl.StringDecodeBase64(AString: AnsiString): AnsiString;
+begin
+  Result := '';
+  if AString = '' then Exit;
+  try
+    Result := Base64DecodeStr(AString);
+  except
+    on Ex: Exception do begin
+      Result := '';
+      FAppContext.SysLog(llError, Format('[TEDCryptImpl][StringDecodeBase64] StringDecodeBase64 Exception is %s.', [Ex.Message]));
     end;
   end;
 end;

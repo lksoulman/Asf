@@ -83,6 +83,8 @@ begin
       if LParam <> '' then begin
         FUserCache.AsyncUpdateTable(LParam);
       end;
+    end else if LFuncName = 'ReplaceCreateCacheTables' then begin
+      FUserCache.ReplaceCreateCacheTables;
     end;
   finally
     EndSplitParams;

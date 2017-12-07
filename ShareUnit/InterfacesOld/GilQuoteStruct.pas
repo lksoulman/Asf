@@ -2,7 +2,7 @@ unit GilQuoteStruct;
 
 interface
 
-uses sysutils, QuoteStruct, QuoteConst, ansistrings, windows;
+uses sysutils, QuoteStruct, QuoteConst, ansistrings, windows, QuoteStructInt64;
 
 type
   // 用于判断证券使用TShareRealTimeData结构体中的哪个结构.
@@ -115,6 +115,24 @@ type
         (m_cOPTNowData: THSOPTRealTime);
   end;
 
+  PQuoteRealTimeDataInt64 = ^TQuoteRealTimeDataInt64;
+
+  TQuoteRealTimeDataInt64 = packed record
+    StockInitInfo: PStockInitInfo;
+    FinanceInfo: PFinanceInfo;
+    m_othData: TStockOtherInt64Data; // 实时其它数据
+    // Level
+    // m_LevelothData: TLevelStockOtherData; // 实时其它数据
+    // m_LevelcNowData: TLevelRealTime;      //
+    VarCode: integer;
+    CommExtData: TQuoteCommExtData; // 股票,港股,指数有效(港股暂时为空)
+    case integer of
+      0:
+        (m_cNowData: TShareRealTimeInt64Data_Ext); // 指向ShareRealTimeData的任意一个
+      1:
+        (m_cOPTNowData: THSOPTRealTime);
+  end;
+
   PQuoteL2RealTimeData = ^TQuoteL2RealTimeData;
 
   TQuoteL2RealTimeData = packed record
@@ -167,6 +185,7 @@ type
 
 Function GetRealTimeSC(Codeinfo: PcodeInfo): TRealTime_Secu_Category;
 function GetSharesPerHand(Codeinfo: PcodeInfo; QuoteRealTimeData: PQuoteRealTimeData): LongInt;
+function GetSharesPerHandInt64(Codeinfo: PcodeInfo; QuoteRealTimeData: PQuoteRealTimeDataInt64): LongInt;
 
 implementation
 
@@ -225,6 +244,19 @@ begin
       Result := QuoteRealTimeData.m_cNowData.m_USData.m_nHand;
     rscTHREEBOAD:
       Result := QuoteRealTimeData.m_cNowData.m_nowData.m_nHand; // 沪深证券
+  end;
+  if Result = 0 then
+    Result := 1;
+end;
+
+function GetSharesPerHandInt64(Codeinfo: PcodeInfo; QuoteRealTimeData: PQuoteRealTimeDataInt64): LongInt;
+begin
+  Result := 1;
+  case GetRealTimeSC(Codeinfo) of
+    rscSTOCK:
+      Result := QuoteRealTimeData.m_cNowData.m_nowDataExt.m_stockRealTime.m_nHand; // 沪深证券
+    rscINDEX:
+      Result := QuoteRealTimeData.m_cNowData.m_indData.m_indexRealTime.m_nHand; // 指数
   end;
   if Result = 0 then
     Result := 1;

@@ -25,6 +25,10 @@ type
 
     // String MD5
     function StringMD5(AString: AnsiString): AnsiString;
+    // StringEncodeBase64
+    function StringEncodeBase64(AString: AnsiString): AnsiString;
+    // StringDecodeBase64
+    function StringDecodeBase64(AString: AnsiString): AnsiString;
 
     { AES }
 

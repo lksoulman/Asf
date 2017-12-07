@@ -9,13 +9,14 @@ Asset=http://10.106.0.188:8381/api/func/
 
 ; [HQ]
 ; LevelI 行情服务器
-LevelI=Level1A.gildata.com:443;
-; LevelII 行情服务器
+LevelI=Level1A.gildata.com:443
+; Level2 行情服务器
 Level2=Level2A.gildata.com:8525;Level2B.gildata.com:8525
 ; 期货行情服务器
-Futues=FutuesA.gildata.com:9990;FutuesB.gildata.com:9990
+Future=FutuesA.gildata.com:9990;FutuesB.gildata.com:9990
 ; 港股实时行情服务器
-HKReal=HKRealA.gildata.com:9999;HKRealB.gildata.com:9999
+HKReal=HKRelayA.gildata.com:9999
+;HKRealA.gildata.com:9999;HKRealB.gildata.com:9999
 ; 港股延时行情服务器
 HKDelay=HKRelayA.gildata.com:9999;HKRelayB.gildata.com:9999
 ; 龙虎看盘行情服务器

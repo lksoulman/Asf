@@ -2,7 +2,7 @@ unit UserInfo;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º User Interface
+// Description£º UserInfo Interface
 // Author£º      lksoulman
 // Date£º        2017-7-22
 // Comments£º
@@ -42,21 +42,25 @@ type
   // Account Info Pointer
   PAccountInfo = ^TAccountInfo;
 
-  // User Interface
+  // UserInfo Interface
   IUserInfo = Interface(IInterface)
     ['{D1DB6423-8030-4125-9EFF-D63DF03957FC}']
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // UnInit
-    procedure UnInitialize;
-    // Save Cache
-    procedure SaveCache;
-    // Load Cache
-    procedure LoadCache;
     // Reset
     procedure ResetBindInfo;
-    // Read
-    procedure Read(AFile: TIniFile);
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteServerCacheCfg
+    procedure WriteServerCacheCfg;
+    // ReadSysCfg
+    procedure ReadSysCfg(AFile: TIniFile);
+    // GetDir
+    function GetDir: WideString;
     // Get Product No
     function GetProNo: WideString;
     // Get Org No

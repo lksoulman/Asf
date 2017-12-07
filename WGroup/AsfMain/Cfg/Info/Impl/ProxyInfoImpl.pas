@@ -2,7 +2,7 @@ unit ProxyInfoImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description： Proxy Info Interface Implementation
+// Description： ProxyInfo Implementation
 // Author：      lksoulman
 // Date：        2017-7-21
 // Comments：
@@ -19,44 +19,49 @@ uses
   IniFiles,
   ProxyInfo,
   AppContext,
+  AppContextObject,
   CommonRefCounter;
 
 type
 
-  // Proxy Info Interface Implementation
-  TProxyInfoImpl = class(TAutoInterfacedObject, IProxyInfo)
+  // ProxyInfo Implementation
+  TProxyInfoImpl = class(TAppContextObject, IProxyInfo)
   private
     // Proxy
     FProxy: TProxy;
     // Is Use Proxy
     FIsUseProxy: Integer;     // 0 表示不启用 1 表示用
-    // Application Context
-    FAppContext: IAppContext;
   protected
-    // Proxy Type To Int
+    // ProxyTypeToInt
     function ProxyTypeToInt(AProxyType: TProxyType; ADefault: Integer): Integer;
-    // Int To Proxy Type
+    // IntToProxyType
     function IntToProxyType(AValue: Integer; ADefault: TProxyType): TProxyType;
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
     { IProxyInfo }
 
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // UnInit
-    procedure UnInitialize;
-    // Save Cache
-    procedure SaveCache;
-    // Load Cache
-    procedure LoadCache;
     // Restore Default
     procedure RestoreDefault;
-    // Read File
-    procedure Read(AFile: TIniFile);
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteServerCacheCfg
+    procedure WriteServerCacheCfg;
+    // ReadSysCfg
+    procedure ReadSysCfg(AFile: TIniFile);
+    // ReadUserSysCfg
+    procedure ReadUserSysCfg(AFile: TIniFile);
+    // WriteUserSysCfg
+    procedure WriteUserSysCfg(AFile: TIniFile);
     // Get Proxy
     function GetProxy: PProxy;
     // Get Is Use Proxy
@@ -72,7 +77,7 @@ uses
 
 { TProxyInfoImpl }
 
-constructor TProxyInfoImpl.Create;
+constructor TProxyInfoImpl.Create(AContext: IAppContext);
 begin
   inherited;
   RestoreDefault;
@@ -84,17 +89,45 @@ begin
   inherited;
 end;
 
-procedure TProxyInfoImpl.Initialize(AContext: IInterface);
+procedure TProxyInfoImpl.RestoreDefault;
 begin
-  FAppContext := AContext as IAppContext;
+
 end;
 
-procedure TProxyInfoImpl.UnInitialize;
+procedure TProxyInfoImpl.ReadLocalCacheCfg;
+var
+  LStringList: TStringList;
 begin
-  FAppContext := nil;
+  LStringList := TStringList.Create;
+  try
+    LStringList.Delimiter := ';';
+    LStringList.DelimitedText := FAppContext.GetCfg.GetUserCacheCfg.GetLocalValue('ProxyInfo');
+    if LStringList.DelimitedText <> '' then begin
+      FIsUseProxy := StrToIntDef(LStringList.Values['Use'], 0);
+      FProxy.FIP := LStringList.Values['IP'];
+      FProxy.FPort := StrToIntDef(LStringList.Values['Port'], 0);
+      FProxy.FUserName := LStringList.Values['UserName'];
+      FProxy.FPassword := LStringList.Values['Password'];
+      FProxy.FIsUseNTLM := StrToIntDef(LStringList.Values['IsUseNTLM'], 0);
+      FProxy.FNTLMDomain := LStringList.Values['NTLMDomain'];
+      FProxy.FType := IntToProxyType(StrToIntDef(LStringList.Values['ProxyType'], 0), ptNo);
+    end;
+  finally
+    LStringList.Free;
+  end;
 end;
 
-procedure TProxyInfoImpl.SaveCache;
+procedure TProxyInfoImpl.ReadServerCacheCfg;
+begin
+
+end;
+
+procedure TProxyInfoImpl.ReadCurrentAccountInfo;
+begin
+
+end;
+
+procedure TProxyInfoImpl.WriteLocalCacheCfg;
 var
   LValue: string;
 begin
@@ -105,7 +138,7 @@ begin
                  + 'Password=%s;'
                  + 'IsUseNTLM=%d;'
                  + 'NTLMDomain=%s;'
-                 + 'Type=%s',
+                 + 'Type=%d',
                 [FIsUseProxy,
                  FProxy.FIP,
                  FProxy.FPort,
@@ -114,45 +147,27 @@ begin
                  FProxy.FIsUseNTLM,
                  FProxy.FNTLMDomain,
                  ProxyTypeToInt(FProxy.FType, 0)]);
-  if FAppContext <> nil then begin
-//      (FAppContext.GetConfig as IConfig).GetSysCfgCache.SetValue('ProxyInfo', LValue);
-  end;
+//  (FAppContext.GetCfg as ICfg).GetUserCacheCfg.GetLocalValue('ProxyInfo', LValue);
 end;
 
-procedure TProxyInfoImpl.LoadCache;
-var
-  LStringList: TStringList;
-begin
-  if FAppContext <> nil then begin
-
-    LStringList := TStringList.Create;
-    try
-      LStringList.Delimiter := ';';
-      LStringList.DelimitedText := FAppContext.GetCfg.GetSysCacheCfg.GetValue('ProxyInfo');
-      if LStringList.DelimitedText <> '' then begin
-        FIsUseProxy := StrToIntDef(LStringList.Values['Use'], 0);
-        FProxy.FIP := LStringList.Values['IP'];
-        FProxy.FPort := StrToIntDef(LStringList.Values['Port'], 0);
-        FProxy.FUserName := LStringList.Values['UserName'];
-        FProxy.FPassword := LStringList.Values['Password'];
-        FProxy.FIsUseNTLM := StrToIntDef(LStringList.Values['IsUseNTLM'], 0);
-        FProxy.FNTLMDomain := LStringList.Values['NTLMDomain'];
-        FProxy.FType := IntToProxyType(StrToIntDef(LStringList.Values['ProxyType'], 0), ptNo);
-      end;
-    finally
-      LStringList.Free;
-    end;
-  end;
-end;
-
-procedure TProxyInfoImpl.RestoreDefault;
+procedure TProxyInfoImpl.WriteServerCacheCfg;
 begin
 
 end;
 
-procedure TProxyInfoImpl.Read(AFile: TIniFile);
+procedure TProxyInfoImpl.ReadSysCfg(AFile: TIniFile);
 begin
   if AFile = nil then Exit;
+
+end;
+
+procedure TProxyInfoImpl.ReadUserSysCfg(AFile: TIniFile);
+begin
+
+end;
+
+procedure TProxyInfoImpl.WriteUserSysCfg(AFile: TIniFile);
+begin
 
 end;
 

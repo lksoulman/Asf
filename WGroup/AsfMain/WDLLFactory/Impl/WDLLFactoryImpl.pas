@@ -53,8 +53,8 @@ type
     // PlugInMgrDic
     FPlugInMgrInfoDic: TDictionary<string, Integer>;
   protected
-    // Clear
-    procedure DoClear;
+    // DoClearPlugInMgrs
+    procedure DoClearPlugInMgrs;
     // Load PlugInMgr
     procedure DoLoadPlugInMgr(APlugInMgrInfo: PPlugInMgrInfo);
     // Get PlugInMgrInfo
@@ -93,7 +93,7 @@ end;
 destructor TWDLLFactoryImpl.Destroy;
 begin
   FMainPlugInMgrInfo.FPlugInMgr := nil;
-  DoClear;
+  DoClearPlugInMgrs;
   FPlugInMgrInfoDic.Free;
   FPlugInMgrInfos.Free;
   FLock.Free;
@@ -130,7 +130,7 @@ begin
   end;
 end;
 
-procedure TWDLLFactoryImpl.DoClear;
+procedure TWDLLFactoryImpl.DoClearPlugInMgrs;
 var
   LIndex: Integer;
   LPPlugInMgrInfo: PPlugInMgrInfo;

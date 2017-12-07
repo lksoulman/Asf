@@ -2,7 +2,7 @@ unit CompanyInfo;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Company Info Interface
+// Description£º CompanyInfo Interface
 // Author£º      lksoulman
 // Date£º        2017-7-20
 // Comments£º
@@ -19,7 +19,7 @@ uses
 
 type
 
-  // Company Info
+  // CompanyInfo
   TCompanyInfo = packed record
     FEmail: WideString;
     FPhone: WideString;
@@ -27,20 +27,14 @@ type
     FCopyright: WideString;
   end;
 
-  // Company Info Pointer
+  // CompanyInfo Pointer
   PCompanyInfo = ^TCompanyInfo;
 
-  // Company Info Interface
+  // CompanyInfo Interface
   ICompanyInfo = Interface(IInterface)
     ['{8266E637-A200-4CD9-A9B6-7FCD35B79318}']
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // UnInit
-    procedure UnInitialize;
-    // Load Cache
-    procedure LoadCache;
-    // Read
-    procedure Read(AFile: TIniFile);
+    // ReadSysCfg
+    procedure ReadSysCfg(AFile: TIniFile);
     // Get Company Info
     function GetCompanyInfo: PCompanyInfo;
   end;

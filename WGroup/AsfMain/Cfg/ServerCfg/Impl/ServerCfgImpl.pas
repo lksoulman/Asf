@@ -2,7 +2,7 @@ unit ServerCfgImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Server Config Interface Implementation
+// Description£º ServerCfg Implementation
 // Author£º      lksoulman
 // Date£º        2017-8-10
 // Comments£º
@@ -19,15 +19,14 @@ uses
   ServerInfo,
   AppContext,
   CommonRefCounter,
+  AppContextObject,
   Generics.Collections;
 
 type
 
-  // Server Config Interface
-  TServerCfgImpl = class(TAutoInterfacedObject, IServerCfg)
+  // ServerCfg Implementation
+  TServerCfgImpl = class(TAppContextObject, IServerCfg)
   private
-    // Application Context
-    FAppContext: IAppContext;
     // Server Info Dictionary
     FServerInfoDic: TDictionary<string, IServerInfo>;
     { Indicators }
@@ -91,16 +90,11 @@ type
     procedure DoInitServerInfoDic;
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
     { IServerCfg }
-
-    // Initialize resources(only execute once)
-    procedure Initialize(AContext: IInterface);
-    // Releasing resources(only execute once)
-    procedure UnInitialize;
 
     { Indicators }
 
@@ -173,7 +167,7 @@ uses
 
 { TServerCfgImpl }
 
-constructor TServerCfgImpl.Create;
+constructor TServerCfgImpl.Create(AContext: IAppContext);
 begin
   inherited;
   FServerInfoDic := TDictionary<string, IServerInfo>.Create(25);
@@ -205,9 +199,6 @@ begin
   FInterBankPriceServerInfo := TServerInfoImpl.Create('InterBankPrice') as IServerInfo;
   FFlyQuantificationServerInfo := TServerInfoImpl.Create('FlyQuantification') as IServerInfo;
 
-
-
-
   { Update }
 
   FUpgradeServerInfo := TServerInfoImpl.Create('Upgrade') as IServerInfo;
@@ -215,6 +206,9 @@ begin
   { HS }
 
   FActionAnalysisServerInfo := TServerInfoImpl.Create('ActionAnalysis') as IServerInfo;
+
+  DoInitServerInfos;
+  DoInitServerInfoDic;
 end;
 
 destructor TServerCfgImpl.Destroy;
@@ -344,19 +338,6 @@ begin
   { HS }
 
   FServerInfoDic.AddOrSetValue(FActionAnalysisServerInfo.GetServerName, FActionAnalysisServerInfo);
-end;
-
-procedure TServerCfgImpl.Initialize(AContext: IInterface);
-begin
-  FAppContext := AContext as IAppContext;
-  DoInitServerInfos;
-  DoInitServerInfoDic;
-end;
-
-procedure TServerCfgImpl.UnInitialize;
-begin
-
-  FAppContext := nil;
 end;
 
 function TServerCfgImpl.GetBasicServerInfo: IServerInfo;

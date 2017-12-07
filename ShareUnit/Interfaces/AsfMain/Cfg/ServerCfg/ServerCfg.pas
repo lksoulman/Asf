@@ -2,7 +2,7 @@ unit ServerCfg;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Server Config Interface
+// Description£º ServerCfg Interface
 // Author£º      lksoulman
 // Date£º        2017-8-10
 // Comments£º
@@ -19,14 +19,9 @@ uses
 
 type
 
-  // Server Config Interface
+  // ServerCfg Interface
   IServerCfg = interface(IInterface)
     ['{D54E91B2-AC02-431F-845F-E6AAD25615D5}']
-    // Initialize resources(only execute once)
-    procedure Initialize(AContext: IInterface);
-    // Releasing resources(only execute once)
-    procedure UnInitialize;
-
     { Indicators }
 
     // Basic Server Info

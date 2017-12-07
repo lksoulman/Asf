@@ -102,9 +102,10 @@ type
 
   // HqInfo
   THqInfo = packed record
-    FIndex: Integer;
-    FTurnover: string;
-    FNowPriceHL: string;
+//    FIndex: Integer;
+//    FTurnover: string;
+//    FNowPriceHL: string;
+//    FColorValue: Integer;
     FSecuAbbrRect: TRect;
     FTurnoverRect: TRect;
     FNowPriceHLRect: TRect;
@@ -493,7 +494,7 @@ begin
   if (FStatusBarUI.FAppContext <> nil) then begin
     FStatusHqDataMgr := FStatusBarUI.FAppContext.FindInterface(ASF_COMMAND_ID_STATUSHQDATAMGR) as IStatusHqDataMgr;
   end;
-  FWidth := 200;
+  FWidth := 260;
   FHqType := hstLeft;
   FItemCount := 3;
   FCurrIndex := 0;
@@ -527,66 +528,15 @@ procedure TStatusHqItem.DoCalcRect;
 var
   LSize: TSize;
   LHqInfo: PHqInfo;
-  LIndex, LRight, LOffSetY, LSpace: Integer;
+  LTurnover, LNowPriceHL: string;
+  LIndex, LRight, LOffSetY, LSpace, LColorValue: Integer;
 begin
-  for LIndex := 0 to FHqInfoQueue.GetCount - 1 do begin
-    LHqInfo := FHqInfoQueue.GetElement(LIndex);
-    if LHqInfo <> nil then begin
-      LOffSetY := LIndex * FRectEx.Height - FOffSetY;
-      LHqInfo^.FTurnover := LHqInfo^.FStatusHqData^.GetTurnover;
-      LHqInfo^.FNowPriceHL := LHqInfo^.FStatusHqData^.GetNowPriceHL;
 
-      LSpace := 10;
-      LRight := FRectEx.Left;
-
-      GetTextSizeX(FStatusBarUI.FFrameRenderDC.MemDC,
-        FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight20,
-        LHqInfo^.FStatusHqData^.FSecuAbbr, LSize);
-      LHqInfo^.FSecuAbbrRect := FRectEx;
-      LHqInfo^.FSecuAbbrRect.Left := LRight + LSpace;
-      LHqInfo^.FSecuAbbrRect.Right := LHqInfo^.FSecuAbbrRect.Left + LSize.cx;
-      if LHqInfo^.FSecuAbbrRect.Left > FRectEx.Right then begin
-        LHqInfo^.FSecuAbbrRect.Left := FRectEx.Right;
-      end;
-      if LHqInfo^.FSecuAbbrRect.Right > FRectEx.Right then begin
-        LHqInfo^.FSecuAbbrRect.Right := FRectEx.Right;
-      end;
-      LRight := LHqInfo^.FSecuAbbrRect.Right;
-
-      GetTextSizeX(FStatusBarUI.FFrameRenderDC.MemDC,
-        FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight20,
-        LHqInfo^.FNowPriceHL, LSize);
-      LHqInfo^.FNowPriceHLRect := FRectEx;
-      LHqInfo^.FNowPriceHLRect.Left := LRight + LSpace;
-      LHqInfo^.FNowPriceHLRect.Right := LHqInfo^.FNowPriceHLRect.Left + LSize.cx;
-      if LHqInfo^.FNowPriceHLRect.Left > FRectEx.Right then begin
-        LHqInfo^.FNowPriceHLRect.Left := FRectEx.Right;
-      end;
-      if LHqInfo^.FNowPriceHLRect.Right > FRectEx.Right then begin
-        LHqInfo^.FNowPriceHLRect.Right := FRectEx.Right;
-      end;
-      LRight := LHqInfo^.FNowPriceHLRect.Right;
-
-      LHqInfo^.FTurnoverRect := FRectEx;
-      LHqInfo^.FTurnoverRect.Left := LRight + LSpace;
-      LHqInfo^.FTurnoverRect.Right := LHqInfo^.FTurnoverRect.Left + LSize.cx;
-      if LHqInfo^.FTurnoverRect.Left > FRectEx.Right then begin
-        LHqInfo^.FTurnoverRect.Left := FRectEx.Right;
-      end;
-      if LHqInfo^.FTurnoverRect.Right > FRectEx.Right then begin
-        LHqInfo^.FTurnoverRect.Right := FRectEx.Right;
-      end;
-
-      OffsetRect(LHqInfo^.FSecuAbbrRect, 0, LOffSetY);
-      OffsetRect(LHqInfo^.FNowPriceHLRect, 0, LOffSetY);
-      OffsetRect(LHqInfo^.FTurnoverRect, 0, LOffSetY);
-    end;
-  end;
 end;
 
 function TStatusHqItem.Scroll: Boolean;
 const
-  START_SCROLL = 30;
+  START_SCROLL = 40;
 var
   LHqInfo: PHqInfo;
   LNextIndex: Integer;
@@ -600,7 +550,7 @@ begin
 
   Inc(FInterval);
   if FInterval > START_SCROLL then begin
-    Inc(FOffsetY, 3);
+    Inc(FOffsetY, 2);
     if FHqInfoQueue.GetCount = 1 then begin
       if FHqType = hstLeft then begin
         LNextIndex := (FCurrIndex + 1) mod FItemCount;
@@ -635,7 +585,6 @@ begin
       end;
     end;
   end;
-  DoCalcRect;
 end;
 
 function TStatusHqItem.RectExIsValid: Boolean;
@@ -650,31 +599,91 @@ end;
 
 function TStatusHqItem.Draw(ARenderDC: TRenderDC): Boolean;
 var
+  LSize: TSize;
   LOBJ: HGDIOBJ;
-  LIndex: Integer;
   LHqInfo: PHqInfo;
+  LColorRef: COLORREF;
+  LTurnover, LNowPriceHL: string;
+  LIndex, LRight, LOffSetY, LSpace, LColorValue: Integer;
 begin
   Result := True;
 
-  LOBJ := SelectObject(ARenderDC.MemDC, FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight20);
+  LOBJ := SelectObject(ARenderDC.MemDC, FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight18);
   try
     for LIndex := 0 to FHqInfoQueue.GetCount - 1 do begin
       LHqInfo := FHqInfoQueue.GetElement(LIndex);
       if LHqInfo <> nil then begin
+        LOffSetY := LIndex * FRectEx.Height - FOffSetY;
+        LTurnover := LHqInfo^.FStatusHqData^.GetTurnover;
+        LNowPriceHL := LHqInfo^.FStatusHqData^.GetNowPriceHL;
+        LColorValue := LHqInfo^.FStatusHqData^.GetColorValue;
+
+        LSpace := 10;
+        LRight := FRectEx.Left;
+
+        GetTextSizeX(FStatusBarUI.FFrameRenderDC.MemDC,
+          FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight18,
+          LHqInfo^.FStatusHqData^.FSecuAbbr, LSize);
+        LHqInfo^.FSecuAbbrRect := FRectEx;
+        LHqInfo^.FSecuAbbrRect.Left := LRight + LSpace;
+        LHqInfo^.FSecuAbbrRect.Right := LHqInfo^.FSecuAbbrRect.Left + LSize.cx;
+        if LHqInfo^.FSecuAbbrRect.Left > FRectEx.Right then begin
+          LHqInfo^.FSecuAbbrRect.Left := FRectEx.Right;
+        end;
+        if LHqInfo^.FSecuAbbrRect.Right > FRectEx.Right then begin
+          LHqInfo^.FSecuAbbrRect.Right := FRectEx.Right;
+        end;
+        LRight := LHqInfo^.FSecuAbbrRect.Right;
+        OffsetRect(LHqInfo^.FSecuAbbrRect, 0, LOffSetY);
         if LHqInfo^.FSecuAbbrRect.Left < LHqInfo^.FSecuAbbrRect.Right then begin
           DrawTextX(ARenderDC.MemDC, LHqInfo^.FSecuAbbrRect, LHqInfo^.FStatusHqData^.FSecuAbbr,
             FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefMasterStatusBarText,
             dtaLeft, False, False);
         end;
 
+        GetTextSizeX(FStatusBarUI.FFrameRenderDC.MemDC,
+          FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight18,
+          LNowPriceHL, LSize);
+        LHqInfo^.FNowPriceHLRect := FRectEx;
+        LHqInfo^.FNowPriceHLRect.Left := LRight + LSpace;
+        LHqInfo^.FNowPriceHLRect.Right := LHqInfo^.FNowPriceHLRect.Left + LSize.cx;
+        if LHqInfo^.FNowPriceHLRect.Left > FRectEx.Right then begin
+          LHqInfo^.FNowPriceHLRect.Left := FRectEx.Right;
+        end;
+        if LHqInfo^.FNowPriceHLRect.Right > FRectEx.Right then begin
+          LHqInfo^.FNowPriceHLRect.Right := FRectEx.Right;
+        end;
+        LRight := LHqInfo^.FNowPriceHLRect.Right;
+        OffsetRect(LHqInfo^.FNowPriceHLRect, 0, LOffSetY);
         if LHqInfo^.FNowPriceHLRect.Left < LHqInfo^.FNowPriceHLRect.Right then begin
-          DrawTextX(ARenderDC.MemDC, LHqInfo^.FNowPriceHLRect, LHqInfo^.FNowPriceHL,
-            FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefHqRed,
+          if LColorValue > 0 then begin
+            LColorRef := FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefHqRed;
+          end else if LColorValue < 0 then begin
+            LColorRef := FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefHqGreen;
+          end else begin
+            LColorRef := FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefMasterStatusBarText;
+          end;
+          DrawTextX(ARenderDC.MemDC, LHqInfo^.FNowPriceHLRect, LNowPriceHL,
+            LColorRef,
             dtaLeft, False, False);
         end;
 
+        GetTextSizeX(FStatusBarUI.FFrameRenderDC.MemDC,
+          FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight18,
+          LTurnover, LSize);
+        LHqInfo^.FTurnoverRect := FRectEx;
+        LHqInfo^.FTurnoverRect.Left := LRight + LSpace;
+        LHqInfo^.FTurnoverRect.Right := LHqInfo^.FTurnoverRect.Left + LSize.cx;
+        if LHqInfo^.FTurnoverRect.Left > FRectEx.Right then begin
+          LHqInfo^.FTurnoverRect.Left := FRectEx.Right;
+        end;
+        if LHqInfo^.FTurnoverRect.Right > FRectEx.Right then begin
+          LHqInfo^.FTurnoverRect.Right := FRectEx.Right;
+        end;
+        OffsetRect(LHqInfo^.FTurnoverRect, 0, LOffSetY);
+
         if LHqInfo^.FTurnoverRect.Left < LHqInfo^.FTurnoverRect.Right then begin
-          DrawTextX(ARenderDC.MemDC, LHqInfo^.FTurnoverRect, LHqInfo^.FTurnover,
+          DrawTextX(ARenderDC.MemDC, LHqInfo^.FTurnoverRect, LTurnover,
             FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefHqTurnover,
             dtaLeft, False, False);
         end;
@@ -837,7 +846,7 @@ begin
       if LStatusNewsData^.FWidth = 0 then begin
         LTitle := LStatusNewsData^.FDateStr + '  ' + LStatusNewsData^.FTitle;
         GetTextSizeX(FStatusBarUI.FFrameRenderDC.MemDC,
-          FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight20,
+          FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight18,
           LTitle,
           LSize);
         LStatusNewsData^.FWidth := LSize.cx;
@@ -887,7 +896,7 @@ begin
   SelectClipRgn(ARenderDC.MemDC, LClipRgn);
   try
     LOBJ := SelectObject(FStatusBarUI.FrameRenderDC.MemDC,
-      FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight20);
+      FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight18);
     try
       for LIndex := 0 to FDrawNewsInfoQueue.GetCount - 1 do begin
         LNewsInfo := FDrawNewsInfoQueue.GetElement(LIndex);
@@ -947,7 +956,7 @@ var
 begin
   Result := True;
   FCurrentTime := Format('CN %s', [FormatDateTime('MM-DD hh:nn:ss', Now)]);
-  LOBJ := SelectObject(ARenderDC.MemDC, FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight20);
+  LOBJ := SelectObject(ARenderDC.MemDC, FStatusBarUI.FAppContext.GetGdiMgr.GetFontObjHeight18);
   try
     DrawTextX(ARenderDC.MemDC, FRectEx, FCurrentTime,
       FStatusBarUI.FAppContext.GetGdiMgr.GetColorRefMasterStatusBarText,

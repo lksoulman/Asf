@@ -2,7 +2,7 @@ unit CfgImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Config Interface Implementation
+// Description£º Cfg Implementation
 // Author£º      lksoulman
 // Date£º        2017-7-24
 // Comments£º
@@ -18,38 +18,32 @@ uses
   Windows,
   Classes,
   SysUtils,
-  CacheCfg,
   ServerCfg,
   AppContext,
+  UserCacheCfg,
+  AppContextObject,
   CommonRefCounter;
 
 type
 
-  // Config Interface Implementation
-  TCfgImpl = class(TAutoInterfacedObject, ICfg)
+  // Cfg Implementation
+  TCfgImpl = class(TAppContextObject, ICfg)
   private
-    // App Path
+    // AppPath
     FAppPath: string;
-    // System Cfg
+    // SysCfg
     FSysCfg: ISysCfg;
-    // Web Cfg
+    // WebCfg
     FWebCfg: IWebCfg;
-    // Server Cfg
+    // ServerCfg
     FServerCfg: IServerCfg;
-    // System Cache Cfg
-    FSysCacheCfg: ICacheCfg;
-    // User Cache Cfg
-    FUserCacheCfg: ICacheCfg;
-    // Application Context
-    FAppContext: IAppContext;
+    // UserCacheCfg
+    FUserCacheCfg: IUserCacheCfg;
   protected
-    // Init System Dirs
-    procedure DoInitSysDirs;
-    // UnInit
-    procedure DoUnInitialize;
+
   public
     // Constructor
-    constructor Create(AContext: IAppContext); reintroduce;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
@@ -57,43 +51,43 @@ type
 
     // Initialize
     procedure Initialize;
-    // Force User Dirs
-    function InitUserDirs: Boolean;
-    // Get System Cfg
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // ReadServerCacheCfg
+    procedure ReadServerCacheCfg;
+    // GetSysCfg
     function GetSysCfg: ISysCfg;
-    // Get Web Cfg
+    // GetWebCfg
     function GetWebCfg: IWebCfg;
-    // Get Server Cfg
+    // GetServerCfg
     function GetServerCfg: IServerCfg;
-    // Get Sys Cache Cfg
-    function GetSysCacheCfg: ICacheCfg;
-    // Get User Cache Cfg
-    function GetUserCacheCfg: ICacheCfg;
-    // Get Application Path
+    // GetUserCacheCfg
+    function GetUserCacheCfg: IUserCacheCfg;
+    // GetAppPath
     function GetAppPath: WideString;
-    // Get Bin Path
+    // GetBinPath
     function GetBinPath: WideString;
-    // Get Cfg Path
+    // GetCfgPath
     function GetCfgPath: WideString;
-    // Get Log Path
+    // GetLogPath
     function GetLogPath: WideString;
-    // Get Skin Path
+    // GetSkinPath
     function GetSkinPath: WideString;
-    // Get User Path
+    // GetUserPath
     function GetUserPath: WideString;
-    // Get Users Path
+    // GetUsersPath
     function GetUsersPath: WideString;
-    // Get User Cfg Path
+    // GetUserCfgPath
     function GetUserCfgPath: WideString;
-    // Get Cache Path
+    // GetCachePath
     function GetCachePath: WideString;
-    // Get HQ Cache Path
+    // GetHQCachePath
     function GetHQCachePath: WideString;
-    // Get Base Cache Path
+    // GetBaseCachePath
     function GetBaseCachePath: WideString;
-    // Get User Cache Path
+    // GetUserCachePath
     function GetUserCachePath: WideString;
-    // Get System Update Path
+    // GetSysUpdatePath
     function GetSysUpdatePath: WideString;
   end;
 
@@ -105,60 +99,17 @@ uses
   IniFiles,
   SysCfgImpl,
   WebCfgImpl,
-  CacheCfgImpl,
-  ServerCfgImpl;
+  ServerCfgImpl,
+  UserCacheCfgImpl;
 
 { TCfgImpl }
 
 constructor TCfgImpl.Create(AContext: IAppContext);
 begin
-  inherited Create;
-  FAppContext := AContext;
+  inherited;
   FAppPath := ExtractFilePath(ParamStr(0));
   FAppPath := ExpandFileName(FAppPath + '..\');
-  FSysCfg := TSysCfgImpl.Create as ISysCfg;
-  FWebCfg := TWebCfgImpl.Create as IWebCfg;
-  FServerCfg := TServerCfgImpl.Create as IServerCfg;
-  FSysCacheCfg := TCacheCfgImpl.Create as ICacheCfg;
-  FUserCacheCfg := TCacheCfgImpl.Create as ICacheCfg;
-end;
 
-destructor TCfgImpl.Destroy;
-begin
-  DoUnInitialize;
-
-  FSysCfg := nil;
-  FWebCfg := nil;
-  FServerCfg := nil;
-  FSysCacheCfg := nil;
-  FUserCacheCfg := nil;
-  FAppContext := nil;
-  inherited;
-end;
-
-procedure TCfgImpl.Initialize;
-begin
-  DoInitSysDirs;
-  FSysCacheCfg.SetCachePath(GetCachePath);
-  FSysCacheCfg.Initialize(FAppContext);
-  FSysCfg.Initialize(FAppContext);
-  FWebCfg.Initialize(FAppContext);
-  FServerCfg.Initialize(FAppContext);
-//  FUserCacheCfg.SetCachePath();
-  FUserCacheCfg.Initialize(FAppContext);
-end;
-
-procedure TCfgImpl.DoUnInitialize;
-begin
-  FUserCacheCfg.UnInitialize;
-  FServerCfg.UnInitialize;
-  FWebCfg.UnInitialize;
-  FSysCfg.UnInitialize;
-  FSysCacheCfg.UnInitialize;
-end;
-
-procedure TCfgImpl.DoInitSysDirs;
-begin
   if not DirectoryExists(GetLogPath) then begin
     ForceDirectories(GetLogPath);
   end;
@@ -178,11 +129,33 @@ begin
   if not DirectoryExists(GetUsersPath) then begin
     ForceDirectories(GetUsersPath);
   end;
+
 end;
 
-function TCfgImpl.InitUserDirs: Boolean;
+destructor TCfgImpl.Destroy;
 begin
-  Result := True;
+  FSysCfg := nil;
+  FWebCfg := nil;
+  FServerCfg := nil;
+  FUserCacheCfg := nil;
+  inherited;
+end;
+
+procedure TCfgImpl.Initialize;
+begin
+  FSysCfg := TSysCfgImpl.Create(FAppContext) as ISysCfg;
+  FWebCfg := TWebCfgImpl.Create(FAppContext) as IWebCfg;
+  FServerCfg := TServerCfgImpl.Create(FAppContext) as IServerCfg;
+  FUserCacheCfg := TUserCacheCfgImpl.Create(FAppContext) as IUserCacheCfg;
+
+  FUserCacheCfg.LoadCurrentAccountInfo;
+  FSysCfg.ReadCurrentAccountInfo;
+  FUserCacheCfg.LoadLocalCfg;
+  FSysCfg.ReadLocalCacheCfg;
+end;
+
+procedure TCfgImpl.WriteLocalCacheCfg;
+begin
   if not DirectoryExists(GetUserPath) then begin
     ForceDirectories(GetUserPath);
   end;
@@ -195,8 +168,14 @@ begin
     ForceDirectories(GetUserCachePath);
   end;
 
-  FUserCacheCfg.SetCachePath(GetUserCachePath);
-  FUserCacheCfg.LoadCacheCfg;
+  FUserCacheCfg.SaveCurrentAccountInfo;
+  FSysCfg.WriteLocalCacheCfg;
+end;
+
+procedure TCfgImpl.ReadServerCacheCfg;
+begin
+  FUserCacheCfg.LoadServerCfg;
+  FSysCfg.ReadServerCacheCfg;
 end;
 
 function TCfgImpl.GetSysCfg: ISysCfg;
@@ -214,12 +193,7 @@ begin
   Result := FServerCfg;
 end;
 
-function TCfgImpl.GetSysCacheCfg: ICacheCfg;
-begin
-  Result := FSysCacheCfg;
-end;
-
-function TCfgImpl.GetUserCacheCfg: ICacheCfg;
+function TCfgImpl.GetUserCacheCfg: IUserCacheCfg;
 begin
   Result := FUserCacheCfg;
 end;
@@ -251,11 +225,7 @@ end;
 
 function TCfgImpl.GetUserPath: WideString;
 begin
-  if FSysCfg.GetUserInfo.GetUFXAccountInfo^.FUserName <> '' then begin
-    Result := GetUsersPath + FSysCfg.GetUserInfo.GetUFXAccountInfo^.FUserName + '\';
-  end else begin
-    Result := '';
-  end;
+  Result := FSysCfg.GetUserInfo.GetDir;
 end;
 
 function TCfgImpl.GetUsersPath: WideString;

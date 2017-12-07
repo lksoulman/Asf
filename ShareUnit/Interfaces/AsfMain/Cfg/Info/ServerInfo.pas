@@ -2,7 +2,7 @@ unit ServerInfo;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Server Info Interface
+// Description£º ServerInfo Interface
 // Author£º      lksoulman
 // Date£º        2017-7-21
 // Comments£º
@@ -19,31 +19,25 @@ uses
 
 type
 
-  // Server Info Interface
+  // ServerInfo Interface
   IServerInfo = Interface(IInterface)
     ['{2BE2468A-C419-4BCB-9905-4B8CF5509689}']
-    // Init
-    procedure Initialize(AContext: IInterface); safecall;
-    // Un Init
-    procedure UnInitialize; safecall;
-    // Save Cache
-    procedure SaveCache; safecall;
     // Load File
-    procedure LoadFile(AFile: TIniFile); safecall;
+    procedure LoadFile(AFile: TIniFile);
     // Next
-    procedure NextServer; safecall;
+    procedure NextServer;
     // First
-    procedure FirstServer; safecall;
+    procedure FirstServer;
     // Is EOF
-    function IsEOF: boolean; safecall;
+    function IsEOF: boolean;
     // Get Server Index
-    function GetServerIndex: Integer; safecall;
+    function GetServerIndex: Integer;
     // Get Server Url
-    function GetServerUrl: WideString; safecall;
+    function GetServerUrl: WideString;
     // Get Server Urls
-    function GetServerUrls: WideString; safecall;
+    function GetServerUrls: WideString;
     // Get Server Name
-    function GetServerName: WideString; safecall;
+    function GetServerName: WideString;
   end;
 
 implementation

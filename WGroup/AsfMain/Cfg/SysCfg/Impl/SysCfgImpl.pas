@@ -2,7 +2,7 @@ unit SysCfgImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º System Cfg Interface Implementation
+// Description£º SystemCfg Implementation
 // Author£º      lksoulman
 // Date£º        2017-8-10
 // Comments£º
@@ -21,45 +21,48 @@ uses
   SystemInfo,
   AppContext,
   CompanyInfo,
-  CommonRefCounter;
+  CommonRefCounter,
+  AppContextObject;
 
 type
 
-  // System Cfg Interface Implementation
-  TSysCfgImpl = class(TAutoInterfacedObject, ISysCfg)
+  // SystemCfg Implementation
+  TSysCfgImpl = class(TAppContextObject, ISysCfg)
   private
-    // User Info
+    // UserInfo
     FUserInfo: IUserInfo;
-    // Proxy Info
+    // ProxyInfo
     FProxyInfo: IProxyInfo;
-    // System Config
+    // SystemInfo
     FSystemInfo: ISystemInfo;
-    // Company Info
+    // CompanyInfo
     FCompanyInfo: ICompanyInfo;
-    // Application Context Interface
-    FAppContext: IAppContext;
   protected
-    // Init Info
-    procedure DoInitInfos;
+    // ReadSysCfg
+    procedure DoReadSysCfg;
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
      { ISysCfg }
 
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // Un Init
-    procedure UnInitialize;
-    // Get User Info
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteUserCacheSysCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // GetUserInfo
     function GetUserInfo: IUserInfo;
-    // Get Proxy Info
+    // GetProxyInfo
     function GetProxyInfo: IProxyInfo;
-    // Get Syscfg Info
+    // GetSyscfgInfo
     function GetSystemInfo: ISystemInfo;
-    // Get Company Info
+    // GetCompanyInfo
     function GetCompanyInfo: ICompanyInfo;
   end;
 
@@ -77,13 +80,15 @@ uses
 
 { TSysCfgImpl }
 
-constructor TSysCfgImpl.Create;
+constructor TSysCfgImpl.Create(AContext: IAppContext);
 begin
   inherited;
-  FUserInfo := TUserInfoImpl.Create as IUserInfo;
-  FProxyInfo := TProxyInfoImpl.Create as IProxyInfo;
-  FSystemInfo := TSystemInfoImpl.Create as ISystemInfo;
-  FCompanyInfo := TCompanyInfoImpl.Create as ICompanyInfo;
+  FUserInfo := TUserInfoImpl.Create(FAppContext) as IUserInfo;
+  FProxyInfo := TProxyInfoImpl.Create(FAppContext) as IProxyInfo;
+  FSystemInfo := TSystemInfoImpl.Create(FAppContext) as ISystemInfo;
+  FCompanyInfo := TCompanyInfoImpl.Create(FAppContext) as ICompanyInfo;
+
+  DoReadSysCfg;
 end;
 
 destructor TSysCfgImpl.Destroy;
@@ -95,7 +100,7 @@ begin
   inherited;
 end;
 
-procedure TSysCfgImpl.DoInitInfos;
+procedure TSysCfgImpl.DoReadSysCfg;
 var
   LFile: string;
   LIniFile: TIniFile;
@@ -104,10 +109,10 @@ begin
   if FileExists(LFile) then begin
     LIniFile := TIniFile.Create(LFile);
     try
-      FUserInfo.Read(LIniFile);
-      FProxyInfo.Read(LIniFile);
-      FSystemInfo.Read(LIniFile);
-      FCompanyInfo.Read(LIniFile);
+      FUserInfo.ReadSysCfg(LIniFile);
+      FProxyInfo.ReadSysCfg(LIniFile);
+      FSystemInfo.ReadSysCfg(LIniFile);
+      FCompanyInfo.ReadSysCfg(LIniFile);
     finally
       LIniFile.Free;
     end;
@@ -116,27 +121,32 @@ begin
   end;
 end;
 
-procedure TSysCfgImpl.Initialize(AContext: IInterface);
+procedure TSysCfgImpl.ReadLocalCacheCfg;
 begin
-  FAppContext := AContext as IAppContext;
-  DoInitInfos;
-  FUserInfo.Initialize(AContext);
-  FProxyInfo.Initialize(AContext);
-  FSystemInfo.Initialize(AContext);
-  FCompanyInfo.Initialize(AContext);
-  FUserInfo.LoadCache;
-  FProxyInfo.LoadCache;
-  FSystemInfo.LoadCache;
-  FCompanyInfo.LoadCache;
+  FUserInfo.ReadLocalCacheCfg;
+  FProxyInfo.ReadLocalCacheCfg;
+  FSystemInfo.ReadLocalCacheCfg;
 end;
 
-procedure TSysCfgImpl.UnInitialize;
+procedure TSysCfgImpl.WriteLocalCacheCfg;
 begin
-  FCompanyInfo.UnInitialize;
-  FSystemInfo.UnInitialize;
-  FProxyInfo.UnInitialize;
-  FUserInfo.UnInitialize;
-  FAppContext := nil;
+  FUserInfo.WriteLocalCacheCfg;
+  FProxyInfo.WriteLocalCacheCfg;
+  FSystemInfo.WriteLocalCacheCfg;
+end;
+
+procedure TSysCfgImpl.ReadServerCacheCfg;
+begin
+  FUserInfo.ReadServerCacheCfg;
+  FProxyInfo.ReadServerCacheCfg;
+  FSystemInfo.ReadServerCacheCfg;
+end;
+
+procedure TSysCfgImpl.ReadCurrentAccountInfo;
+begin
+  FUserInfo.ReadCurrentAccountInfo;
+  FProxyInfo.ReadCurrentAccountInfo;
+  FSystemInfo.ReadCurrentAccountInfo;
 end;
 
 function TSysCfgImpl.GetUserInfo: IUserInfo;

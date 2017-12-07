@@ -4,7 +4,7 @@ unit UserSectorMgrImpl;
 //
 // Description： UserSectorMgr Implementation
 // Author：      lksoulman
-// Date：        2017-8-23
+// Date：        2017-12-04
 // Comments：
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -17,74 +17,142 @@ uses
   Classes,
   SysUtils,
   AppContext,
-  UserSectorMgr,
-  SectorMgrImpl;
+  UserSector,
+  CommonLock,
+  WNDataSetInf,
+  AppContextObject,
+  CommonRefCounter,
+  Generics.Collections;
 
 type
 
+
   // UserSectorMgr Implementation
-  TUserSectorMgrImpl = class(TSectorMgrImpl, IUserSectorMgr)
+  TUserSectorMgrImpl = class(TAppContextObject, IUserSector)
   private
+    // Lock
+    FLock: TCSLock;
+    // Sectors
+    FRootSector: ISector;
   protected
+    // Update
+    procedure DoUpdate;
   public
-    // Constructor method
+    // Constructor
     constructor Create(AContext: IAppContext); override;
-    // Destructor method
+    // Destructor
     destructor Destroy; override;
 
     { ISectorUserMgr }
 
-    // 读加锁
-    procedure BeginRead; safecall;
-    // 读解锁
-    procedure EndRead; safecall;
-    // 写加锁
-    procedure BeginWrite; safecall;
-    // 写解锁
-    procedure EndWrite; safecall;
-    // 获取根结点板块
-    function GetRootSector: ISector; safecall;
+    // Lock
+    procedure Lock;
+    // UnLock
+    procedure UnLock;
+    // Update
+    procedure Update;
+    // GetCount
+    function GetCount: Integer;
+    // GetSector
+    function GetSector(AIndex: Integer): ISector;
+    //
+
   end;
 
 implementation
+
+uses
+  CacheType,
+  UserSectorImpl;
 
 { TUserSectorMgrImpl }
 
 constructor TUserSectorMgrImpl.Create(AContext: IAppContext);
 begin
   inherited;
-
+  FLock := TCSLock.Create;
+  FRootSector := TUserSectorImpl.Create;
 end;
 
 destructor TUserSectorMgrImpl.Destroy;
 begin
-
+  FRootSector := nil;
+  FLock.Free;
   inherited;
 end;
 
-procedure TUserSectorMgrImpl.BeginRead;
+procedure TUserSectorMgrImpl.DoUpdate;
+var
+  LSql: string;
+  LDataSet: IWNDataSet;
+  LUserSectorInfo: PUserSectorInfo;
+  LID, LCID, LName, LOrder, LInnerCodes: IWNField;
 begin
-  FReadWriteLock.BeginRead;
+  LSql := 'SELECT ID,CID,Name,Order,InnerCodes FROM UserSector';
+  LDataSet := FAppContext.CacheSyncQuery(ctUserData, LSql);
+  if LDataSet <> nil then begin
+    LDataSet.First;
+    LID := LDataSet.FieldByName('ID');
+    LCID := LDataSet.FieldByName('CID');
+    LName := LDataSet.FieldByName('Name');
+    LOrder := LDataSet.FieldByName('Order');
+    LInnerCodes := LDataSet.FieldByName('InnerCodes');
+
+    if (LID <> nil)
+      and (LCID <> nil)
+      and (LName <> nil)
+      and (LOrder <> nil)
+      and (LInnerCodes <> nil) then begin
+      while not LDataSet.Eof do begin
+        LUserSectorInfo := FRootSector.AddChildSectorByName(LName.AsString).GetDataPtr;
+        if LUserSectorInfo <> nil then begin
+          LUserSectorInfo.FID := LID.AsString;
+          LUserSectorInfo.FCID := LID.AsInteger;
+          LUserSectorInfo.FName := LName.AsString;
+          LUserSectorInfo.FOrder := LOrder.AsInteger;
+          LUserSectorInfo.FInnerCodes := LInnerCodes.AsString;
+        end;
+        LDataSet.Next;
+      end;
+    end;
+
+    LID := nil;
+    LCID := nil;
+    LName := nil;
+    LOrder := nil;
+    LInnerCodes := nil;
+    LDataSet := nil;
+  end;
 end;
 
-procedure TUserSectorMgrImpl.EndRead;
+procedure TUserSectorMgrImpl.Lock;
 begin
-  FReadWriteLock.EndRead;
+  FLock.Lock;
 end;
 
-procedure TUserSectorMgrImpl.BeginWrite;
+procedure TUserSectorMgrImpl.UnLock;
 begin
-  FReadWriteLock.BeginWrite;
+  FLock.UnLock;
 end;
 
-procedure TUserSectorMgrImpl.EndWrite;
+procedure TUserSectorMgrImpl.Update;
 begin
-  FReadWriteLock.EndWrite;
+  FLock.Lock;
+  try
+    DoUpdate;
+  finally
+    FLock.UnLock;
+  end;
 end;
 
-function TUserSectorMgrImpl.GetRootSector: ISector;
+function TUserSectorMgrImpl.GetCount: Integer;
 begin
-  Result := FRootSector;
+  Result := FRootSector.GetChildSectorCount;
+end;
+
+function TUserSectorMgrImpl.GetSector(AIndex: Integer): ISector;
+begin
+  Result := FRootSector.GetChildSector(AIndex);
 end;
 
 end.

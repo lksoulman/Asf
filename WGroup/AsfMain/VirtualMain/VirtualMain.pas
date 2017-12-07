@@ -63,37 +63,57 @@ uses
   procedure LoadCmds;
   begin
     G_AppContext.LoadDynLibrary('AsfService.dll');
-    G_AppContext.LoadDynLibrary('AsfCache.dll');
     G_AppContext.LoadDynLibrary('AsfAuth.dll');
+    G_AppContext.LoadDynLibrary('AsfCache.dll');
+    G_AppContext.LoadDynLibrary('AsfHqService.dll');
     G_AppContext.LoadDynLibrary('AsfMem.dll');
     G_AppContext.LoadDynLibrary('AsfUI.dll');
+  end;
+
+  // InitUser
+  procedure InitUser;
+  begin
+    G_AppContext.GetCfg.WriteLocalCacheCfg;
   end;
 
   // LoadAuth
   procedure LoadAuth;
   begin
-
+    // 同步行情权限
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_HQAUTH, 'FuncName=Update');
+    // 同步产品权限
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_PROAUTH, 'FuncName=Update');
   end;
 
   // Load Cache
   procedure LoadCache;
   begin
-    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, '');
+    {基础数据}
+    // 同步ZQZB数据
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=NoExistUpdateTable@Params=ZQZB');
+    // 执行未创建的表的脚本
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=ReplaceCreateCacheTables');
+
+    {用户数据}
+    // 执行未创建的表的脚本
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_USERCACHE, 'FuncName=ReplaceCreateCacheTables');
+    // 同步用户数据
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_Command_ID_USERCACHE, 'FuncName=UpdateTables');
+    // 读取同步的用户配置数据
+    G_AppContext.GetCfg.ReadServerCacheCfg;
   end;
 
   // Load Memory
   procedure LoadMemory;
   begin
+    // 同步更新内存主表
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SECUMAIN, 'FuncName=Update');
   end;
 
   // Load Master
   procedure LoadMaster;
   begin
+    // 创建主窗体
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_MASTERMGR, 'FuncName=NewMaster');
   end;
 
@@ -110,10 +130,12 @@ uses
   // LoadDelayJobs
   procedure LoadDelayJobs;
   begin
-    // 状态栏新闻数据获取延时任务
+    // 异步方式状态栏新闻数据获取延时任务
     G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSNEWSDATAMGR, 'FuncName=Update', 5);
     // 异步方式同步基础缓存数据延时任务
-    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 10);
+    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 30);
+    // 异步方式订阅行情数据延时任务
+    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSSERVERDATAMGR, 'FuncName=Subcribe', 10);
   end;
 
   // LoadProcessEx

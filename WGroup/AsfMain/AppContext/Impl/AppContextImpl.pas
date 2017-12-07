@@ -167,7 +167,6 @@ begin
   inherited Create;
   FMain := AMain;
   FInterfaceDic := TDictionary<Integer, IUnknown>.Create;
-
 end;
 
 destructor TAppContextImpl.Destroy;
@@ -228,13 +227,16 @@ begin
   if FLogin = nil then Exit;
 
   Result := FLogin.Login;
+  if Result then begin
+    FCfg.WriteLocalCacheCfg;
+  end;
 end;
 
 function TAppContextImpl.IsLogin(AServiceType: TServiceType): Boolean;
 begin
   Result := False;
   if FLogin = nil then begin
-    FLogin := self.FindInterface(ASF_COMMAND_ID_LOGIN) as ILogin;
+    FLogin := FindInterface(ASF_COMMAND_ID_LOGIN) as ILogin;
   end;
 
   if FLogin = nil then Exit;

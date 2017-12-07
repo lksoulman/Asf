@@ -2,7 +2,7 @@ unit SecuMain;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description： SecuMain Memory Table
+// Description： SecuMain Interface
 // Author：      lksoulman
 // Date：        2017-9-2
 // Comments：
@@ -172,6 +172,19 @@ const
   SEARCHTYPE_STOCK_HK           = 17; // 港股
   SEARCHTYPE_STOCK_US           = 18; // 美股
 
+
+  // Suffix
+  SUFFIX_SH       = 'SH';     // 上海
+  SUFFIX_SZ       = 'SZ';     // 深圳
+  SUFFIX_OC       = 'OC';     // 三板
+  SUFFIX_FU       = 'FU';     // 期货
+  SUFFIX_HK       = 'HK';     // 港股
+  SUFFIX_OT       = 'OT';     // 其他指数
+  SUFFIX_IB       = 'IB';     // 银行间证券
+  SUFFIX_OPT      = 'OPT';    // 个股期权
+  SUFFIX_ZXI      = 'CI';     // 中信指数
+  SUFFIX_US       = 'US';     // 美股
+
 type
 
   // 证券类型
@@ -233,6 +246,7 @@ type
     FSecuSuffix: string;                        // 证券后缀
     FFormerAbbr: string;                        // 证券曾用名
     FFormerSpell: string;                       // 证券曾用名拼音
+    FCodeInfoStr: string;                       // CodeInfoStr
 
     // Set Update
     function SetUpdate: boolean;
@@ -262,7 +276,7 @@ type
   // SecuMain Item Pointer Dynamic Array
   TSecuMainItemDynArray = Array Of PSecuMainItem;
 
-  // SecuMain Memory Table Interface
+  // SecuMain Interface
   ISecuMain = Interface(IInterface)
     ['{B0E5F129-246A-4537-A142-D745D6D1B859}']
     // Lock
@@ -277,11 +291,9 @@ type
     function GetItemCount: Integer;
     // Get Item
     function GetItem(AIndex: Integer): PSecuMainItem;
-    // Get Item By InnerCode
-    function GetItemByInnerCode(AInnerCode: Integer): PSecuMainItem;
   end;
 
-  // SecuMain Query
+  // SecuMainQuery
   ISecuMainQuery = Interface(IInterface)
     ['{CB6B22C8-1BCF-449A-9328-8D9E85046448}']
     // Get Security By InnerCode

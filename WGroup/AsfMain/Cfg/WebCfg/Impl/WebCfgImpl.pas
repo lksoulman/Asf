@@ -2,7 +2,7 @@ unit WebCfgImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Web Cfg Interface
+// Description£º WebCfg Implementation
 // Author£º      lksoulman
 // Date£º        2017-8-25
 // Comments£º
@@ -18,16 +18,15 @@ uses
   Classes,
   SysUtils,
   AppContext,
+  AppContextObject,
   CommonRefCounter,
   Generics.Collections;
 
 type
 
-  // Web Cfg Interface
-  TWebCfgImpl = class(TAutoInterfacedObject, IWebCfg)
+  // WebCfg Implementation
+  TWebCfgImpl = class(TAppContextObject, IWebCfg)
   private
-    // Application Context
-    FAppContext: IAppContext;
     // Url Info Dictionary
     FWebInfoDic: TDictionary<Integer, IWebInfo>;
   protected
@@ -37,16 +36,12 @@ type
     procedure DoLoadXmlNodes(ANodeList: TList);
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
     { IWebCfg }
 
-    // Initialize resources(only execute once)
-    procedure Initialize(AContext: IInterface);
-    // Releasing resources(only execute once)
-    procedure UnInitialize;
     // Get url
     function GetUrl(AWebID: Integer): WideString;
     // Get UrlInfo
@@ -70,10 +65,11 @@ const
 
 { TWebCfgImpl }
 
-constructor TWebCfgImpl.Create;
+constructor TWebCfgImpl.Create(AContext: IAppContext);
 begin
   inherited;
   FWebInfoDic := TDictionary<Integer, IWebInfo>.Create;
+  DoInitWebInfos;
 end;
 
 destructor TWebCfgImpl.Destroy;
@@ -133,18 +129,6 @@ begin
       end;
     end;
   end;
-end;
-
-procedure TWebCfgImpl.Initialize(AContext: IInterface);
-begin
-  FAppContext := AContext as IAppContext;
-  DoInitWebInfos;
-end;
-
-procedure TWebCfgImpl.UnInitialize;
-begin
-
-  FAppContext := nil;
 end;
 
 function TWebCfgImpl.GetUrl(AWebID: Integer): WideString;

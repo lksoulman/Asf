@@ -25,17 +25,21 @@ type
   // System Cfg Interface
   ISysCfg = interface(IInterface)
     ['{8C9E0C7A-9BD2-4592-A38C-E9E4F6ABAD97}']
-    // Init
-    procedure Initialize(AContext: IInterface);
-    // Un Init
-    procedure UnInitialize;
-    // Get User Info
+    // ReadLocalCacheCfg
+    procedure ReadLocalCacheCfg;
+    // WriteLocalCacheCfg
+    procedure WriteLocalCacheCfg;
+    // WriteUserCacheSysCfg
+    procedure ReadServerCacheCfg;
+    // ReadCurrentAccountInfo
+    procedure ReadCurrentAccountInfo;
+    // GetUserInfo
     function GetUserInfo: IUserInfo;
-    // Get Proxy Info
+    // GetProxyInfo
     function GetProxyInfo: IProxyInfo;
-    // Get System Info
+    // GetSyscfgInfo
     function GetSystemInfo: ISystemInfo;
-    // Get Company Info
+    // GetCompanyInfo
     function GetCompanyInfo: ICompanyInfo;
   end;
 

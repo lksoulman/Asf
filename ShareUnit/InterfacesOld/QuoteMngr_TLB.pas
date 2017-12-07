@@ -93,6 +93,7 @@ type
   QuoteTypeEnum = TOleEnum;
 const
   QuoteType_REALTIME = $00000001;
+  QuoteType_REALTIMEInt64 = $10000001;
   QuoteType_REPORTSORT = $00000002;
   QuoteType_GENERALSORT = $00000004;
   QuoteType_TREND = $00000008;
@@ -393,6 +394,7 @@ type
     function Get_Finances(CodeType: Word; const Code: WideString): Int64; safecall;
     function Get_ExRights(CodeType: Word; const Code: WideString): Int64; safecall;
     function Get_Datas(CodeType: Word; const Code: WideString): Int64; safecall;
+    function Get_DatasInt64(CodeType: Word; const Code: WideString): Int64; safecall;
     function Get_CodeToKeyIndex(CodeType: Word; const Code: WideString): Integer; safecall;
     function Get_PrevClose(CodeType: Word; const Code: WideString): Integer; safecall;
     function GetStockTypeInfo(CodeType: Word): Int64; safecall;
@@ -407,6 +409,7 @@ type
     property Finances[CodeType: Word; const Code: WideString]: Int64 read Get_Finances;
     property ExRights[CodeType: Word; const Code: WideString]: Int64 read Get_ExRights;
     property Datas[CodeType: Word; const Code: WideString]: Int64 read Get_Datas;
+    property DatasInt64[CodeType: Word; const Code: WideString]: Int64 read Get_DatasInt64;
     property CodeToKeyIndex[CodeType: Word; const Code: WideString]: Integer read Get_CodeToKeyIndex;
     property PrevClose[CodeType: Word; const Code: WideString]: Integer read Get_PrevClose;
     property LevelDatas[CodeType: Smallint; const Code: WideString]: Int64 read Get_LevelDatas;

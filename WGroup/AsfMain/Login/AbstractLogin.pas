@@ -84,6 +84,7 @@ type
 implementation
 
 uses
+  LogLevel,
   UserInfo,
   ErrorCode,
   ServerCfg,
@@ -289,13 +290,20 @@ end;
 function TAbstractLogin.DoCallBackLoginFunc: Boolean;
 begin
   Result := False;
-  if FCfg <> nil then begin
-    Result := DoLoginAsset;
-    FIsLoginedAsset := Result;
-    if Result then begin
-      Result := DoLoginBasic;
-      FIsLoginedBasic := Result;
-    end;
+  if (FBasicService = nil) then begin
+    FAppContext.SysLog(llERROR, Format('[%s][DoCallBackLoginFunc] FBasicService is nil.', [Self.ClassName]));
+    Exit;
+  end;
+  if (FAssetService = nil) then begin
+    FAppContext.SysLog(llERROR, Format('[%s][DoCallBackLoginFunc] FAssetService is nil.', [Self.ClassName]));
+    Exit;
+  end;
+
+  Result := DoLoginAsset;
+  FIsLoginedAsset := Result;
+  if Result then begin
+    Result := DoLoginBasic;
+    FIsLoginedBasic := Result;
   end;
 end;
 

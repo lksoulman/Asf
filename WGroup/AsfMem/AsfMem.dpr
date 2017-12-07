@@ -13,24 +13,23 @@ library AsfMem;
 uses
   System.SysUtils,
   System.Classes,
+  WExport in 'WExport\WExport.pas',
+  AsfMemPlugInMgrImpl in 'WExport\Impl\AsfMemPlugInMgrImpl.pas',
   SecuMainImpl in 'WCMemTable\SecuMain\Impl\SecuMainImpl.pas',
   SectorMain in 'WCMemTable\SectorMain\SectorMain.pas',
   SectorMainImpl in 'WCMemTable\SectorMain\Impl\SectorMainImpl.pas',
   UserFundMain in 'WCMemTable\UserFundMain\UserFundMain.pas',
   UserFundMainImpl in 'WCMemTable\UserFundMain\Impl\UserFundMainImpl.pas',
   Sector in 'Sector\Sector.pas',
-  SectorImpl in 'Sector\Impl\SectorImpl.pas',
-  SectorMgrImpl in 'SectorMgr\Impl\SectorMgrImpl.pas',
+  AbstractSectorImpl in 'Sector\Impl\AbstractSectorImpl.pas',
   SysSectorMgr in 'SysSectorMgr\SysSectorMgr.pas',
   SysSectorMgrImpl in 'SysSectorMgr\Impl\SysSectorMgrImpl.pas',
-  UserSectorMgr in 'UserSectorMgr\UserSectorMgr.pas',
   UserSectorMgrImpl in 'UserSectorMgr\Impl\UserSectorMgrImpl.pas',
-  WExport in 'WExport\WExport.pas',
-  AsfMemPlugInMgrImpl in 'WExport\Impl\AsfMemPlugInMgrImpl.pas',
   SecuMainCommandImpl in 'WCommands\SecuMainCommandImpl.pas',
   KeySearchFilter in 'KeySearchEngine\KeySearchFilter.pas',
   KeySearchEngineImpl in 'KeySearchEngine\Impl\KeySearchEngineImpl.pas',
-  KeySearchEngineCommandImpl in 'WCommands\KeySearchEngineCommandImpl.pas';
+  KeySearchEngineCommandImpl in 'WCommands\KeySearchEngineCommandImpl.pas',
+  UserSectorImpl in 'UserSectorMgr\UserSectorImpl.pas';
 
 {$R *.res}
 

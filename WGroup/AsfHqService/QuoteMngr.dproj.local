@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.096,=F:\TradeProgram\QuoteMngrV64\pas\QuoteManagerEvents.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.432,F:\TradeProgram\QuoteMngrV64\pas\QuoteMessage.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.319,=F:\TradeProgram\QuoteMngrV64\pas\QuoteMessage.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.591,=D:\Project.D2009\HSQuote\QuoteMngrV2\pas\md5.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\Project.D2009\HSQuote\QuoteMngr\Quote\QuoteDataMngr.pas=D:\Project.D2009\HSQuote\QuoteMngr\Quote\QuoteDataCache.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\Project.D2009\HSQuote\QuoteMngr\Quote\QuoteDataCache.pas=D:\Project.D2009\HSQuote\QuoteMngr\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\工程项目.D2009\恒生行情\QuoteMngr\Project1_TLB.pas=C:\Documents and Settings\Administrator\My Documents\RAD Studio\Projects\Project1_TLB.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.025,=D:\Project.D2009\HSQuote\QuoteMngrV2\Profiling\AQtimeModule1.aqt</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\工程项目.D2009\恒生行情\QuoteMngr\Quote\QuoteDataObject.pas=D:\工程项目.D2009\恒生行情\QuoteMngr\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.076,=D:\Project.D2009\HSQuote\QuoteMngrV2\pas\U_Des.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.dproj,D:\工程项目.D2009\恒生行情\QuoteMngr\QuoteMngr.dproj=C:\Documents and Settings\Administrator\My Documents\RAD Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\工程项目.D2009\恒生行情\QuoteMngr\pas\Manager.pas=D:\工程项目.D2009\恒生行情\QuoteMngr\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\工程项目.D2009\恒生行情\QuoteMngr\QuoteMngr_TLB.pas=D:\工程项目.D2009\恒生行情\QuoteMngr\Project1_TLB.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.162,=D:\Project.D2009\HSQuote\QuoteMngrV2\pas\U_SerialUtils.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.533,=F:\TradeProgram\QuoteMngrV64\Unit4.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.996,=F:\TradeProgram\QuoteMngrV64\Unit3.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.672,=F:\TradeProgram\QuoteMngrV64\Unit3.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.174,=F:\TradeProgram\QuoteMngrV64\Unit3.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.914,F:\TradeProgram\QuoteMngrV64\Unit3.pas=F:\TradeProgram\QuoteMngrV64\QuoteManagerProxyInf.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.ridl,D:\工程项目.D2009\恒生行情\QuoteMngr\QuoteMngr.ridl=C:\Documents and Settings\Administrator\My Documents\RAD Studio\Projects\Project1.ridl</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\工程项目.D2009\恒生行情\QuoteMngr\Quote\QuoteSubscribe.pas=D:\工程项目.D2009\恒生行情\QuoteMngr\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.281,F:\TradeProgram\QuoteMngrV64\Unit3.pas=F:\TradeProgram\QuoteMngrV64\pas\ManagerProxy.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.734,D:\Project.D2009\HSQuote\QuoteMngrV64\IOCP\WinSock2.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\Project.D2009\HSQuote\QuoteMngr\Quote\HS_ASPacket.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\Project.D2009\HSQuote\QuoteMngr\Quote\HS_ASPacket.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\工程项目.D2009\恒生行情\QuoteMngr\Quote\QuoteLibrary.pas=D:\工程项目.D2009\恒生行情\QuoteMngr\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\Project.D2009\HSQuote\QuoteMngr\Quote\HS_ASPacket.pas=D:\Project.D2009\HSQuote\QuoteMngr\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.345,D:\Project.D2009\HSQuote\QuoteMngrV64\IOCP\WinSock2.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.680,=D:\Project.D2009\HSQuote\QuoteMngrV64\IOCP\WinSock2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.pas,D:\工程项目.D2009\恒生行情\QuoteMngr\Quote\QuoteBusiness.pas=D:\工程项目.D2009\恒生行情\QuoteMngr\Unit2.pas</Transaction>
+  </Transactions>
+</BorlandProject>
