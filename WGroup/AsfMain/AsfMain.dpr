@@ -93,11 +93,11 @@ begin
       if G_AppContext.Login then begin
         LoadAuth;
         LoadCache;
-        LoadMemory;
         LoadMaster;
         LoadCronJobs;
         LoadDelayJobs;
         Application.Run;
+        StopServices;
       end;
     finally
       UnLoadProcessEx;

@@ -39,6 +39,8 @@ type
     FVersion: Integer;
     // Operate
     FOperate: Integer;
+    // UpdateVersion
+    FUpdateVersion: Integer;
     // 更新间隔秒数
     FUpdateSecs: Integer;
     // 提交间隔秒数
@@ -91,6 +93,7 @@ type
     property Storage: Integer read FStorage write FStorage;
     property Version: Integer read FVersion write FVersion;
     property Operate: Integer read FOperate write FOperate;
+    property UpdateVersion: Integer read FUpdateVersion write FUpdateVersion;
     property MaxJSID: Int64 read FMaxJSID write FMaxJSID;
     property DelJSID: Int64 read FDelJSID write FDelJSID;
     property UpdateSecs: Integer read FUpdateSecs write FUpdateSecs;
@@ -118,6 +121,7 @@ begin
   FVersion := 0;
   FMaxJSID := 0;
   FDelJSID := 0;
+  FUpdateVersion := 0;
   FUpdateSecs := MaxInt;
   FCommitSecs := MaxInt;
   FLastUpdateTime := 0;

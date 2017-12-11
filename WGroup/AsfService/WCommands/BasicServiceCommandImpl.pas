@@ -63,10 +63,25 @@ begin
 end;
 
 procedure TBasicServiceCommandImpl.Execute(AParams: string);
+var
+  LFuncName: string;
 begin
   if FBasicService = nil then begin
     FBasicService := TBasicServiceImpl.Create(FAppContext) as IBasicService;
     FAppContext.RegisterInteface(FId, FBasicService);
+  end;
+
+  if (AParams = '')
+    or (FBasicService = nil) then Exit;
+
+  BeginSplitParams(AParams);
+  try
+    ParamsVal('FuncName', LFuncName);
+    if LFuncName = 'StopService' then begin
+      FBasicService.StopService;
+    end;
+  finally
+    EndSplitParams;
   end;
 end;
 

@@ -36,12 +36,12 @@ type
     FQuoteRealTime: IQuoteRealTime;
     // ConceptCodeInfoStrDic
     FConceptCodeInfoStrDic: TDictionary<string, string>;
-    // SecuAbbrToConceptDic
-    FSecuAbbrToConceptDic: TDictionary<string, PSecuMainItem>;
+    // PreConceptCodeInfoStrDic
+    FPreConceptCodeInfoStrDic: TDictionary<string, string>;
+    // InnerCodeToCodeInfoStrDic
+    FInnerCodeToCodeInfoStrDic: TDictionary<Integer, string>;
     // CodeInfoStrToInnerCodeDic
     FCodeInfoStrToInnerCodeDic: TDictionary<string, PSecuMainItem>;
-    // InnerCodeToCodeInfoStrDic
-    FInnerCodeToCodeInfoStrDic: TDictionary<Integer, PSecuMainItem>;
   protected
   public
     // Constructor
@@ -71,10 +71,10 @@ constructor TSecuMainAdapterImpl.Create(AContext: IAppContext);
 begin
   inherited;
   FLock := TCSLock.Create;
-  FSecuAbbrToConceptDic := TDictionary<string, PSecuMainItem>.Create;
   FConceptCodeInfoStrDic := TDictionary<string, string>.Create;
-  FInnerCodeToCodeInfoStrDic := TDictionary<Integer, PSecuMainItem>.Create(200000);
-  FCodeInfoStrToInnerCodeDic := TDictionary<string, PSecuMainItem>.Create(200000);
+  FPreConceptCodeInfoStrDic := TDictionary<string, string>.Create;
+  FInnerCodeToCodeInfoStrDic := TDictionary<Integer, string>.Create(210000);
+  FCodeInfoStrToInnerCodeDic := TDictionary<string, PSecuMainItem>.Create(210000);
 end;
 
 destructor TSecuMainAdapterImpl.Destroy;
@@ -94,22 +94,21 @@ var
   LPCodeInfo: PCodeInfo;
   LSecuMainItem: PSecuMainItem;
   LCodeInfoStr, LPreCodeInfoStr: string;
-  LEnum: TDictionary<string, PSecuMainItem>.TPairEnumerator;
+  LEnum: TDictionary<string, string>.TPairEnumerator;
 begin
   if FQuoteRealTime = nil then Exit;
 
   FLock.Lock;
   try
-    LEnum := FSecuAbbrToConceptDic.GetEnumerator;
+    LEnum := FPreConceptCodeInfoStrDic.GetEnumerator;
     while LEnum.MoveNext do begin
       if (FQuoteRealTime.GetCodeInfoByName(LEnum.Current.Key, LValue)) then begin
 
         LPCodeInfo := PCodeInfo(LValue);
         LCodeInfoStr := CodeInfoKey(LPCodeInfo);
-        LPreCodeInfoStr := LEnum.Current.Value.FCodeInfoStr;
+        LPreCodeInfoStr := LEnum.Current.Value;
         if FCodeInfoStrToInnerCodeDic.TryGetValue(LPreCodeInfoStr, LSecuMainItem) then begin
           FCodeInfoStrToInnerCodeDic.Remove(LPreCodeInfoStr);
-          LSecuMainItem.FCodeInfoStr := LCodeInfoStr;
           FConceptCodeInfoStrDic.TryGetValue(LPreCodeInfoStr, LCodeInfoStr);
           FCodeInfoStrToInnerCodeDic.AddOrSetValue(LCodeInfoStr, LSecuMainItem);
         end;
@@ -125,10 +124,9 @@ var
   LCodeInfoStr: string;
   LAnsiName: AnsiString;
 begin
-  if ASecuMainItem.FCodeInfoStr = '' then Exit;
-
   FLock.Lock;
   try
+    LCodeInfoStr :=
     if not FCodeInfoStrToInnerCodeDic.ContainsKey(ASecuMainItem.FCodeInfoStr) then begin
       FInnerCodeToCodeInfoStrDic.AddOrSetValue(ASecuMainItem.FInnerCode, ASecuMainItem);
       if FConceptCodeInfoStrDic.TryGetValue(ASecuMainItem.FCodeInfoStr, LCodeInfoStr) then begin

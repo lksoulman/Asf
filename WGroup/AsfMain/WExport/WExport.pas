@@ -31,16 +31,10 @@ implementation
 uses
   AsfMainPlugInMgrImpl;
 
-var
-  G_PlugInMgr: IPlugInMgr;
-
   function GetPlugInMgr(AMainApplication: TApplication; AContext: IAppContext): IPlugInMgr;
   begin
-    Application := AMainApplication;
-    if G_PlugInMgr = nil then begin
-      G_PlugInMgr := TAsfMainPlugInMgrImpl.Create(AContext) as IPlugInMgr;
-    end;
-    Result := G_PlugInMgr;
+//    Application := AMainApplication;
+    Result := TAsfMainPlugInMgrImpl.Create(AContext) as IPlugInMgr;
   end;
 
 end.

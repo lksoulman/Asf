@@ -52,6 +52,9 @@ const
   ASF_COMMAND_ID_SERVERDATAMGR            = 60000002;
   ASF_COMMAND_ID_SECUMAINADAPTER          = 60000003;
 
+  // AsfMsg.dll
+  ASF_COMMAND_ID_MSGEXSERVICE             = 70000001;
+
   // AsfUI.dll
 
 

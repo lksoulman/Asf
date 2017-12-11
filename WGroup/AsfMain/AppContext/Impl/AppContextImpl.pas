@@ -2,7 +2,7 @@ unit AppContextImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º AppContext Interface Implementation
+// Description£º AppContext Implementation
 // Author£º      lksoulman
 // Date£º        2017-8-10
 // Comments£º
@@ -37,12 +37,14 @@ uses
   BasicService,
   AssetService,
   WNDataSetInf,
+  MsgExService,
+  MsgExSubcriber,
   CommonRefCounter,
   Generics.Collections;
 
 type
 
-  // AppContext Interface Implementation
+  // AppContext Implementation
   TAppContextImpl = class(TAutoInterfacedObject, IAppContext)
   private
     // Log
@@ -73,7 +75,7 @@ type
     FBasicService: IBasicService;
     // Asset Service
     FAssetService: IAssetService;
-    // Interface Dic
+    // InterfaceDic
     FInterfaceDic: TDictionary<Integer, IUnknown>;
   protected
   public
@@ -120,6 +122,10 @@ type
     function UnRegisterInterface(ACommandId: Integer): Boolean;
     // Register
     function RegisterInteface(ACommandId: Integer; AInterface: IInterface): Boolean;
+    // Subcriber
+    procedure Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
+    // UnSubcriber
+    procedure UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
     // HQ Log
     procedure HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
     // Web Log
@@ -151,7 +157,6 @@ uses
   Command,
   SecuMain,
   ErrorCode,
-  MsgService,
   GdiMgrImpl,
   EDCryptImpl,
   CommandMgrImpl,
@@ -197,7 +202,6 @@ begin
   FBasicService := nil;
   FAssetService := nil;
   FWDLLFactory := nil;
-
   FCommandMgr := nil;
   FGdiMgr := nil;
   FCfg := nil;
@@ -326,6 +330,28 @@ begin
   end;
 end;
 
+procedure TAppContextImpl.Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
+var
+  LMsgExService: IMsgExService;
+begin
+  LMsgExService := FindInterface(ASF_COMMAND_ID_MSGEXSERVICE) as IMsgExService;
+  if LMsgExService = nil then Exit;
+
+  LMsgExService.Subcriber(AMsgExId, ASubcriber);
+  LMsgExService := nil;
+end;
+
+procedure TAppContextImpl.UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
+var
+  LMsgExService: IMsgExService;
+begin
+  LMsgExService := FindInterface(ASF_COMMAND_ID_MSGEXSERVICE) as IMsgExService;
+  if LMsgExService = nil then Exit;
+
+  LMsgExService.UnSubcriber(AMsgExId, ASubcriber);
+  LMsgExService := nil;
+end;
+
 procedure TAppContextImpl.HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
   FLog.HQLog(ALevel, ALog, AUseTime);
@@ -352,11 +378,11 @@ begin
     ctBaseData:
       begin
         if FBaseCache <> nil then begin
-          Result := FBaseCache.Query(ASql);
+          Result := FBaseCache.SyncQuery(ASql);
         end else begin
           FBaseCache := FindInterface(ASF_COMMAND_ID_BASECACHE) as IBaseCache;
           if FBaseCache <> nil then begin
-            Result := FBaseCache.Query(ASql);
+            Result := FBaseCache.SyncQuery(ASql);
           end else begin
             Result := nil;
           end;

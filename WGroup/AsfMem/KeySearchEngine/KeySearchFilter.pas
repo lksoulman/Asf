@@ -443,11 +443,11 @@ begin
           Result := True;
         end else begin
 
-          if ASecuMainItem.FFormerAbbr = '' then Exit;
-
-          if Pos(FKeySearchObject.FKey, ASecuMainItem.FFormerAbbr) > 0 then begin
-            Result := True;
-          end;
+//          if ASecuMainItem.FFormerAbbr = '' then Exit;
+//
+//          if Pos(FKeySearchObject.FKey, ASecuMainItem.FFormerAbbr) > 0 then begin
+//            Result := True;
+//          end;
         end;
       end;
   end;

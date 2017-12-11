@@ -216,7 +216,7 @@ var
   LMD5: string;
 begin
   try
-    LMD5:= FCipherMD5.GetStringMD5(AString);
+    LMD5:= FCipherMD5.GetStringMD5(string(AString));
     Result := AnsiString(LMD5);
   except
     on Ex: Exception do begin

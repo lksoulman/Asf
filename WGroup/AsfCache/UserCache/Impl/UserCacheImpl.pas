@@ -38,6 +38,8 @@ type
 
     { IUserCache }
 
+    // StopService
+    procedure StopService;
     // UpdateTables
     procedure UpdateTables;
     // AsyncUpdateTables
@@ -48,9 +50,11 @@ type
     procedure AsyncUpdateTable(ATable: string);
     // ExecuteSql
     procedure ExecuteSql(ATable, ASql: string);
-    //  Synchronous query data
+    // SyncQuery
     function SyncQuery(ASql: WideString): IWNDataSet;
-    // Asynchronous query data
+    // UpdateVersion
+    function GetUpdateVersion(ATable: string): Integer;
+    // AsyncQuery
     procedure AsyncQuery(ASql: WideString; ADataArrive: Int64; ATag: Int64);
   end;
 
@@ -77,6 +81,11 @@ procedure TUserCacheImpl.DoLoadCfgBefore;
 begin
   FCfgFile := FAppContext.GetCfg.GetCfgPath + 'Cache/UserCfg.xml';
   FSQLiteAdapter.DataBaseName := (FAppContext.GetCfg as ICfg).GetUserCachePath + 'UserDB';
+end;
+
+procedure TUserCacheImpl.StopService;
+begin
+  DoStopService;
 end;
 
 procedure TUserCacheImpl.UpdateTables;
@@ -112,10 +121,12 @@ procedure TUserCacheImpl.ExecuteSql(ATable, ASql: string);
 var
   LTable: TCacheTable;
 begin
+  if ASql = '' then Exit;
+
   if FCacheTableDic.TryGetValue(ATable, LTable) then begin
     LTable.Lock;
     try
-
+//      FSQLiteAdapter.ExecuteSql(ASql);
     finally
       LTable.UnLock;
     end;
@@ -125,6 +136,22 @@ end;
 function TUserCacheImpl.SyncQuery(ASql: WideString): IWNDataSet;
 begin
   Result := FSQLiteAdapter.QuerySql(ASql);
+end;
+
+function TUserCacheImpl.GetUpdateVersion(ATable: string): Integer;
+var
+  LTable: TCacheTable;
+begin
+  if FCacheTableDic.TryGetValue(ATable, LTable) then begin
+    LTable.Lock;
+    try
+      Result := LTable.UpdateVersion;
+    finally
+      LTable.UnLock;
+    end;
+  end else begin
+    Result := -1;
+  end;
 end;
 
 procedure TUserCacheImpl.AsyncQuery(ASql: WideString; ADataArrive: Int64; ATag: Int64);

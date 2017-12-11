@@ -31,16 +31,21 @@ implementation
 uses
   AsfHqServicePlugInMgrImpl;
 
-var
-  G_PlugInMgr: IPlugInMgr;
-
   function GetPlugInMgr(AMainApplication: TApplication; AContext: IAppContext): IPlugInMgr;
   begin
     Application := AMainApplication;
-    if G_PlugInMgr = nil then begin
-      G_PlugInMgr := TAsfHqServicePlugInMgrImpl.Create(AContext) as IPlugInMgr;
-    end;
-    Result := G_PlugInMgr;
+    Result := TAsfHqServicePlugInMgrImpl.Create(AContext) as IPlugInMgr;
   end;
+
+var
+  LOldAppication: TApplication;
+
+initialization
+
+  LOldAppication := Application;
+
+finalization
+
+  Application := LOldAppication;
 
 end.

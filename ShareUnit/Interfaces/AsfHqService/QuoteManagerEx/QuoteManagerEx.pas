@@ -24,6 +24,8 @@ type
   // QuoteManagerEx Interface
   IQuoteManagerEx = interface
     ['{74F4FFC9-A8B0-427C-8BFE-477809B2A4CB}']
+    // StopService
+    procedure StopService;
     // GetActive
     function GetActive: WordBool;
     // GetTypeLib

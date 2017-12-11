@@ -137,6 +137,12 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment>
+                <DeployFile LocalName="Win32\Debug\AsfResources.dll" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>AsfResources.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
                         <Overwrite>true</Overwrite>
@@ -146,12 +152,6 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\bin\Debug\AsfResources.dll" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>AsfResources.dll</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win32\Debug\AsfResources.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AsfResources.dll</RemoteName>
                         <Overwrite>true</Overwrite>

@@ -15,6 +15,7 @@ uses
   Windows,
   Classes,
   SysUtils,
+  MsgEx,
   Command,
   AppContext,
   CommonLock,
@@ -23,9 +24,11 @@ uses
   QuoteMngr_TLB,
   GilQuoteStruct,
   QuoteManagerEx,
+  MsgExSubcriber,
   StatusHqDataMgr,
   AppContextObject,
   CommonRefCounter,
+  MsgExSubcriberImpl,
   Generics.Collections;
 
 type
@@ -39,6 +42,8 @@ type
     FQuoteMessage: IQuoteMessage;
     // QuoteManagerEx
     FQuoteManagerEx: IQuoteManagerEx;
+    // MsgExSubcriber
+    FMsgExSubcriber: IMsgExSubcriber;
     // StatusHqDatas
     FStatusHqDatas: TList<PStatusHqData>;
   protected
@@ -54,6 +59,8 @@ type
     procedure DoSubcribeStatusHqs;
     // UnSubcribeStatusHqs
     procedure DoUnSubcribeStatusHqs;
+    // ReSubcribeStatusHqs
+    procedure DoReSubcribeStatusHqs(AObject: TObject);
     // InfoReset
     procedure DoInfoReset(AQuoteType: QuoteTypeEnum; APointer: Pointer);
     // DataReset
@@ -91,6 +98,9 @@ begin
   inherited;
   FQuoteManagerEx := FAppContext.FindInterface(ASF_COMMAND_ID_QUOTEMANAGEREX) as IQuoteManagerEx;
   FLock := TCSLock.Create;
+  FMsgExSubcriber := TMsgExSubcriberImpl.Create(DoReSubcribeStatusHqs);
+  FMsgExSubcriber.SetActive(True);
+  FAppContext.Subcriber(MSG_HQSERVICE_RESUBCRIBE, FMsgExSubcriber);
   FStatusHqDatas := TList<PStatusHqData>.Create;
   DoAddTestDatas;
   DoInitHqMessage;
@@ -101,6 +111,9 @@ begin
   DoUnInitHqMessage;
   DoClearDatas;
   FStatusHqDatas.Free;
+  FMsgExSubcriber.SetActive(False);
+  FAppContext.UnSubcriber(MSG_HQSERVICE_RESUBCRIBE, FMsgExSubcriber);
+  FMsgExSubcriber := nil;
   FLock.Free;
   FQuoteManagerEx := nil;
   inherited;
@@ -234,6 +247,11 @@ end;
 procedure TStatusHqDataMgrImpl.DoUnSubcribeStatusHqs;
 begin
   FQuoteManagerEx.Subscribe(QuoteType_REALTIME, 0, 0, FQuoteMessage.MsgCookie, 0);
+end;
+
+procedure TStatusHqDataMgrImpl.DoReSubcribeStatusHqs(AObject: TObject);
+begin
+  DoSubcribeStatusHqs;
 end;
 
 procedure TStatusHqDataMgrImpl.DoInfoReset(AQuoteType: QuoteTypeEnum; APointer: Pointer);

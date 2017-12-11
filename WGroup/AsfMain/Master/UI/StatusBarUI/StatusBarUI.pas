@@ -494,7 +494,7 @@ begin
   if (FStatusBarUI.FAppContext <> nil) then begin
     FStatusHqDataMgr := FStatusBarUI.FAppContext.FindInterface(ASF_COMMAND_ID_STATUSHQDATAMGR) as IStatusHqDataMgr;
   end;
-  FWidth := 260;
+  FWidth := 280;
   FHqType := hstLeft;
   FItemCount := 3;
   FCurrIndex := 0;

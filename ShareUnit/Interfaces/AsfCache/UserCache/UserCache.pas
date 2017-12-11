@@ -22,6 +22,8 @@ type
   // UserCache Interface
   IUserCache = Interface(IInterface)
     ['{D3E280F2-E5F1-4D74-818B-1F0BFC0016AE}']
+    // StopService
+    procedure StopService;
     // UpdateTables
     procedure UpdateTables;
     // AsyncUpdateTables
@@ -32,9 +34,11 @@ type
     procedure AsyncUpdateTable(ATable: string);
     // ExecuteSql
     procedure ExecuteSql(ATable, ASql: string);
-    //  Synchronous query data
+    // SyncQuery
     function SyncQuery(ASql: WideString): IWNDataSet;
-    // Asynchronous query data
+    // UpdateVersion
+    function GetUpdateVersion(ATable: string): Integer;
+    // AsyncQuery
     procedure AsyncQuery(ASql: WideString; ADataArrive: Int64; ATag: Int64);
   end;
 

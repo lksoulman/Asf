@@ -12,6 +12,7 @@ unit BaseCacheImpl;
 interface
 
 uses
+  MsgEx,
   CacheGF,
   Windows,
   Classes,
@@ -22,7 +23,9 @@ uses
   AppContext,
   CacheTable,
   WNDataSetInf,
-  AbstractCacheImpl;
+  MsgExService,
+  AbstractCacheImpl,
+  MsgExSubcriberImpl;
 
 type
 
@@ -40,6 +43,8 @@ type
 
     { IBaseCache }
 
+    // StopService
+    procedure StopService;
     // UpdateTables
     procedure UpdateTables;
     // AsyncUpdate
@@ -52,9 +57,11 @@ type
     procedure AsyncUpdateTable(ATable: string);
     // NoExistUpdateTable
     procedure NoExistUpdateTable(ATable: string);
-    // Query
-    function Query(ASql: WideString): IWNDataSet;
-    // Async Query
+    // SyncQuery
+    function SyncQuery(ASql: WideString): IWNDataSet;
+    // UpdateVersion
+    function GetUpdateVersion(ATable: string): Integer;
+    // AsyncQuery
     procedure AsyncQuery(ASql: WideString; ADataArrive: Int64; ATag: Int64);
   end;
 
@@ -69,6 +76,7 @@ uses
 constructor TBaseCacheImpl.Create(AContext: IAppContext);
 begin
   inherited;
+
 end;
 
 destructor TBaseCacheImpl.Destroy;
@@ -80,6 +88,13 @@ procedure TBaseCacheImpl.DoLoadCfgBefore;
 begin
   FCfgFile := FAppContext.GetCfg.GetCfgPath + 'Cache/BaseCfg.xml';
   FSQLiteAdapter.DataBaseName := FAppContext.GetCfg.GetCachePath + 'Base/BaseDB';
+
+  FUpdateNotifyCacheTableDic.AddOrSetValue('ZQZB', '');
+end;
+
+procedure TBaseCacheImpl.StopService;
+begin
+  DoStopService;
 end;
 
 procedure TBaseCacheImpl.UpdateTables;
@@ -146,9 +161,25 @@ begin
   end;
 end;
 
-function TBaseCacheImpl.Query(ASql: WideString): IWNDataSet;
+function TBaseCacheImpl.SyncQuery(ASql: WideString): IWNDataSet;
 begin
   Result := FSQLiteAdapter.QuerySql(ASql);
+end;
+
+function TBaseCacheImpl.GetUpdateVersion(ATable: string): Integer;
+var
+  LTable: TCacheTable;
+begin
+  if FCacheTableDic.TryGetValue(ATable, LTable) then begin
+    LTable.Lock;
+    try
+      Result := LTable.UpdateVersion;
+    finally
+      LTable.UnLock;
+    end;
+  end else begin
+    Result := -1;
+  end;
 end;
 
 procedure TBaseCacheImpl.AsyncQuery(ASql: WideString; ADataArrive: Int64; ATag: Int64);

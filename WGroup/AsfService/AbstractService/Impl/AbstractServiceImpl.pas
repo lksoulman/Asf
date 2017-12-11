@@ -34,6 +34,8 @@ type
   TAbstractServiceImpl = class(TAppContextObject)
   private
   protected
+    // IsStart
+    FIsStart: Boolean;
     // Server Url
     FServerUrl: string;
     // Init Logined
@@ -57,6 +59,8 @@ type
     FKeepAliveHeartBeatThread: TExecutorThread;
 
 
+    // StopService
+    procedure DoStopService; virtual;
     // CreateBefore
     procedure DoCreateBefore; virtual;
     // Keep Alive Heart Beat
@@ -111,17 +115,26 @@ begin
   FExecutors.Start;
   FPriorityExecutors.Start;
   FKeepAliveHeartBeatThread.StartEx;
+  FIsStart := True;
 end;
 
 destructor TAbstractServiceImpl.Destroy;
 begin
-  FKeepAliveHeartBeatThread.ShutDown;
-  FPriorityExecutors.ShutDown;
-  FExecutors.ShutDown;
+  DoStopService;
   FPriorityExecutors.Free;
   FExecutors.Free;
   FShareMgr := nil;
   inherited;
+end;
+
+procedure TAbstractServiceImpl.DoStopService;
+begin
+  if FIsStart then begin
+    FKeepAliveHeartBeatThread.ShutDown;
+    FPriorityExecutors.ShutDown;
+    FExecutors.ShutDown;
+    FIsStart := False;
+  end;
 end;
 
 procedure TAbstractServiceImpl.DoCreateBefore;

@@ -41,8 +41,7 @@ implementation
 
 uses
   ServerDataMgrCommandImpl,
-  QuoteManagerExCommandImpl,
-  SecuMainAdapterCommandImpl;
+  QuoteManagerExCommandImpl;
 
 { TAsfHqServicePlugInMgrImpl }
 
@@ -61,7 +60,6 @@ end;
 procedure TAsfHqServicePlugInMgrImpl.Load;
 begin
   DoAddCommand(TServerDataMgrCommandImpl.Create(ASF_COMMAND_ID_SERVERDATAMGR, 'ServerDataMgr', FAppContext) as ICommand);
-  DoAddCommand(TSecuMainAdapterCommandImpl.Create(ASF_COMMAND_ID_SECUMAINADAPTER, 'SecuMainAdapter', FAppContext) as ICommand);
   DoAddCommand(TQuoteManagerExCommandImpl.Create(ASF_COMMAND_ID_QUOTEMANAGEREX, 'QuoteManagerEx', FAppContext) as ICommand);
 end;
 

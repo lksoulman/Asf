@@ -88,7 +88,10 @@ begin
       end;
     end else if LFuncName = 'ReplaceCreateCacheTables' then begin
       FBaseCache.ReplaceCreateCacheTables;
+    end else if LFuncName = 'StopService' then begin
+      FBaseCache.StopService;
     end;
+
   finally
     EndSplitParams;
   end;

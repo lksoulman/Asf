@@ -81,6 +81,8 @@ begin
       FSecuMain.Update;
     end else if LFuncName = 'AsyncUpdate' then begin
       FSecuMain.AsyncUpdate;
+    end else if LFuncName = 'StopService' then begin
+      FSecuMain.StopService;
     end;
   finally
     EndSplitParams;

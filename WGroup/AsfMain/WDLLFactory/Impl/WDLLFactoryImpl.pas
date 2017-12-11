@@ -57,8 +57,6 @@ type
     procedure DoClearPlugInMgrs;
     // Load PlugInMgr
     procedure DoLoadPlugInMgr(APlugInMgrInfo: PPlugInMgrInfo);
-    // Get PlugInMgrInfo
-    function GetPlugInMgrInfo(AIndex: Integer): PPlugInMgrInfo;
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -156,16 +154,6 @@ begin
   APlugInMgrInfo^.FPlugInMgr := APlugInMgrInfo^.FDllGetPlugInMgr(Application, FAppContext);
   if APlugInMgrInfo^.FPlugInMgr <> nil then begin
     APlugInMgrInfo^.FPlugInMgr.Load;
-  end;
-end;
-
-function TWDLLFactoryImpl.GetPlugInMgrInfo(AIndex: Integer): PPlugInMgrInfo;
-begin
-  if (AIndex >= 0)
-    and (AIndex < FPlugInMgrInfos.Count) then begin
-    Result := FPlugInMgrInfos.Items[AIndex];
-  end else begin
-    Result := nil;
   end;
 end;
 

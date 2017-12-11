@@ -313,6 +313,9 @@ begin
           AJob^.FNext := LJob^.FNext;
           LJob^.FNext := AJob;
           AJob^.FPrev := LJob;
+          if LJob = FTail then begin
+            FTail := AJob;
+          end;
           Break;
         end;
       end;

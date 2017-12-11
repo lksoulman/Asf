@@ -63,10 +63,25 @@ begin
 end;
 
 procedure TKeySearchEngineCommandImpl.Execute(AParams: string);
+var
+  LFuncName: string;
 begin
   if FKeySearchEngine = nil then begin
     FKeySearchEngine := TKeySearchEngineImpl.Create(FAppContext) as IKeySearchEngine;
     FAppContext.RegisterInteface(FId, FKeySearchEngine);
+  end;
+
+  if (AParams = '')
+    or (FKeySearchEngine = nil) then Exit;
+
+  BeginSplitParams(AParams);
+  try
+    ParamsVal('FuncName', LFuncName);
+    if LFuncName = 'StopService' then begin
+      FKeySearchEngine.StopService;
+    end;
+  finally
+    EndSplitParams;
   end;
 end;
 

@@ -179,10 +179,10 @@ begin
       begin
         Result := stFutues;
       end;
-    st_USStock:
-      begin
-        Result := stUSStock;
-      end;
+  else
+    begin
+      Result := stUSStock;
+    end;
   end;
 end;
 

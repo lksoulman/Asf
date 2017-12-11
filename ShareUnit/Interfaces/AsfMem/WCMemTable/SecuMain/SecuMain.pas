@@ -188,22 +188,22 @@ const
 type
 
   // 证券类型
-  TSecuType = ( stHSStock,                  // 沪深股票
-                stHKStock,                  // 港股
-                stUSStock,                  // 美股
-                stNewThirdBoardStock,       // 新三板
-                stIndex,                    // 指数
-                stForeignIndex,             // 国外指数
-                stYuEBaoIndex,              // 余额宝情绪指数
-                stBond,                     // 普通债券
-                stHSBond,                   // 沪深债券
-                stBuyBackBond,              // 债券回购
-                stConvertibleBond,          // 可转债
-                stInnerFund,                // 场内基金
-                stOuterCurrencyFund,        // 场外基金(货币)
-                stOuterNonCurrencyFund,     // 场外基金(非货币)
-                stCommodityFutures,         // 商品期货
-                stFinancialFutures          // 金融期货
+  TSecuType = ( stHSStock,                      // 沪深股票
+                stHKStock,                      // 港股
+                stUSStock,                      // 美股
+                stNewThirdBoardStock,           // 新三板
+                stIndex,                        // 指数
+                stForeignIndex,                 // 国外指数
+                stYuEBaoIndex,                  // 余额宝情绪指数
+                stBond,                         // 普通债券
+                stHSBond,                       // 沪深债券
+                stBuyBackBond,                  // 债券回购
+                stConvertibleBond,              // 可转债
+                stInnerFund,                    // 场内基金
+                stOuterCurrencyFund,            // 场外基金(货币)
+                stOuterNonCurrencyFund,         // 场外基金(非货币)
+                stCommodityFutures,             // 商品期货
+                stFinancialFutures              // 金融期货
                 );
 
   // 融资融券类型
@@ -244,9 +244,10 @@ type
     FSecuCode: string;                          // 证券代码
     FSecuSpell: string;                         // 证券拼音
     FSecuSuffix: string;                        // 证券后缀
-    FFormerAbbr: string;                        // 证券曾用名
-    FFormerSpell: string;                       // 证券曾用名拼音
-    FCodeInfoStr: string;                       // CodeInfoStr
+//    FFormerAbbr: string;                        // 证券曾用名
+//    FFormerSpell: string;                       // 证券曾用名拼音
+    FCompanyName: string;                       // 证券公司代码
+//    FCodeByAgent: string;                       // CodeByAgent
 
     // Set Update
     function SetUpdate: boolean;
@@ -279,6 +280,8 @@ type
   // SecuMain Interface
   ISecuMain = Interface(IInterface)
     ['{B0E5F129-246A-4537-A142-D745D6D1B859}']
+    // StopService
+    procedure StopService;
     // Lock
     procedure Lock;
     // Un Lock
@@ -287,19 +290,23 @@ type
     procedure Update;
     // AsyncUpdate
     procedure AsyncUpdate;
-    // Get Item Count
+    // GetItemCount
     function GetItemCount: Integer;
-    // Get Item
+    // GetUpdateVersion
+    function GetUpdateVersion: Integer;
+    // GetItem
     function GetItem(AIndex: Integer): PSecuMainItem;
+    // GetHsCode
+    function GetHsCode(AInnerCode: Integer): string;
   end;
 
   // SecuMainQuery
   ISecuMainQuery = Interface(IInterface)
     ['{CB6B22C8-1BCF-449A-9328-8D9E85046448}']
     // Get Security By InnerCode
-    function GetSecurity(AInnerCode: Integer): PSecuMainItem; safecall;
+    function GetSecurity(AInnerCode: Integer): PSecuMainItem;
     // Get Securitys By InnerCodes
-    function GetSecuritys(AInnerCodes: TIntegerDynArray; var ASecuMainItems: TSecuMainItemDynArray): Boolean; safecall;
+    function GetSecuritys(AInnerCodes: TIntegerDynArray; var ASecuMainItems: TSecuMainItemDynArray): Boolean;
   end;
 
 implementation

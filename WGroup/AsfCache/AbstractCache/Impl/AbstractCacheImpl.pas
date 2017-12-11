@@ -12,6 +12,7 @@ unit AbstractCacheImpl;
 interface
 
 uses
+  MsgEx,
   GFData,
   CacheGF,
   Windows,
@@ -27,6 +28,7 @@ uses
   ServiceType,
   CommonQueue,
   LiteCallUni,
+  MsgExService,
   WNDataSetInf,
   SQLiteAdapter,
   ExecutorThread,
@@ -44,10 +46,14 @@ type
   TAbstractCacheImpl = class(TAppContextObject)
   private
   protected
-    // Cache Name
+    // CacheName
     FName: string;
     // Cfg File
     FCfgFile: string;
+    // Version
+    FVersion: Integer;
+    // IsStart
+    FIsStart: Boolean;
     // Lock
     FLock: TCSLock;
     // System Table
@@ -58,6 +64,8 @@ type
     FCacheTables: TList<TCacheTable>;
     // CacheTableDic
     FCacheTableDic: TDictionary<string, TCacheTable>;
+    // UpdateNotifyCacheTableDic
+    FUpdateNotifyCacheTableDic: TDictionary<string, string>;
     // SQLiteAdapter
     FSQLiteAdapter: TSQLiteAdapter;
     // ArriveCacheGFQueue
@@ -65,12 +73,16 @@ type
     // ProcessCacheGFQueueThread
     FProcessCacheGFQueueThread: TExecutorThread;
 
+    // StopService
+    procedure DoStopService; virtual;
     // LoadCfgBefore
     procedure DoLoadCfgBefore; virtual;
     // LoadTablesCfg
     procedure DoLoadTablesCfg;
     // ClearCacheTables;
     procedure DoClearCacheTables;
+    // ClearCacheGFQueue
+    procedure DoClearCacheGFQueue;
     // ReplaceCreateSysTable
     procedure DoReplaceCreateSysTable;
     // DoReplaceCreateCacheTables
@@ -118,6 +130,8 @@ type
     procedure DoUpdateCacheTable(ATable: TCacheTable); virtual;
     // AsyncUpdateCacheTable
     procedure DoAsyncUpdateCacheTable(ATable: TCacheTable); virtual;
+    // UpdateNotifyCacheTable
+    procedure DoUpdateNotifyCacheTable(ATable: TCacheTable; AInfo: string); virtual;
 
     // GFUpdateDataArrive
     procedure DoGFUpdateDataArrive(AGFData: IGFData);
@@ -131,9 +145,9 @@ type
     // Destructor
     destructor Destroy; override;
 
-    // Is Exist Cache Table
+    // IsExistCacheTable
     function IsExistCacheTable(AName: string): Boolean;
-    // Set Attach DB
+    // SetAttachDB
     procedure SetAttachDB(ADBFile, ADBAlias, APassword: string);
   end;
 
@@ -142,7 +156,8 @@ implementation
 uses
   DB,
   Utils,
-  LogLevel;
+  LogLevel,
+  Command;
 
 const
   
@@ -171,10 +186,12 @@ const
 constructor TAbstractCacheImpl.Create(AContext: IAppContext);
 begin
   inherited;
+  FVersion := -1;
   FServiceType := stBasic;
   FLock := TCSLock.Create;
   FCacheTables := TList<TCacheTable>.Create;
   FCacheTableDic := TDictionary<string, TCacheTable>.Create;
+  FUpdateNotifyCacheTableDic := TDictionary<string, string>.Create;
   FSQLiteAdapter := TSQLiteAdapter.Create(FAppContext);
   FSQLiteAdapter.DLLName := DLLNAME_SQLITE;
   FSQLiteAdapter.LoadClassName := Self.ClassName;
@@ -187,15 +204,18 @@ begin
   DoLoadTablesCfg;
   DoReplaceCreateSysTable;
   DoLoadCacheTableInfoFromSysTable;
+  FIsStart := True;
 end;
 
 destructor TAbstractCacheImpl.Destroy;
 begin
+  DoStopService;
   FSQLiteAdapter.DisConnectDB;
-  FProcessCacheGFQueueThread.ShutDown;
+  DoClearCacheGFQueue;
   DoClearCacheTables;
   FArriveCacheGFQueue.Free;
   FSQLiteAdapter.Free;
+  FUpdateNotifyCacheTableDic.Free;
   FCacheTableDic.Free;
   FCacheTables.Free;
   FLock.Free;
@@ -217,6 +237,14 @@ end;
 procedure TAbstractCacheImpl.SetAttachDB(ADBFile, ADBAlias, APassword: string);
 begin
   FSQLiteAdapter.SetAttachDB(ADBFile, ADBAlias, APassword);
+end;
+
+procedure TAbstractCacheImpl.DoStopService;
+begin
+  if FIsStart then begin
+    FProcessCacheGFQueueThread.ShutDown;
+    FIsStart := False;
+  end;
 end;
 
 procedure TAbstractCacheImpl.DoLoadCfgBefore;
@@ -302,6 +330,18 @@ begin
   if FSysTable <> nil then begin
     FSysTable.Free;
     FSysTable := nil;
+  end;
+end;
+
+procedure TAbstractCacheImpl.DoClearCacheGFQueue;
+var
+  LCacheGF: TCacheGF;
+begin
+  while not FArriveCacheGFQueue.IsEmpty do begin
+    LCacheGF := FArriveCacheGFQueue.Dequeue;
+    if LCacheGF <> nil then begin
+      LCacheGF.Free;
+    end;
   end;
 end;
 
@@ -729,10 +769,10 @@ begin
         LTable.Lock;
         try
           LSecs := SecondsBetween(Now, LTable.LastUpdateTime);
-          if LSecs > LTable.UpdateSecs then begin
+//          if LSecs > LTable.UpdateSecs then begin
             DoAsyncUpdateCacheTable(LTable);
-            LTable.LastUpdateTime := Now;
-          end;
+//            LTable.LastUpdateTime := Now;
+//          end;
         finally
           LTable.UnLock;
         end;
@@ -797,11 +837,21 @@ begin
   end;
 end;
 
+procedure TAbstractCacheImpl.DoUpdateNotifyCacheTable(ATable: TCacheTable; AInfo: string);
+begin
+  if FUpdateNotifyCacheTableDic.ContainsKey(ATable.Name) then begin
+    FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,
+      Format('FuncName=SendMessageEx@Id=%d@Info=%',[MSG_SECUMAIN_MEMORY_UPDATE , AInfo]), 2);
+  end;
+end;
+
 procedure TAbstractCacheImpl.DoGFUpdateDataArrive(AGFData: IGFData);
 var
   LCacheGF: TCacheGF;
   LDateSet: IWNDataSet;
 begin
+  if not FIsStart then Exit;
+  
   if AGFData.GetErrorCode = ERROR_SUCCESS then begin
     LDateSet := Utils.GFData2WNDataSet(AGFData);
     if (LDateSet <> nil)
@@ -821,6 +871,8 @@ var
   LDateSet: IWNDataSet;
   LCacheGF: TCacheGF;
 begin
+  if not FIsStart then Exit;
+
   if AGFData.GetErrorCode = ERROR_SUCCESS then begin
     LDateSet := Utils.GFData2WNDataSet(AGFData);
     if (LDateSet <> nil)
@@ -843,27 +895,39 @@ begin
   case FProcessCacheGFQueueThread.WaitForEx(INFINITE) of
     WAIT_OBJECT_0:
       begin
-        LCacheGF := FArriveCacheGFQueue.Dequeue;
-        if LCacheGF <> nil then begin
-          case LCacheGF.OperateType of
-            coInsert:
-              begin
-                LTable := GetTableByIndex(LCacheGF.ID);
-                if LTable <> nil then begin
-                  DoInsertCacheTable(LTable, LCacheGF.DataSet);
-                  LCacheGF.DataSet := nil;
+        if not FIsStart then Exit;
+
+        if not FArriveCacheGFQueue.IsEmpty then begin
+          LCacheGF := FArriveCacheGFQueue.Dequeue;
+          if LCacheGF <> nil then begin
+            case LCacheGF.OperateType of
+              coInsert:
+                begin
+                  LTable := GetTableByIndex(LCacheGF.ID);
+                  if LTable <> nil then begin
+                    DoInsertCacheTable(LTable, LCacheGF.DataSet);
+                    if LCacheGF.DataSet.RecordCount > 0 then begin
+                      LTable.UpdateVersion := LTable.UpdateVersion + 1;
+                      DoUpdateNotifyCacheTable(LTable, Format('Table=%s Insert Cache Finish.', [LTable.Name]));
+                    end;
+                    LCacheGF.DataSet := nil;
+                  end;
                 end;
-              end;
-            coDelete:
-              begin
-                LTable := GetTableByIndex(LCacheGF.ID);
-                if LTable <> nil then begin
-                  DoDeleteCacheTable(LTable, LCacheGF.DataSet);
-                  LCacheGF.DataSet := nil;
+              coDelete:
+                begin
+                  LTable := GetTableByIndex(LCacheGF.ID);
+                  if LTable <> nil then begin
+                    DoDeleteCacheTable(LTable, LCacheGF.DataSet);
+                    if LCacheGF.DataSet.RecordCount > 0 then begin
+                      LTable.UpdateVersion := LTable.UpdateVersion + 1;
+                      DoUpdateNotifyCacheTable(LTable, Format('Table=%s Delete Cache Finish.', [LTable.Name]));
+                    end;
+                    LCacheGF.DataSet := nil;
+                  end;
                 end;
-              end;
+            end;
+            LCacheGF.Free;
           end;
-          LCacheGF.Free;
         end;
       end;
   end;

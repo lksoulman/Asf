@@ -71,18 +71,18 @@ begin
     FAppContext.RegisterInteface(FId, FQuoteManagerEx);
   end;
 
-//  if (AParams = '')
-//    or (FQuoteManagerEx = nil) then Exit;
+  if (AParams = '')
+    or (FQuoteManagerEx = nil) then Exit;
 
-//  BeginSplitParams(AParams);
-//  try
-//    ParamsVal('FuncName', LFuncName);
-//    if LFuncName = 'UpdateTables' then begin
-//
-//    end;
-//  finally
-//    EndSplitParams;
-//  end;
+  BeginSplitParams(AParams);
+  try
+    ParamsVal('FuncName', LFuncName);
+    if LFuncName = 'StopService' then begin
+      FQuoteManagerEx.StopService;
+    end;
+  finally
+    EndSplitParams;
+  end;
 end;
 
 end.

@@ -39,13 +39,7 @@ type
     FResourceStreamConnect: TResourceStream;
     // ResourceStream Dis Connect
     FResourceStreamDisConnect: TResourceStream;
-    // StatusServerDatas
-    FStatusServerDatas: TList<PStatusServerData>;
-    // StatusServerDataDic
-    FStatusServerDataDic: TDictionary<string, PStatusServerData>;
   protected
-    // ClearDatas
-    procedure DoClearDatas;
     // AddTestDatas
     procedure DoAddTestDatas;
     // Update
@@ -64,10 +58,8 @@ type
     procedure UnLock;
     // Update
     procedure Update;
-    // Get Count
-    function GetDataCount: Integer;
-    // Get Data
-    function GetData(AIndex: Integer): PStatusServerData;
+    // UpdateConnected
+    procedure UpdateConnected(AServerName: string; AIsConnected: Boolean);
     // Get IsConnected
     function GetIsConnected: Boolean;
     // Get ResourceStream
@@ -83,33 +75,14 @@ begin
   inherited;
   FServerDataMgr := FAppContext.FindInterface(ASF_COMMAND_ID_SERVERDATAMGR) as IServerDataMgr;
   FLock := TCSLock.Create;
-  FStatusServerDatas := TList<PStatusServerData>.Create;
-  FStatusServerDataDic := TDictionary<string, PStatusServerData>.Create;
   DoAddTestDatas;
 end;
 
 destructor TStatusServerDataMgrImpl.Destroy;
 begin
-  DoClearDatas;
-  FStatusServerDataDic.Free;
-  FStatusServerDatas.Free;
   FLock.Free;
   FServerDataMgr := nil;
   inherited;
-end;
-
-procedure TStatusServerDataMgrImpl.DoClearDatas;
-var
-  LIndex: Integer;
-  LStatusServerData: PStatusServerData;
-begin
-  for LIndex := 0 to FStatusServerDatas.Count - 1 do begin
-    LStatusServerData := FStatusServerDatas.Items[LIndex];
-    if LStatusServerData <> nil then begin
-      Dispose(LStatusServerData);
-    end;
-  end;
-  FStatusServerDatas.Clear;
 end;
 
 procedure TStatusServerDataMgrImpl.DoAddTestDatas;
@@ -122,7 +95,6 @@ procedure TStatusServerDataMgrImpl.DoUpdate;
 var
   LIndex: Integer;
   LHqServerInfo: THqServerInfo;
-  LStatusServerData: PStatusServerData;
 begin
   if FServerDataMgr = nil then Exit;
 
@@ -132,16 +104,7 @@ begin
     for LIndex := 0 to FServerDataMgr.GetCount - 1 do begin
       LHqServerInfo := FServerDataMgr.GetServerInfo(LIndex);
       if LHqServerInfo <> nil then begin
-        if FStatusServerDataDic.TryGetValue(LHqServerInfo.ServerName, LStatusServerData) then begin
-          LStatusServerData.FIsConnected := (LHqServerInfo.ConnectStatus = csConnected);
-          FIsConnected := LStatusServerData.FIsConnected and FIsConnected;
-        end else begin
-          New(LStatusServerData);
-          LStatusServerData.FServerName := LHqServerInfo.ServerName;
-          LStatusServerData.FIsConnected := (LHqServerInfo.ConnectStatus = csConnected);
-          FStatusServerDataDic.AddOrSetValue(LStatusServerData.FServerName, LStatusServerData);
-          FIsConnected := LStatusServerData.FIsConnected and FIsConnected;
-        end;
+        FIsConnected := (LHqServerInfo.ConnectStatus = csConnected) and FIsConnected;
       end;
     end;
   finally
@@ -169,18 +132,12 @@ begin
   end;
 end;
 
-function TStatusServerDataMgrImpl.GetDataCount: Integer;
+procedure TStatusServerDataMgrImpl.UpdateConnected(AServerName: string; AIsConnected: Boolean);
 begin
-  Result := FStatusServerDatas.Count;
-end;
-
-function TStatusServerDataMgrImpl.GetData(AIndex: Integer): PStatusServerData;
-begin
-  if (AIndex >= 0)
-    and (AIndex < FStatusServerDatas.Count) then begin
-    Result := FStatusServerDatas.Items[AIndex];
+  if FIsConnected then begin
+    DoUpdate;
   end else begin
-    Result := nil;
+    FIsConnected := False;
   end;
 end;
 

@@ -14,18 +14,10 @@ interface
 uses
   Windows,
   Classes,
-  SysUtils;
+  SysUtils,
+  ServerDataMgr;
 
 type
-
-  // StatusServerData
-  TStatusServerData = packed record
-    FServerName: string;
-    FIsConnected: Boolean;
-  end;
-
-  // StatusServerData
-  PStatusServerData = ^TStatusServerData;
 
   // PStatusServerDataMgr
   IStatusServerDataMgr = interface(IInterface)
@@ -36,10 +28,8 @@ type
     procedure UnLock;
     // Update
     procedure Update;
-    // Get Count
-    function GetDataCount: Integer;
-    // Get Data
-    function GetData(AIndex: Integer): PStatusServerData;
+    // UpdateConnected
+    procedure UpdateConnected(AServerName: string; AIsConnected: Boolean);
     // Get IsConnected
     function GetIsConnected: Boolean;
     // Get ResourceStream

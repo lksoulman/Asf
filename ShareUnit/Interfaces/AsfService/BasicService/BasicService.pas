@@ -67,26 +67,28 @@ type
   // Basic Service Interface
   IBasicService = interface(IInterface)
     ['{787328F5-658A-44E1-9242-E4E1F6F577EB}']
-    // Is Logined
-    function IsLogined: Boolean; safecall;
-    // Get SessionId
-    function GetSessionId: WideString; safecall;
-    // Gil Bind
-    function GilBind(APBasicBind: PGilBasicBind): Boolean; safecall;
-    // Gil Login
-    function GilLogin(APBasicLogin: PGilBasicLogin): Boolean; safecall;
-    // Set Re Login Event
-    function SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean; safecall;
-    // Gil Password Set
-    function GilPasswordSet(APBasicPasswordSet: PGilBasicPasswordSet): Boolean; safecall;
-    // Synchronous POST
-    function SyncPOST(AIndicator: WideString; AWaitTime: DWORD): IGFData; safecall;
-    // Asynchronous POST
-    function AsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData; safecall;
-    // Priority Synchronous POST
-    function PrioritySyncPOST(AIndicator: WideString; AWaitTime: DWORD): IGFData; safecall;
-    // Priority Asynchronous POST
-    function PriorityAsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData; safecall;
+    // StopService
+    procedure StopService;
+    // IsLogined
+    function IsLogined: Boolean;
+    // GetSessionId
+    function GetSessionId: WideString;
+    // GilBind
+    function GilBind(APBasicBind: PGilBasicBind): Boolean;
+    // GilLogin
+    function GilLogin(APBasicLogin: PGilBasicLogin): Boolean;
+    // SetReLoginEvent
+    function SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean;
+    // GilPasswordSet
+    function GilPasswordSet(APBasicPasswordSet: PGilBasicPasswordSet): Boolean;
+    // SyncPOST
+    function SyncPOST(AIndicator: WideString; AWaitTime: DWORD): IGFData;
+    // AsyncPOST
+    function AsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
+    // PrioritySyncPOST
+    function PrioritySyncPOST(AIndicator: WideString; AWaitTime: DWORD): IGFData;
+    // PriorityAsyncPOST
+    function PriorityAsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
   end;
 
 implementation

@@ -38,26 +38,28 @@ type
 
     { IBasicService }
 
-    // Is Logined
-    function IsLogined: Boolean; safecall;
-    // Get SessionId
-    function GetSessionId: WideString; safecall;
-    // Gil Bind
-    function GilBind(APBasicBind: PGilBasicBind): Boolean; safecall;
-    // Gil Login
-    function GilLogin(APBasicLogin: PGilBasicLogin): Boolean; safecall;
-    // Set Re Login Event
-    function SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean; safecall;
-    // Gil Password Set
-    function GilPasswordSet(APBasicPasswordSet: PGilBasicPasswordSet): Boolean; safecall;
-    // Synchronous POST
-    function SyncPost(AIndicator: WideString; AWaitTime: DWORD): IGFData; safecall;
-    // Asynchronous POST
-    function AsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData; safecall;
-    // Priority Synchronous POST
-    function PrioritySyncPost(AIndicator: WideString; AWaitTime: DWORD): IGFData; safecall;
-    // Priority Asynchronous POST
-    function PriorityAsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData; safecall;
+    // StopService
+    procedure StopService;
+    // IsLogined
+    function IsLogined: Boolean;
+    // GetSessionId
+    function GetSessionId: WideString;
+    // GilBind
+    function GilBind(APBasicBind: PGilBasicBind): Boolean;
+    // GilLogin
+    function GilLogin(APBasicLogin: PGilBasicLogin): Boolean;
+    // SetReLoginEvent
+    function SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean;
+    // GilPasswordSet
+    function GilPasswordSet(APBasicPasswordSet: PGilBasicPasswordSet): Boolean;
+    // SyncPOST
+    function SyncPOST(AIndicator: WideString; AWaitTime: DWORD): IGFData;
+    // AsyncPOST
+    function AsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
+    // PrioritySyncPOST
+    function PrioritySyncPOST(AIndicator: WideString; AWaitTime: DWORD): IGFData;
+    // PriorityAsyncPOST
+    function PriorityAsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
   end;
 
 implementation
@@ -86,6 +88,11 @@ begin
   inherited;
   FExecutorCount := 4;
   FPriorityExecutorCount := 1;
+end;
+
+procedure TBasicServiceImpl.StopService;
+begin
+  DoStopService;
 end;
 
 function TBasicServiceImpl.IsLogined: Boolean;

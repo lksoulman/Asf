@@ -76,9 +76,9 @@ implementation
 constructor TCommandImpl.Create(AId: Cardinal; ACaption: string; AContext: IAppContext);
 begin
   inherited Create;
+  FAppContext := AContext;
   FId := AId;
   FCaption := ACaption;
-  FAppContext := AContext;
   FLock := TCSLock.Create;
   FFastSplitParams := TStringList.Create;
   FFastSplitParams.Delimiter := '@';
@@ -88,6 +88,7 @@ destructor TCommandImpl.Destroy;
 begin
   FFastSplitParams.Free;
   FLock.Free;
+  FAppContext := nil;
   inherited;
 end;
 

@@ -63,10 +63,30 @@ begin
 end;
 
 procedure TStatusServerDataMgrCommandImpl.Execute(AParams: string);
+var
+  LFuncName, LServerName, LIsConnected: string;
 begin
   if FStatusServerDataMgr = nil then begin
     FStatusServerDataMgr := TStatusServerDataMgrImpl.Create(FAppContext) as IStatusServerDataMgr;
     FAppContext.RegisterInteface(FId, FStatusServerDataMgr);
+  end;
+
+  if (AParams = '')
+    or (FStatusServerDataMgr = nil) then Exit;
+
+  BeginSplitParams(AParams);
+  try
+    ParamsVal('FuncName', LFuncName);
+    if LFuncName = 'UpdateConnected' then begin
+      ParamsVal('ServerName', LServerName);
+      ParamsVal('IsConnected', LIsConnected);
+      if (LServerName <> '')
+        and (LIsConnected <> '') then begin
+        FStatusServerDataMgr.UpdateConnected(LServerName, StrToBoolDef(LIsConnected, True));
+      end;
+    end;
+  finally
+    EndSplitParams;
   end;
 end;
 

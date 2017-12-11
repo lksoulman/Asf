@@ -31,7 +31,7 @@ type
     procedure DoEventWriteLog(const Log: string);
     procedure DoEventProgress(const Msg: string; Max, Value: Integer);
     procedure DoHandleEvent(eData: PEventData);
-    procedure CheckSerialNum;
+//    procedure CheckSerialNum;
   protected
     function Get_Connected(ServerType: ServerTypeEnum): WordBool; safecall;
     procedure LevelSetting(const User, Pass: WideString); safecall;
@@ -194,49 +194,49 @@ begin
   inherited Destroy;
 end;
 
-procedure TQuoteManager.CheckSerialNum;
-var
-  DllPath: string;
-  VolumeSerialNumber: DWord;
-  Number, FileNumber: AnsiString;
-  Strings: TStringList;
-begin
-  FCheckSerialNumOk := true;
-  exit;
-
-  FCheckSerialNumOk := false;
-  SetLength(DllPath, MAX_PATH);
-  GetModuleFileName(HInstance, PChar(DllPath), MAX_PATH);
-  DllPath := ExtractFilePath(PChar(DllPath));
-
-  if FileExists(DllPath + '\QuoteMngr.sn') then
-  begin
-
-    Strings := TStringList.Create;
-    try
-      Strings.LoadFromFile(DllPath + '\QuoteMngr.sn');
-      if Strings.Count > 0 then
-        FileNumber := AnsiString(Strings[0])
-      else
-        FileNumber := AnsiString('');
-    finally
-      Strings.Free;
-    end;
-
-    // 获取序列号
-    VolumeSerialNumber := GetSysDriveSerialNum;
-    Number := AnsiString(Copy(IntToHex(VolumeSerialNumber, 0), 1, 4) + '-' + Copy(IntToHex(VolumeSerialNumber, 0), 5, 4));
-    // 验证串
-    Number := MD5S(EncryStrHex(Number, MD5S('Hundsun@1' + Number)));
-
-    FCheckSerialNumOk := Number = FileNumber;
-
-  end;
-
-  if not FCheckSerialNumOk then
-    Showmessage('机器绑定验证错误!请与技术人员联系！');
-
-end;
+//procedure TQuoteManager.CheckSerialNum;
+//var
+//  DllPath: string;
+//  VolumeSerialNumber: DWord;
+//  Number, FileNumber: AnsiString;
+//  Strings: TStringList;
+//begin
+//  FCheckSerialNumOk := true;
+//  exit;
+//
+//  FCheckSerialNumOk := false;
+//  SetLength(DllPath, MAX_PATH);
+//  GetModuleFileName(HInstance, PChar(DllPath), MAX_PATH);
+//  DllPath := ExtractFilePath(PChar(DllPath));
+//
+//  if FileExists(DllPath + '\QuoteMngr.sn') then
+//  begin
+//
+//    Strings := TStringList.Create;
+//    try
+//      Strings.LoadFromFile(DllPath + '\QuoteMngr.sn');
+//      if Strings.Count > 0 then
+//        FileNumber := AnsiString(Strings[0])
+//      else
+//        FileNumber := AnsiString('');
+//    finally
+//      Strings.Free;
+//    end;
+//
+//    // 获取序列号
+//    VolumeSerialNumber := GetSysDriveSerialNum;
+//    Number := AnsiString(Copy(IntToHex(VolumeSerialNumber, 0), 1, 4) + '-' + Copy(IntToHex(VolumeSerialNumber, 0), 5, 4));
+//    // 验证串
+//    Number := MD5S(EncryStrHex(Number, MD5S('Hundsun@1' + Number)));
+//
+//    FCheckSerialNumOk := Number = FileNumber;
+//
+//  end;
+//
+//  if not FCheckSerialNumOk then
+//    Showmessage('机器绑定验证错误!请与技术人员联系！');
+//
+//end;
 
 procedure TQuoteManager.ClearSetting;
 begin

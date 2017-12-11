@@ -63,10 +63,25 @@ begin
 end;
 
 procedure TAssetServiceCommandImpl.Execute(AParams: string);
+var
+  LFuncName: string;
 begin
   if FAssetService = nil then begin
     FAssetService := TAssetServiceImpl.Create(FAppContext) as IAssetService;
     FAppContext.RegisterInteface(FId, FAssetService);
+  end;
+
+  if (AParams = '')
+    or (FAssetService = nil) then Exit;
+
+  BeginSplitParams(AParams);
+  try
+    ParamsVal('FuncName', LFuncName);
+    if LFuncName = 'StopService' then begin
+      FAssetService.StopService;
+    end;
+  finally
+    EndSplitParams;
   end;
 end;
 

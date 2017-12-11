@@ -29,7 +29,8 @@ uses
   ResourceSkin,
   BasicService,
   AssetService,
-  WNDataSetInf;
+  WNDataSetInf,
+  MsgExSubcriber;
 
 type
 
@@ -72,6 +73,10 @@ type
     function UnRegisterInterface(ACommandId: Integer): Boolean;
     // Register
     function RegisterInteface(ACommandId: Integer; AInterface: IInterface): Boolean;
+    // Subcriber
+    procedure Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
+    // UnSubcriber
+    procedure UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
     // HQ Log
     procedure HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
     // Web Log

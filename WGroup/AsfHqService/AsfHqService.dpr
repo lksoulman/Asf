@@ -30,9 +30,7 @@ uses
   QuoteCodeInfosExImpl in 'QuoteCodeInfosEx\Impl\QuoteCodeInfosExImpl.pas',
   QuoteManagerExCommandImpl in 'WCommands\QuoteManagerExCommandImpl.pas',
   ServerDataMgrImpl in 'ServerDataMgr\Impl\ServerDataMgrImpl.pas',
-  ServerDataMgrCommandImpl in 'WCommands\ServerDataMgrCommandImpl.pas',
-  SecuMainAdapterImpl in 'SecuMainAdapter\Impl\SecuMainAdapterImpl.pas',
-  SecuMainAdapterCommandImpl in 'WCommands\SecuMainAdapterCommandImpl.pas';
+  ServerDataMgrCommandImpl in 'WCommands\ServerDataMgrCommandImpl.pas';
 
 exports
   DllGetClassObject,

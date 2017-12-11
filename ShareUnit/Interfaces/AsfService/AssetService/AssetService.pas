@@ -75,26 +75,28 @@ type
   // Asset Service Interface
   IAssetService = interface(IInterface)
     ['{B1F0E6FD-73F7-43EC-B90D-AF7AC627E7FE}']
+    // StopService
+    procedure StopService;
     // Is Logined
-    function IsLogined: Boolean; safecall;
+    function IsLogined: Boolean;
     // Get SessionId
-    function GetSessionId: WideString; safecall;
+    function GetSessionId: WideString;
     // UFX Login
-    function UFXLogin(APUFXLogin: PUFXLogin): Boolean; safecall;
+    function UFXLogin(APUFXLogin: PUFXLogin): Boolean;
     // GIL Login
-    function GILLogin(APGILLogin: PGILLogin): Boolean; safecall;
+    function GILLogin(APGILLogin: PGILLogin): Boolean;
     // PBOX Login
-    function PBOXLogin(APPBOXLogin: PPBOXLogin): Boolean; safecall;
+    function PBOXLogin(APPBOXLogin: PPBOXLogin): Boolean;
     // Set Re Login Event
-    function SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean; safecall;
+    function SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean;
     // Synchronous POST
-    function SyncPost(AIndicator: WideString; AWaitTime: DWORD): IGFData; safecall;
+    function SyncPost(AIndicator: WideString; AWaitTime: DWORD): IGFData;
     // Asynchronous POST
-    function AsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData; safecall;
+    function AsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
     // Priority Synchronous POST
-    function PrioritySyncPost(AIndicator: WideString; AWaitTime: DWORD): IGFData; safecall;
+    function PrioritySyncPost(AIndicator: WideString; AWaitTime: DWORD): IGFData;
     // Priority Asynchronous POST
-    function PriorityAsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData; safecall;
+    function PriorityAsyncPOST(AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
   end;
 
 implementation

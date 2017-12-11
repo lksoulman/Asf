@@ -42,9 +42,6 @@ type
 
 implementation
 
-uses
-  SecuMainAdapterImpl;
-
 { TSecuMainAdapterCommandImpl }
 
 constructor TSecuMainAdapterCommandImpl.Create(AId: Cardinal; ACaption: string; AContext: IAppContext);
@@ -83,6 +80,5 @@ begin
     EndSplitParams;
   end;
 end;
-
 
 end.
