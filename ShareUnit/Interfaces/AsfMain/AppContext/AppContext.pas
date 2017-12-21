@@ -21,6 +21,7 @@ uses
   Classes,
   SysUtils,
   Vcl.Forms,
+  SecuMain,
   LogLevel,
   CacheType,
   CommandMgr,
@@ -30,6 +31,7 @@ uses
   BasicService,
   AssetService,
   WNDataSetInf,
+  CommonObject,
   MsgExSubcriber;
 
 type
@@ -77,23 +79,27 @@ type
     procedure Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
     // UnSubcriber
     procedure UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
-    // HQ Log
+    // HQLog
     procedure HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Web Log
+    // WebLog
     procedure WebLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Sys Log
+    // SysLog
     procedure SysLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Indicator Log
+    // IndicatorLog
     procedure IndicatorLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Cache Synchronous Query
+    // QuerySecuInfo
+    function QuerySecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;
+    // QuerySecuInfos
+    function QuerySecuInfos(AInnerCodes: TIntegerDynArray; var ASecuInfos: TSecuInfoDynArray): Integer;
+    // CacheSyncQuery
     function CacheSyncQuery(ACacheType: TCacheType; ASql: WideString): IWNDataSet;
-    // Synchronous POST
+    // GFSyncQuery
     function GFSyncQuery(AServiceType: TServiceType; AIndicator: WideString; AWaitTime: DWORD): IWNDataSet;
-    // Asynchronous POST
+    // GFAsyncQuery
     function GFAsyncQuery(AServiceType: TServiceType; AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
-    // Priority Synchronous POST
+    // GFPrioritySyncQuery
     function GFPrioritySyncQuery(AServiceType: TServiceType; AIndicator: WideString; AWaitTime: DWORD): IWNDataSet;
-    // Priority Asynchronous POST
+    // GFPriorityAsyncQuery
     function GFPriorityAsyncQuery(AServiceType: TServiceType; AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
   end;
 

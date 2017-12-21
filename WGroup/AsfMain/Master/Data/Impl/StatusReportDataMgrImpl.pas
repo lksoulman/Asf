@@ -15,17 +15,16 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   CommonLock,
-  AppContextObject,
-  CommonRefCounter,
   StatusReportDataMgr,
   Generics.Collections;
 
 type
 
   // StatusReportDataMgr Implementation
-  TStatusReportDataMgrImpl = class(TAppContextObject, IStatusReportDataMgr)
+  TStatusReportDataMgrImpl = class(TBaseInterfacedObject, IStatusReportDataMgr)
   private
     // Lock
     FLock: TCSLock;

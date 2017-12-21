@@ -21,17 +21,17 @@ uses
   ShareMgr,
   Executors,
   GFDataImpl,
+  BaseObject,
   AppContext,
   HttpContext,
   GFDataUpdate,
   ExecutorThread,
-  HttpContextPool,
-  AppContextObject;
+  HttpContextPool;
 
 type
 
   // AbstractService Implementation
-  TAbstractServiceImpl = class(TAppContextObject)
+  TAbstractServiceImpl = class(TBaseInterfacedObject)
   private
   protected
     // IsStart

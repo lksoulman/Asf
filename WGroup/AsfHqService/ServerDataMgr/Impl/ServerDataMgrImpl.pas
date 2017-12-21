@@ -17,17 +17,17 @@ uses
   SysUtils,
   HqAuth,
   Command,
+  BaseObject,
   AppContext,
   CommonLock,
   QuoteMngr_TLB,
   ServerDataMgr,
-  AppContextObject,
   Generics.Collections;
 
 type
 
   // ServerDataMgr Implementation
-  TServerDataMgrImpl = class(TAppContextObject, IServerDataMgr)
+  TServerDataMgrImpl = class(TBaseInterfacedObject, IServerDataMgr)
   private
     // Lock
     FLock: TCSLock;

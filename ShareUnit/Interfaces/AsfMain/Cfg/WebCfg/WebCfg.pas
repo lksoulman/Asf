@@ -12,21 +12,30 @@ unit WebCfg;
 interface
 
 uses
-  WebInfo,
   Windows,
   Classes,
   SysUtils;
 
 type
 
+  // WebInfo
+  TWebInfo = packed record
+    FUrl: string;                   // Url
+    FWebID: Integer;                // Web ID
+    FServerName: string;            // Server Name
+    FDescription: string;           // Description
+  end;
+
+  // WebInfo Pointer
+  PWebInfo = ^TWebInfo;
 
   // WebCfg Interface
   IWebCfg = Interface(IInterface)
     ['{2BEFE464-BC6A-4C8A-A2F3-610EFBD3AE4B}']
     // GetUrl
     function GetUrl(AWebID: Integer): WideString;
-    // GetUrlInfo
-    function GetUrlInfo(AWebID: Integer): IWebInfo;
+    // GetWebInfo
+    function GetWebInfo(AWebID: Integer): PWebInfo;
   end;
 
 implementation

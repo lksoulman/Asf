@@ -23,6 +23,7 @@ uses
   NativeXml,
   GFDataSet,
   CacheTable,
+  BaseObject,
   AppContext,
   CommonLock,
   ServiceType,
@@ -32,7 +33,6 @@ uses
   WNDataSetInf,
   SQLiteAdapter,
   ExecutorThread,
-  AppContextObject,
   CacheOperateType,
   Generics.Collections;
 
@@ -43,7 +43,7 @@ const
 type
 
   // AbstractCache Implementation
-  TAbstractCacheImpl = class(TAppContextObject)
+  TAbstractCacheImpl = class(TBaseInterfacedObject)
   private
   protected
     // CacheName
@@ -841,7 +841,7 @@ procedure TAbstractCacheImpl.DoUpdateNotifyCacheTable(ATable: TCacheTable; AInfo
 begin
   if FUpdateNotifyCacheTableDic.ContainsKey(ATable.Name) then begin
     FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,
-      Format('FuncName=SendMessageEx@Id=%d@Info=%',[MSG_SECUMAIN_MEMORY_UPDATE , AInfo]), 2);
+      Format('FuncName=SendMessageEx@Id=%d@Info=%',[Msg_AsfCache_ReUpdateBaseCache_SecuMain, AInfo]), 2);
   end;
 end;
 

@@ -2,7 +2,7 @@ unit CommandImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Command Interface Implementation
+// Description£º Command Implementation
 // Author£º      lksoulman
 // Date£º        2017-11-14
 // Comments£º
@@ -16,14 +16,14 @@ uses
   Classes,
   SysUtils,
   Command,
+  BaseObject,
   AppContext,
-  CommonLock,
-  CommonRefCounter;
+  CommonLock;
 
 type
 
-  // Command Interface
-  TCommandImpl = class(TAutoInterfacedObject, ICommand)
+  // Command Implementation
+  TCommandImpl = class(TBaseSplitStrInterfacedObject, ICommand)
   private
   protected
     // FId
@@ -36,17 +36,6 @@ type
     FVisible: Boolean;
     // Lock
     FLock: TCSLock;
-    // App Context
-    FAppContext: IAppContext;
-    // Fast Split Params
-    FFastSplitParams: TStringList;
-
-    // EndSplit
-    procedure EndSplitParams;
-    // BeginSplit
-    procedure BeginSplitParams(AParams: string);
-    // ParamsVal
-    procedure ParamsVal(AName: string; var AVal: string);
   public
     // Constructor
     constructor Create(AId: Cardinal; ACaption: string; AContext: IAppContext); reintroduce; virtual;
@@ -75,36 +64,16 @@ implementation
 
 constructor TCommandImpl.Create(AId: Cardinal; ACaption: string; AContext: IAppContext);
 begin
-  inherited Create;
-  FAppContext := AContext;
+  inherited Create(AContext);
   FId := AId;
   FCaption := ACaption;
   FLock := TCSLock.Create;
-  FFastSplitParams := TStringList.Create;
-  FFastSplitParams.Delimiter := '@';
 end;
 
 destructor TCommandImpl.Destroy;
 begin
-  FFastSplitParams.Free;
   FLock.Free;
-  FAppContext := nil;
   inherited;
-end;
-
-procedure TCommandImpl.EndSplitParams;
-begin
-  FFastSplitParams.DelimitedText := '';
-end;
-
-procedure TCommandImpl.BeginSplitParams(AParams: string);
-begin
-  FFastSplitParams.DelimitedText := AParams;
-end;
-
-procedure TCommandImpl.ParamsVal(AName: string; var AVal: string);
-begin
-  AVal := FFastSplitParams.Values[AName];
 end;
 
 function TCommandImpl.GetId: Cardinal;

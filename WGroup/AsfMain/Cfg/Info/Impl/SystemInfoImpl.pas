@@ -2,7 +2,7 @@ unit SystemInfoImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º System Info Interface Implementation
+// Description£º SystemInfo Implementation
 // Author£º      lksoulman
 // Date£º        2017-7-21
 // Comments£º
@@ -18,15 +18,14 @@ uses
   IniFiles,
   LogLevel,
   SystemInfo,
+  BaseObject,
   AppContext,
-  LanguageType,
-  AppContextObject,
-  CommonRefCounter;
+  LanguageType;
 
 type
 
-  // System Info Interface Implementation
-  TSystemInfoImpl = class(TAppContextObject, ISystemInfo)
+  // SystemInfo Implementation
+  TSystemInfoImpl = class(TBaseInterfacedObject, ISystemInfo)
   private
     // System Info
     FSystemInfo: TSystemInfo;

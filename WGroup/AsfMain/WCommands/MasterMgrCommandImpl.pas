@@ -27,6 +27,8 @@ type
   private
     // MasterMgr
     FMasterMgr: IMasterMgr;
+    // CmdInterceptor
+    FCmdInterceptor: ICmdInterceptor;
   protected
   public
     // Constructor
@@ -57,6 +59,8 @@ destructor TMasterMgrCommandImpl.Destroy;
 begin
   if FMasterMgr <> nil then begin
     FAppContext.UnRegisterInterface(FId);
+    FAppContext.GetCommandMgr.UnRegisterInterceptor(FCmdInterceptor);
+    FCmdInterceptor := nil;
     FMasterMgr := nil;
   end;
   inherited;
@@ -69,6 +73,8 @@ var
 begin
   if FMasterMgr = nil then begin
     FMasterMgr := TMasterMgrImpl.Create(FAppContext) as IMasterMgr;
+    FCmdInterceptor := FMasterMgr;
+    FAppContext.GetCommandMgr.RegisterInterceptor(FCmdInterceptor);
     FAppContext.RegisterInteface(FId, FMasterMgr);
   end;
 

@@ -27,18 +27,17 @@ uses
   RzEdit,
   GDIPOBJ,
   Command,
-  RenderGDI,
   RenderUtil,
-  BaseFormUI,
   AppContext,
   KeyReportUI,
+  CustomBaseUI,
   CommonDynArray,
   KeySearchEngine;
 
 type
 
   // KeyFairyUI
-  TKeyFairyUI = class(TBaseFormUI)
+  TKeyFairyUI = class(TCustomBaseUI)
     PnlEdit: TPanel;
     PnlClient: TPanel;
     EdtSearch: TRzEdit;
@@ -56,6 +55,15 @@ type
 
     // WMActivate
     procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
+
+    // BeforeCreate
+    procedure DoBeforeCreate; override;
+    // CreateNCBarUI
+    procedure DoCreateNCBarUI; override;
+    // DestroyNCBarUI
+    procedure DoDestroyNCBarUI; override;
+    // UpdateSkinStyle
+    procedure DoUpdateSkinStyle; override;
   protected
     // SearchDelayTimer
     procedure DoSearchDelayTimer(Sender: TObject);
@@ -66,8 +74,7 @@ type
     constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
-    // Refresh Skin
-    procedure RefreshSkin;
+
     // SetKey
     procedure SetKey(AKey: string);
   end;
@@ -81,9 +88,6 @@ implementation
 constructor TKeyFairyUI.Create(AContext: IAppContext);
 begin
   inherited;
-  FIsMaxBox := False;
-  FIsMinBox := False;
-
   Caption := 'èóË¼¼üÅÌ¾«Áé';
 
   EdtSearch.ParentFont := False;
@@ -102,8 +106,6 @@ begin
   FSearchDelayTimer.Enabled := False;
   FSearchDelayTimer.Interval := 100;
   FSearchDelayTimer.OnTimer := DoSearchDelayTimer;
-
-  RefreshSkin;
 end;
 
 destructor TKeyFairyUI.Destroy;
@@ -112,14 +114,39 @@ begin
   inherited;
 end;
 
-procedure TKeyFairyUI.RefreshSkin;
+procedure TKeyFairyUI.DoBeforeCreate;
 begin
-  PnlEdit.Color := RGB(26, 26, 26);
-  PnlClient.Color := RGB(26, 26, 26);
-  EdtSearch.Color := RGB(26, 26, 26);
-  EdtSearch.Font.Color := RGB(134, 134, 134);
-  EdtSearch.FrameColor := RGB(55, 55, 55);
-  EdtSearch.FrameHotColor := RGB(79, 155, 255);
+  inherited DoBeforeCreate;
+  FIsMaximize := False;
+  FIsMinimize := False;
+  FBorderStyleEx := bsNone;
+end;
+
+procedure TKeyFairyUI.DoCreateNCBarUI;
+begin
+  inherited;
+
+end;
+
+procedure TKeyFairyUI.DoDestroyNCBarUI;
+begin
+
+  inherited;
+end;
+
+procedure TKeyFairyUI.DoUpdateSkinStyle;
+begin
+  if PnlEdit <> nil then begin
+    PnlEdit.Color := RGB(26, 26, 26);
+    PnlClient.Color := RGB(26, 26, 26);
+  end;
+  if EdtSearch <> nil then begin
+    EdtSearch.Color := RGB(26, 26, 26);
+    EdtSearch.Font.Color := RGB(134, 134, 134);
+    EdtSearch.FrameColor := RGB(55, 55, 55);
+    EdtSearch.FrameHotColor := RGB(79, 155, 255);
+  end;
+
 end;
 
 procedure TKeyFairyUI.SetKey(AKey: string);

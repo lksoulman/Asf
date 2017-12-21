@@ -19,11 +19,41 @@ uses
 
 const
 
-  MSG_HQSERVICE_CONNECT                 = 1001;         // 行情服务连接消息
-  MSG_HQSERVICE_RESUBCRIBE              = 1002;         // 行情订阅数据更新需要重新订阅
-  MSG_SECUMAIN_MEMORY_UPDATE            = 1003;         // 证券主表 SECUMAIN 内存更新
-  MSG_BASECACHE_TABLE_SECUMAIN_UPDATE   = 1004;         // 基础CACHE证券主表 SECUMAIN 更新
+  { SysMsg  }
 
+  { AsfMain.exe (100000, 10999] }
+
+  Msg_AsfMain_ReUpdateSkinStyle                 = 100001;     // 更新皮肤样式
+  Msg_AsfMain_ReUpdateLanguage                  = 100002;     // 更新语言包
+
+  { AsfUI.dll (101000, 11999] }
+
+//  Msg_AsfUI_
+
+  { AsfMsg.dll (102000, 102999] }
+
+//  Msg_AsfMsg_
+
+  { AsfMem.dll (103000, 103999] }
+
+  Msg_AsfMem_ReUpdateSecuMain                   = 103001;      // 证券主表 SECUMAIN 内存更新
+
+  { AsfAuth.dll (104000, 104999] }
+
+//  Msg_AsfAuth_
+
+  { AsfCache.dll (105000, 105999] }
+
+  Msg_AsfCache_ReUpdateBaseCache_SecuMain       = 105004;      // 基础CACHE证券主表 SECUMAIN 更新
+
+  { AsfService.dll (106000, 106999] }
+
+//  Msg_AsfService_
+
+  { AsfHqService.dll (107000, 107999] }
+
+  Msg_AsfHqService_ReConnectServer              = 107001;     // 行情服务连接消息
+  Msg_AsfHqService_ReSubcribeHq                 = 107002;     // 行情订阅数据更新需要重新订阅
 
 type
 

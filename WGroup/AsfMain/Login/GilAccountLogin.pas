@@ -82,6 +82,8 @@ begin
         Result := FBasicService.GilBind(@FGilBasicBind);
         if Result then begin
         // Bind Success
+          FCfg.GetSysCfg.GetUserInfo.GetBindInfo^.FLicense := FGilBasicBind.FLicense;
+          FCfg.GetSysCfg.GetUserInfo.GetBindInfo^.FOrgSign := FGilBasicBind.FOrgSign;
           FGilBasicLogin.FServerUrl := LServerUrl;
           FGilBasicLogin.FUserName := FCfg.GetSysCfg.GetUserInfo.GetUFXAccountInfo.FUserName;
           FGilBasicLogin.FLicense := FCfg.GetSysCfg.GetUserInfo.GetBindInfo.FLicense;

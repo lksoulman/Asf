@@ -17,14 +17,13 @@ uses
   SysUtils,
   IniFiles,
   UserInfo,
-  AppContext,
-  AppContextObject,
-  CommonRefCounter;
+  BaseObject,
+  AppContext;
 
 type
 
   // UserInfo Implementation
-  TUserInfoImpl = class(TAppContextObject, IUserInfo)
+  TUserInfoImpl = class(TBaseInterfacedObject, IUserInfo)
   private
     // ProductNo
     FProNo: string;

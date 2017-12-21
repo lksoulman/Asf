@@ -15,34 +15,40 @@ uses
   Windows,
   Classes,
   SysUtils,
-//  ChildPage,
-  Vcl.Forms;
+  Vcl.Forms,
+  ChildPage;
 
 type
 
   // Master
   IMaster = interface(IInterface)
     ['{22C6E574-2100-4D8C-9867-757EB660D93F}']
+    // GetHandle
+    function GetHandle: Cardinal;
+    // GetWindowState
+    function GetWindowState: TWindowState;
+    // SetWindowState
+    procedure SetWindowState(AWindowState: TWindowState);
+
     // Show
     procedure Show;
     // Hide
     procedure Hide;
-    // Go Back (True is Response, False Is not Response)
+    // GoBack (True is Response, False Is not Response)
     function GoBack: Boolean;
-    // Go Forward (True is Response, False Is not Response)
+    // GoForward (True is Response, False Is not Response)
     function GoForward: Boolean;
-    // Get Handle
-    function GetHandle: Cardinal;
-    // Get Count
-    function GetPageCount: Integer;
-    // Get Active Page
-//    function GetActivePage: IChildPage;
-//    // Find Page
-//    function FindPage(ACommandId: Integer): IChildPage;
-//    // Set ActivatePage
-//    procedure SetActivatePage(AChildPage: IChildPage);
-    // Set WindowState
-    procedure SetWindowState(AWindowState: TWindowState);
+    // IsHasChildPage
+    function IsHasChildPage(ACommandId: Integer): Boolean;
+    // AddChildPage
+    function AddChildPage(AChildPage: IChildPage): Boolean;
+    // AddCmdCookie
+    function AddCmdCookie(ACommandId: Integer; AParams: string): Boolean;
+    // BringToFrontChildPage
+    function BringToFrontChildPage(ACommandId: Integer; AParams: string): Boolean;
+
+    property Handle: Cardinal read GetHandle;
+    property WindowState: TWindowState read GetWindowState write SetWindowState;
   end;
 
 implementation

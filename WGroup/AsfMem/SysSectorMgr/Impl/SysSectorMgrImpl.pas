@@ -2,7 +2,7 @@ unit SysSectorMgrImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º System Sector Manager Interface implementation
+// Description£º SysSectorMgr Implementation
 // Author£º      lksoulman
 // Date£º        2017-8-23
 // Comments£º
@@ -16,14 +16,14 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
-  SysSectorMgr,
-  AppContextObject;
+  SysSectorMgr;
 
 type
 
-  // System Sector Manager Interface implementation
-  TSysSectorMgrImpl = class(TAppContextObject, ISysSectorMgr)
+  // SysSectorMgr Implementation
+  TSysSectorMgrImpl = class(TBaseInterfacedObject, ISysSectorMgr)
   private
   protected
   public

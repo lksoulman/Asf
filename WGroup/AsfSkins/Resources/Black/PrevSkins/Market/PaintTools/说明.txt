@@ -1,0 +1,26 @@
+
+PressSupport：压/撑
+TrendLine：趋势线
+Rectangle：矩形
+ReturnZone：回归带  (LinearRegression1：线性回归带)
+Arc：弧形
+Text：文本
+Beam：射线  (无)
+Line：线段
+ArrowLine：箭头线段  (无)
+Passageway：通道  (无)
+RegressionRay：回归射线  (LinearRegression2：回归通道)
+LinearRegression：线性回归
+GoldLine：黄金分割
+BandLine：波段线
+CycleLine：周期线
+PerLine：百分比
+FaibonacaiLine：费波拉契线
+SpeedOLine：速阻线
+GennLine：甘氏线
+SectionLine：费氏圆  (SectionLine：圆弧)
+
+Del：删除
+DelAll：删除所有
+Spread：展开
+Gather：收缩

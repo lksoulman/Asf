@@ -1,0 +1,722 @@
+
+//===========================================================================================================
+
+//   AppMenu
+SKIN_APP_81 RCDATA .\White\Skins\AppMenu\Hot_81.png
+SKIN_APP_F3 RCDATA .\White\Skins\AppMenu\Hot_F3.png
+SKIN_APP_F4 RCDATA .\White\Skins\AppMenu\Hot_F4.png
+SKIN_APP_F6 RCDATA .\White\Skins\AppMenu\Hot_F6.png
+SKIN_APP_HELP RCDATA .\White\Skins\AppMenu\Help.png
+SKIN_APP_SKIN RCDATA .\White\Skins\AppMenu\Skin.png
+SKIN_APP_LOGO RCDATA .\White\Skins\AppMenu\Logo.png
+SKIN_APP_NEWWORK RCDATA .\White\Skins\AppMenu\NewWork.png
+SKIN_APP_REFRESH RCDATA .\White\Skins\AppMenu\Refresh.png
+SKIN_APP_FORWARD RCDATA .\White\Skins\AppMenu\Forward.png
+SKIN_APP_BACKSPACE RCDATA .\White\Skins\AppMenu\BackSpace.png
+SKIN_APP_LOGO_SMALL RCDATA .\White\Skins\AppMenu\Logo_Small.png
+
+SKIN_APP_CLOSE RCDATA .\White\Skins\AppMenu\Close.png
+SKIN_APP_RESTORE RCDATA .\White\Skins\AppMenu\Restore.png
+SKIN_APP_MAXIMIZE RCDATA .\White\Skins\AppMenu\Maximize.png
+SKIN_APP_MINIMIZE RCDATA .\White\Skins\AppMenu\Minimize.png
+
+// AppStatus
+SKIN_APP_ALARM RCDATA .\White\Skins\AppStatus\Alarm.png
+SKIN_APP_REPORT RCDATA .\White\Skins\AppStatus\Report.png
+SKIN_APP_NETWOTK_CONNECT RCDATA .\White\Skins\AppStatus\Network_Connect.png
+SKIN_APP_NETWORK_DISCONNECT RCDATA .\White\Skins\AppStatus\Network_DisConnect.png
+
+//   AppSuperTab
+SKIN_APP_HQ RCDATA .\White\Skins\AppSuperTab\Hq.png
+SKIN_APP_ASSET RCDATA .\White\Skins\AppSuperTab\Asset.png
+SKIN_APP_PARAMSSETTING RCDATA .\White\Skins\AppSuperTab\ParamsSetting.png
+SKIN_APP_MANAGEMENTVIEW RCDATA .\White\Skins\AppSuperTab\ManagementView.png
+SKIN_APP_RISKMANAGEMENT RCDATA .\White\Skins\AppSuperTab\RiskManagement.png
+
+//=============================================================================================================
+
+//   Colors Cfg
+COLORSCFG RCDATA .\White\ColorsCfg.xml
+
+/***************菜单上的LOGO****************************************/
+MenuLogo_768P RCDATA .\White\PrevSkins\MainMenu\MenuLogo.png 
+MenuLogo_1080P RCDATA .\White\PrevSkins\MainMenu_Large\MenuLogo.png    
+
+MenuLogo_flat_768P RCDATA .\White\PrevSkins\MainMenu\MenuLogo_flat.png 
+MenuLogo_flat_1080P RCDATA .\White\PrevSkins\MainMenu_Large\MenuLogo_flat.png 
+
+MenuLogo_ChangJiang_768P RCDATA .\White\PrevSkins\MainMenu\MenuLogo_ChangJiang.png 
+MenuLogo_ChangJiang_1080P RCDATA .\White\PrevSkins\MainMenu_Large\MenuLogo_ChangJiang.png 
+/***********************左侧菜单图片定义****************************/
+Assert_768P  RCDATA .\White\PrevSkins\MainMenu\Assert.png
+Assert_Hot_768P  RCDATA .\White\PrevSkins\MainMenu\AssertHot.png
+Assert_Sel_768P  RCDATA .\White\PrevSkins\MainMenu\AssertSel.png
+
+Assert_1080P  RCDATA .\White\PrevSkins\MainMenu_Large\Assert.png
+Assert_Hot_1080P  RCDATA .\White\PrevSkins\MainMenu_Large\AssertHot.png
+Assert_Sel_1080P  RCDATA .\White\PrevSkins\MainMenu_Large\AssertSel.png
+
+News_768P RCDATA .\White\PrevSkins\MainMenu\News.png
+News_Hot_768P RCDATA .\White\PrevSkins\MainMenu\NewsHot.png
+News_Sel_768P RCDATA .\White\PrevSkins\MainMenu\NewsSel.png
+
+News_1080P RCDATA .\White\PrevSkins\MainMenu_Large\News.png
+News_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\NewsHot.png
+News_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\NewsSel.png
+
+Quote_768P RCDATA .\White\PrevSkins\MainMenu\Quote.png
+Quote_Hot_768P RCDATA .\White\PrevSkins\MainMenu\QuoteHot.png
+Quote_Sel_768P RCDATA .\White\PrevSkins\MainMenu\QuoteSel.png
+
+Quote_1080P RCDATA .\White\PrevSkins\MainMenu_Large\Quote.png
+Quote_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\QuoteHot.png
+Quote_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\QuoteSel.png
+
+ResearchReport_768P RCDATA .\White\PrevSkins\MainMenu\ResearchReport.png
+ResearchReport_Hot_768P RCDATA .\White\PrevSkins\MainMenu\ResearchReportHot.png
+ResearchReport_Sel_768P RCDATA .\White\PrevSkins\MainMenu\ResearchReportSel.png
+
+ResearchReport_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ResearchReport.png
+ResearchReport_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ResearchReportHot.png
+ResearchReport_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ResearchReportSel.png
+
+Tool_768P RCDATA .\White\PrevSkins\MainMenu\Tool.png
+Tool_Hot_768P RCDATA .\White\PrevSkins\MainMenu\ToolHot.png
+Tool_Sel_768P RCDATA .\White\PrevSkins\MainMenu\ToolSel.png
+
+Tool_1080P RCDATA .\White\PrevSkins\MainMenu_Large\Tool.png
+Tool_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ToolHot.png
+Tool_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ToolSel.png
+
+Order_768P   RCDATA .\White\PrevSkins\MainMenu\Order.png
+Order_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\OrderHot.png
+Order_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\OrderSel.png
+
+Order_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\Order.png
+Order_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\OrderHot.png
+Order_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\OrderSel.png
+
+Custom_768P   RCDATA .\White\PrevSkins\MainMenu\Custom.png
+Custom_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\CustomHot.png
+Custom_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\CustomSel.png
+
+Custom_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\Custom.png
+Custom_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\CustomHot.png
+Custom_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\CustomSel.png
+
+WebPortfolio_768P   RCDATA .\White\PrevSkins\MainMenu\WebPortfolio.png
+WebPortfolio_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\WebPortfolioHot.png
+WebPortfolio_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\WebPortfolioSel.png
+
+WebPortfolio_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\WebPortfolio.png
+WebPortfolio_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\WebPortfolioHot.png
+WebPortfolio_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\WebPortfolioSel.png
+
+Evaluate_768P   RCDATA .\White\PrevSkins\MainMenu\Evaluate.png
+Evaluate_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\EvaluateHot.png
+Evaluate_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\EvaluateSel.png
+
+Evaluate_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\Evaluate.png
+Evaluate_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\EvaluateHot.png
+Evaluate_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\EvaluateSel.png
+
+FuturesExposure_768P   RCDATA .\White\PrevSkins\MainMenu\FuturesExposure.png
+FuturesExposure_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\FuturesExposureHot.png
+FuturesExposure_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\FuturesExposureSel.png
+
+FuturesExposure_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\FuturesExposure.png
+FuturesExposure_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\FuturesExposureHot.png
+FuturesExposure_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\FuturesExposureSel.png
+
+FOFTool_768P   RCDATA .\White\PrevSkins\MainMenu\FOFTool.png
+FOFTool_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\FOFToolHot.png
+FOFTool_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\FOFToolSel.png
+
+FOFTool_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\FOFTool.png
+FOFTool_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\FOFToolHot.png
+FOFTool_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\FOFToolSel.png
+
+More_768P   RCDATA .\White\PrevSkins\MainMenu\More.png
+More_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\MoreHot.png
+More_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\MoreSel.png
+
+More_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\More.png
+More_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\MoreHot.png
+More_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\MoreSel.png
+
+BankQuotation_768P   RCDATA .\White\PrevSkins\MainMenu\BankQuotation.png
+BankQuotation_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\BankQuotationHot.png
+BankQuotation_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\BankQuotationSel.png
+
+BankQuotation_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\BankQuotation.png
+BankQuotation_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\BankQuotationHot.png
+BankQuotation_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\BankQuotationSel.png
+
+Quantification_768P   RCDATA .\White\PrevSkins\MainMenu\Quantification.png
+Quantification_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\QuantificationHot.png
+Quantification_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\QuantificationSel.png
+
+Quantification_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\Quantification.png
+Quantification_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\QuantificationHot.png
+Quantification_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\QuantificationSel.png
+
+GoInvest_768P   RCDATA .\White\PrevSkins\MainMenu\GoInvest.png
+GoInvest_Hot_768P   RCDATA .\White\PrevSkins\MainMenu\GoInvestHot.png
+GoInvest_Sel_768P   RCDATA .\White\PrevSkins\MainMenu\GoInvestSel.png
+
+GoInvest_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\GoInvest.png
+GoInvest_Hot_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\GoInvestHot.png
+GoInvest_Sel_1080P   RCDATA .\White\PrevSkins\MainMenu_Large\GoInvestSel.png
+
+ReportForms_768P RCDATA .\White\PrevSkins\MainMenu\ReportForms.png
+ReportForms_Hot_768P RCDATA .\White\PrevSkins\MainMenu\ReportFormsHot.png
+ReportForms_Sel_768P RCDATA .\White\PrevSkins\MainMenu\ReportFormsSel.png
+
+ReportForms_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ReportForms.png
+ReportForms_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ReportFormsHot.png
+ReportForms_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ReportFormsSel.png
+
+ManageViews_768P RCDATA .\White\PrevSkins\MainMenu\ManageViews.png
+ManageViews_Hot_768P RCDATA .\White\PrevSkins\MainMenu\ManageViewsHot.png
+ManageViews_Sel_768P RCDATA .\White\PrevSkins\MainMenu\ManageViewsSel.png
+
+ManageViews_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ManageViews.png
+ManageViews_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ManageViewsHot.png
+ManageViews_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\ManageViewsSel.png
+
+RiskControl_768P RCDATA .\White\PrevSkins\MainMenu\RiskControl.png
+RiskControl_Hot_768P RCDATA .\White\PrevSkins\MainMenu\RiskControlHot.png
+RiskControl_Sel_768P RCDATA .\White\PrevSkins\MainMenu\RiskControlSel.png
+
+RiskControl_1080P RCDATA .\White\PrevSkins\MainMenu_Large\RiskControl.png
+RiskControl_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\RiskControlHot.png
+RiskControl_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\RiskControlSel.png
+
+SmartInvestResearch_768P RCDATA .\White\PrevSkins\MainMenu\SmartInvestResearch.png
+SmartInvestResearch_Hot_768P RCDATA .\White\PrevSkins\MainMenu\SmartInvestResearchHot.png
+SmartInvestResearch_Sel_768P RCDATA .\White\PrevSkins\MainMenu\SmartInvestResearchSel.png
+
+SmartInvestResearch_1080P RCDATA .\White\PrevSkins\MainMenu_Large\SmartInvestResearch.png
+SmartInvestResearch_Hot_1080P RCDATA .\White\PrevSkins\MainMenu_Large\SmartInvestResearchHot.png
+SmartInvestResearch_Sel_1080P RCDATA .\White\PrevSkins\MainMenu_Large\SmartInvestResearchSel.png
+/*************************结束**************************/
+
+/*************************皮肤设置按钮**************************/ 
+SkinSetting_768P RCDATA .\White\PrevSkins\MainTool\SkinSetting.png          
+SkinSetting_hot_768P RCDATA .\White\PrevSkins\MainTool\SkinSetting_hot.png
+
+SkinSetting_1080P RCDATA .\White\PrevSkins\MainTool_Large\SkinSetting.png          
+SkinSetting_hot_1080P RCDATA .\White\PrevSkins\MainTool_Large\SkinSetting_hot.png
+
+NewWorkForm_768P RCDATA .\White\PrevSkins\MainTool\NewWorkForm.png 
+NewWorkForm_hot_768P RCDATA .\White\PrevSkins\MainTool\NewWorkForm_hot.png
+
+NewWorkForm_1080P RCDATA .\White\PrevSkins\MainTool_Large\NewWorkForm.png 
+NewWorkForm_hot_1080P RCDATA .\White\PrevSkins\MainTool_Large\NewWorkForm_hot.png
+
+HelpMenu_768P RCDATA .\White\PrevSkins\MainTool\HelpMenu.png          
+HelpMenu_hot_768P RCDATA .\White\PrevSkins\MainTool\HelpMenu_hot.png
+
+HelpMenu_1080P RCDATA .\White\PrevSkins\MainTool_Large\HelpMenu.png          
+HelpMenu_hot_1080P RCDATA .\White\PrevSkins\MainTool_Large\HelpMenu_hot.png   
+
+Setting_768P RCDATA .\White\PrevSkins\MainTool\Setting.png          
+Setting_hot_768P RCDATA .\White\PrevSkins\MainTool\Setting_hot.png
+
+Setting_1080P RCDATA .\White\PrevSkins\MainTool_Large\Setting.png          
+Setting_hot_1080P RCDATA .\White\PrevSkins\MainTool_Large\Setting_hot.png 
+
+/*************************前进后退按钮（切换模块）**************************/
+Last_768P RCDATA .\White\PrevSkins\MainTool\Last.png
+Last_hot_768P RCDATA .\White\PrevSkins\MainTool\Last.png
+Last_Dis_768P RCDATA .\White\PrevSkins\MainTool\Last_Dis.png
+
+Last_1080P RCDATA .\White\PrevSkins\MainTool_Large\Last.png
+Last_hot_1080P RCDATA .\White\PrevSkins\MainTool_Large\Last.png
+Last_Dis_1080P RCDATA .\White\PrevSkins\MainTool_Large\Last_Dis.png
+   
+Prev_768P RCDATA .\White\PrevSkins\MainTool\Prev.png  
+Prev_hot_768P RCDATA .\White\PrevSkins\MainTool\Prev.png 
+Prev_Dis_768P RCDATA .\White\PrevSkins\MainTool\Prev_Dis.png  
+
+Prev_1080P RCDATA .\White\PrevSkins\MainTool_Large\Prev.png   
+Prev_hot_1080P RCDATA .\White\PrevSkins\MainTool_Large\Prev.png
+Prev_Dis_1080P RCDATA .\White\PrevSkins\MainTool_Large\Prev_Dis.png  
+/*************************刷新按钮**************************/       
+Refresh_768P RCDATA .\White\PrevSkins\MainTool\Refresh.png
+Refresh_Dis_768P RCDATA .\White\PrevSkins\MainTool\Refresh_Dis.png 
+
+Refresh_1080P RCDATA .\White\PrevSkins\MainTool_Large\Refresh.png
+Refresh_Dis_1080P RCDATA .\White\PrevSkins\MainTool_Large\Refresh_Dis.png  
+
+/*************************快捷菜单设置按钮**************************/ 
+QuickSetting_768P RCDATA .\White\PrevSkins\MainTool\QuickSetting.png        
+QuickSetting_hot_768P RCDATA .\White\PrevSkins\MainTool\QuickSetting_hot.png
+
+QuickSetting_1080P RCDATA .\White\PrevSkins\MainTool_Large\QuickSetting.png        
+QuickSetting_hot_1080P RCDATA .\White\PrevSkins\MainTool_Large\QuickSetting_hot.png
+
+/*************************键盘精灵标题**************************/     
+KeyFairyTitle RCDATA .\White\PrevSkins\KeyFairy\KeyFairyTitle.png
+
+/*************************通用信息提示弹出窗体**************************/
+PopForm_Hint RCDATA .\White\PrevSkins\Tools\PopForm\Hint.png
+
+/***************************K线资源.Begin***************************/
+/*** 画图工具按钮图标 ***/ 
+Arc RCDATA .\White\PrevSkins\Market\PaintTools\Arc.png
+ArrowLine RCDATA .\White\PrevSkins\Market\PaintTools\ArrowLine.png
+BandLine RCDATA .\White\PrevSkins\Market\PaintTools\BandLine.png
+Beam RCDATA .\White\PrevSkins\Market\PaintTools\Beam.png
+CycleLine RCDATA .\White\PrevSkins\Market\PaintTools\CycleLine.png
+FaibonacaiLine RCDATA .\White\PrevSkins\Market\PaintTools\FaibonacaiLine.png
+GennLine RCDATA .\White\PrevSkins\Market\PaintTools\GennLine.png
+GoldLine RCDATA .\White\PrevSkins\Market\PaintTools\GoldLine.png
+Line RCDATA .\White\PrevSkins\Market\PaintTools\Line.png
+LinearRegression RCDATA .\White\PrevSkins\Market\PaintTools\LinearRegression.png
+Passageway RCDATA .\White\PrevSkins\Market\PaintTools\Passageway.png
+PerLine RCDATA .\White\PrevSkins\Market\PaintTools\PerLine.png
+PressSupport RCDATA .\White\PrevSkins\Market\PaintTools\PressSupport.png
+Rectangle RCDATA .\White\PrevSkins\Market\PaintTools\Rectangle.png
+RegressionRay RCDATA .\White\PrevSkins\Market\PaintTools\RegressionRay.png
+ReturnZone RCDATA .\White\PrevSkins\Market\PaintTools\ReturnZone.png
+SectionLine RCDATA .\White\PrevSkins\Market\PaintTools\SectionLine.png
+SpeedOLine RCDATA .\White\PrevSkins\Market\PaintTools\SpeedOLine.png
+Text RCDATA .\White\PrevSkins\Market\PaintTools\Text.png
+TrendLine RCDATA .\White\PrevSkins\Market\PaintTools\TrendLine.png
+Del RCDATA .\White\PrevSkins\Market\PaintTools\Del.png
+DelAll RCDATA .\White\PrevSkins\Market\PaintTools\DelAll.png
+Spread RCDATA .\White\PrevSkins\Market\PaintTools\Spread.png
+Gather RCDATA .\White\PrevSkins\Market\PaintTools\Gather.png
+
+/*** 标题按钮图标 ***/
+DownArrow RCDATA .\White\PrevSkins\Market\TitleBtn\DownArrow.png
+DownArrowHot RCDATA .\White\PrevSkins\Market\TitleBtn\DownArrowHot.png
+DownArrowDown RCDATA .\White\PrevSkins\Market\TitleBtn\DownArrowDown.png
+Enlarge RCDATA .\White\PrevSkins\Market\TitleBtn\Enlarge.png
+EnlargeHot RCDATA .\White\PrevSkins\Market\TitleBtn\EnlargeHot.png
+EnlargeDown RCDATA .\White\PrevSkins\Market\TitleBtn\EnlargeDown.png
+Narrow RCDATA .\White\PrevSkins\Market\TitleBtn\Narrow.png
+NarrowHot RCDATA .\White\PrevSkins\Market\TitleBtn\NarrowHot.png
+NarrowDown RCDATA .\White\PrevSkins\Market\TitleBtn\NarrowDown.png
+Setting RCDATA .\White\PrevSkins\Market\TitleBtn\Setting.png
+SettingHot RCDATA .\White\PrevSkins\Market\TitleBtn\SettingHot.png
+SettingDown RCDATA .\White\PrevSkins\Market\TitleBtn\SettingDown.png
+SettingDisable RCDATA .\White\PrevSkins\Market\TitleBtn\SettingDisable.png
+CloseFormula RCDATA .\White\PrevSkins\Market\TitleBtn\CloseFormula.png
+CloseFormulaHot RCDATA .\White\PrevSkins\Market\TitleBtn\CloseFormulaHot.png
+CloseFormulaDown RCDATA .\White\PrevSkins\Market\TitleBtn\CloseFormulaDown.png
+
+/*** 成交打点设置图标 ***/
+DealDetailSet_Selected RCDATA .\White\PrevSkins\Market\DealDetailSet\gou.png
+DealDetailSet_UnSelected RCDATA .\White\PrevSkins\Market\DealDetailSet\kuang.png
+
+/***********  EPS ************/
+Rating_1 RCDATA .\White\PrevSkins\Market\EPS\Rating_1.png
+Rating_2 RCDATA .\White\PrevSkins\Market\EPS\Rating_2.png
+Rating_3 RCDATA .\White\PrevSkins\Market\EPS\Rating_3.png
+Rating_4 RCDATA .\White\PrevSkins\Market\EPS\Rating_4.png
+Report RCDATA .\White\PrevSkins\Market\EPS\Report.png
+
+/*** 复选框图标 ***/
+Checked RCDATA .\White\PrevSkins\Market\Checked.png
+UnChecked RCDATA .\White\PrevSkins\Market\UnChecked.png
+
+/****************************K线资源.End****************************/ 
+
+/*************************评价 上传服务**************************/ 
+UploadServer_UploadFinished RCDATA .\White\PrevSkins\Tools\UploadServer\UploadFinished.png
+UploadServer_Uploading RCDATA .\White\PrevSkins\Tools\UploadServer\Uploading.png
+UploadServer_UploadFail RCDATA .\White\PrevSkins\Tools\UploadServer\UploadFail.png
+UploadServer_UploadBusy RCDATA .\White\PrevSkins\Tools\UploadServer\UploadBusy.png
+
+/*************************报价明细**************************/ 
+Price_Per RCDATA .\White\PrevSkins\Price\Left.png
+Price_Per_Hot RCDATA .\White\PrevSkins\Price\Left_Hot.png
+Price_Next RCDATA .\White\PrevSkins\Price\Right.png
+Price_Next_Hot RCDATA .\White\PrevSkins\Price\Right_Hot.png
+
+Price_Cang RCDATA .\White\PrevSkins\Price\Cang.png        
+Price_Rong RCDATA .\White\PrevSkins\Price\Rong.png
+Price_Tong RCDATA .\White\PrevSkins\Price\Tong.png
+
+Price_Add RCDATA .\White\PrevSkins\Price\Add.png        
+Price_Add_Hot RCDATA .\White\PrevSkins\Price\Add_Hot.png
+Price_Add_Down RCDATA .\White\PrevSkins\Price\Add_Down.png
+
+Price_Bell RCDATA .\White\PrevSkins\Price\Bell.png        
+Price_Bell_Hot RCDATA .\White\PrevSkins\Price\Bell_Hot.png
+Price_Bell_Down RCDATA .\White\PrevSkins\Price\Bell_Down.png
+
+Price_Diary RCDATA .\White\PrevSkins\Price\Diary.png        
+Price_Diary_Hot RCDATA .\White\PrevSkins\Price\Diary_Hot.png
+Price_Diary_Down RCDATA .\White\PrevSkins\Price\Diary_Down.png
+
+Price_F10 RCDATA .\White\PrevSkins\Price\F10.png        
+Price_F10_Hot RCDATA .\White\PrevSkins\Price\F10_Hot.png
+Price_F10_Down RCDATA .\White\PrevSkins\Price\F10_Down.png
+
+Price_More RCDATA .\White\PrevSkins\Price\More.png        
+Price_More_Hot RCDATA .\White\PrevSkins\Price\More_Hot.png
+Price_More_Down RCDATA .\White\PrevSkins\Price\More_Down.png
+
+Price_Lock RCDATA .\White\PrevSkins\Price\Lock.png
+
+/**************************日记窗口*****************************/
+DiaryForm_BindingClose RCDATA .\White\PrevSkins\DiaryForm\BindingClose.png
+DiaryForm_BindingCloseHot RCDATA .\White\PrevSkins\DiaryForm\BindingClose_Hot.png
+DiaryForm_BindingConnect RCDATA .\White\PrevSkins\DiaryForm\BindingConnect.png
+DiaryForm_BindingConnectHot RCDATA .\White\PrevSkins\DiaryForm\BindingConnect_Hot.png
+DiaryForm_DiaryBtn RCDATA .\White\PrevSkins\DiaryForm\DiaryBtn.png
+DiaryForm_DiaryBtn_Down RCDATA .\White\PrevSkins\DiaryForm\DiaryBtn_Down.png
+DiaryForm_DiaryBtn_Hot RCDATA .\White\PrevSkins\DiaryForm\DiaryBtn_Hot.png
+DiaryForm_DiaryFlag RCDATA .\White\PrevSkins\DiaryForm\DiaryFlag.png
+
+/**************************底部业务栏*****************************/
+BottomBar_AllConnected RCDATA .\White\PrevSkins\BottomBar\AllConnected.png
+BottomBar_AllDisConnected RCDATA .\White\PrevSkins\BottomBar\AllDisconnected.png
+BottomBar_SomeConnected RCDATA .\White\PrevSkins\BottomBar\SomeConnected.png
+BottomBar_Connected RCDATA .\White\PrevSkins\BottomBar\connected.png
+BottomBar_DisConnected RCDATA .\White\PrevSkins\BottomBar\disconnected.png
+BottomBar_ReserchReport RCDATA .\White\PrevSkins\BottomBar\ReserchReport.png
+BottomBar_ReserchReportHint RCDATA .\White\PrevSkins\BottomBar\ReserchReportHint.png
+BottomBar_JYUserName RCDATA .\White\PrevSkins\BottomBar\JYUserName.png
+
+
+/**************************树节点图标*****************************/
+TreeImage_Add RCDATA .\White\PrevSkins\TreeImage\Add.png
+TreeImage_Minus RCDATA .\White\PrevSkins\TreeImage\Minus.png
+
+/**************************综合排名*****************************/
+MultiRank_Add RCDATA .\White\PrevSkins\MultiRank\add.png
+MultiRank_Minus RCDATA .\White\PrevSkins\MultiRank\minus.png
+MultiRank_Expanded RCDATA .\White\PrevSkins\MultiRank\expanded.png
+MultiRank_Collapsed RCDATA .\White\PrevSkins\MultiRank\collapsed.png
+MultiRank_Search RCDATA .\White\PrevSkins\MultiRank\search.png
+
+/**************************表格列控制窗口*****************************/
+ColumnsForm_Add RCDATA .\White\PrevSkins\ColumsForm\add.png
+ColumnsForm_Minus RCDATA .\White\PrevSkins\ColumsForm\minus.png
+ColumnsForm_Top RCDATA .\White\PrevSkins\ColumsForm\top.png
+ColumnsForm_Bottom RCDATA .\White\PrevSkins\ColumsForm\bottom.png
+ColumnsForm_Next RCDATA .\White\PrevSkins\ColumsForm\next.png
+ColumnsForm_Pre RCDATA .\White\PrevSkins\ColumsForm\pre.png
+ColumnsForm_Warn RCDATA .\White\PrevSkins\ColumsForm\Warn.png
+ColumnsForm_SpinAdd RCDATA .\White\PrevSkins\ColumsForm\SpinAdd.png
+ColumnsForm_SpinMinus RCDATA .\White\PrevSkins\ColumsForm\SpinMinus.png
+
+/*************************盘口**************************/ 
+BuySell_Level2 RCDATA .\White\PrevSkins\BuySell\Level2.png
+BuySell_Level2_Hot RCDATA .\White\PrevSkins\BuySell\Level2_Hot.png
+
+/*************************报价牌**************************/ 
+QuoteGrid_holding RCDATA .\White\PrevSkins\QuoteGrid\holding.png
+QuoteGrid_marginTrading RCDATA .\White\PrevSkins\QuoteGrid\marginTrading.png
+QuoteGrid_PriceHint RCDATA .\White\PrevSkins\QuoteGrid\PriceHint.png
+QuoteGrid_ShanghaiHK RCDATA .\White\PrevSkins\QuoteGrid\ShanghaiHK.png
+QuoteGrid_Pool RCDATA .\White\PrevSkins\QuoteGrid\pool.png
+QuoteGrid_DefSort RCDATA .\White\PrevSkins\QuoteGrid\DefSort.png
+
+QuoteGrid_holding2 RCDATA .\White\PrevSkins\QuoteGrid\holding2.png
+QuoteGrid_marginTrading2 RCDATA .\White\PrevSkins\QuoteGrid\marginTrading2.png
+QuoteGrid_ShanghaiHK2 RCDATA .\White\PrevSkins\QuoteGrid\ShanghaiHK2.png
+QuoteGrid_Pool2 RCDATA .\White\PrevSkins\QuoteGrid\pool2.png
+
+QuoteGrid_holding2Big RCDATA .\White\PrevSkins\QuoteGrid\holding2Big.png
+QuoteGrid_marginTrading2Big RCDATA .\White\PrevSkins\QuoteGrid\marginTrading2Big.png
+QuoteGrid_ShanghaiHK2Big RCDATA .\White\PrevSkins\QuoteGrid\ShanghaiHK2Big.png
+QuoteGrid_Pool2Big RCDATA .\White\PrevSkins\QuoteGrid\pool2Big.png
+QuoteGrid_AddPlate RCDATA .\White\PrevSkins\QuoteGrid\AddPlate.png
+QuoteGrid_FocusedPlate RCDATA .\White\PrevSkins\QuoteGrid\FocusedPlate.png
+
+QuoteGrid_Loading RCDATA .\White\PrevSkins\QuoteGrid\loading.gif
+
+BuySell_Buy1 RCDATA .\White\PrevSkins\BuySell\buy1.png  
+BuySell_Buy2 RCDATA .\White\PrevSkins\BuySell\buy2.png  
+BuySell_Buy3 RCDATA .\White\PrevSkins\BuySell\buy3.png  
+BuySell_Buy4 RCDATA .\White\PrevSkins\BuySell\buy4.png  
+BuySell_Buy5 RCDATA .\White\PrevSkins\BuySell\buy5.png  
+BuySell_Buy6 RCDATA .\White\PrevSkins\BuySell\buy6.png  
+BuySell_Buy7 RCDATA .\White\PrevSkins\BuySell\buy7.png  
+BuySell_Buy8 RCDATA .\White\PrevSkins\BuySell\buy8.png  
+BuySell_Buy9 RCDATA .\White\PrevSkins\BuySell\buy9.png  
+BuySell_Buy10 RCDATA .\White\PrevSkins\BuySell\buy10.png  
+BuySell_Sell1 RCDATA .\White\PrevSkins\BuySell\sell1.png 
+BuySell_Sell2 RCDATA .\White\PrevSkins\BuySell\sell2.png 
+BuySell_Sell3 RCDATA .\White\PrevSkins\BuySell\sell3.png 
+BuySell_Sell4 RCDATA .\White\PrevSkins\BuySell\sell4.png 
+BuySell_Sell5 RCDATA .\White\PrevSkins\BuySell\sell5.png 
+BuySell_Sell6 RCDATA .\White\PrevSkins\BuySell\sell6.png 
+BuySell_Sell7 RCDATA .\White\PrevSkins\BuySell\sell7.png 
+BuySell_Sell8 RCDATA .\White\PrevSkins\BuySell\sell8.png 
+BuySell_Sell9 RCDATA .\White\PrevSkins\BuySell\sell9.png 
+BuySell_Sell10 RCDATA .\White\PrevSkins\BuySell\sell10.png 
+
+/*************************报警**************************/
+WaringSet_Delet  RCDATA .\White\PrevSkins\Tools\WaringSet\Delet.png
+WaringSet_Delete_Hot  RCDATA .\White\PrevSkins\Tools\WaringSet\Delete_Hot.png
+WaringSet_Play  RCDATA .\White\PrevSkins\Tools\WaringSet\Play.png
+WaringSet_Play_Hot  RCDATA .\White\PrevSkins\Tools\WaringSet\Play_Hot.png
+WaringSet_Play_Down  RCDATA .\White\PrevSkins\Tools\WaringSet\Play_Down.png
+WaringSet_Update  RCDATA .\White\PrevSkins\Tools\WaringSet\Update.png
+WaringSet_Update_Hot  RCDATA .\White\PrevSkins\Tools\WaringSet\Update_Hot.png
+
+/*************************资讯**************************/
+InfoNegative RCDATA .\White\PrevSkins\Information\Negative.png
+ResearchReportAlert_Setting RCDATA .\White\PrevSkins\ResearchReportAlert\Setting.png
+ApplicationSmallIcon RCDATA .\White\PrevSkins\ResearchReportAlert\logo.png
+
+/*************************个股叠加**********************/
+StockStack_ClearStack RCDATA .\White\PrevSkins\StockStack\ClearStack.png
+StockStack_DelOne RCDATA .\White\PrevSkins\StockStack\DelOne.png
+StockStack_AddOne RCDATA .\White\PrevSkins\StockStack\AddOne.png
+StockStack_Search RCDATA .\White\PrevSkins\StockStack\Search.png
+
+/*************************简单报价牌**********************/
+RestoreDefSort RCDATA .\White\PrevSkins\SimplePrice\RestoreDefSort.png
+SecuritiesMargin RCDATA .\White\PrevSkins\SimplePrice\SecuritiesMargin.png
+HSHKThrough RCDATA .\White\PrevSkins\SimplePrice\HSHKThrough.png
+PositionStock RCDATA .\White\PrevSkins\SimplePrice\PositionStock.png
+
+/**************************分时****************************/
+Time_Enlarge RCDATA .\White\PrevSkins\Time\Enlarge.png
+Time_EnlargeHot RCDATA .\White\PrevSkins\Time\EnlargeHot.png
+Time_Narrow RCDATA .\White\PrevSkins\Time\Narrow.png
+Time_NarrowHot RCDATA .\White\PrevSkins\Time\NarrowHot.png
+Time_AveragePricePt RCDATA .\White\PrevSkins\Time\AveragePricePt.png
+Time_NowPricePt RCDATA .\White\PrevSkins\Time\NowPricePt.png
+Time_RedPt RCDATA .\White\PrevSkins\Time\RedPt.png
+Time_FlatPt RCDATA .\White\PrevSkins\Time\FlatPt.png
+Time_GreenPt RCDATA .\White\PrevSkins\Time\GreenPt.png
+
+/**************************右键菜单资源**************************/
+RightMenu_CheckBox RCDATA .\White\PrevSkins\RightMenu\CheckBox.png
+RightMenu_RadioBox RCDATA .\White\PrevSkins\RightMenu\RadioBox.png
+RightMenu_AddStock RCDATA .\White\PrevSkins\RightMenu\AddStock.png
+RightMenu_DelStock RCDATA .\White\PrevSkins\RightMenu\DelStock.png
+RightMenu_MoveTop RCDATA .\White\PrevSkins\RightMenu\MoveTop.png
+RightMenu_StockWarning RCDATA .\White\PrevSkins\RightMenu\StockWarning.png
+RightMenu_SelfManager RCDATA .\White\PrevSkins\RightMenu\SelfManager.png
+
+/**************************多股同列******************************/
+MultiStock_Enlarge RCDATA .\White\PrevSkins\MultiStock\Enlarge.png
+MultiStock_Narrow RCDATA .\White\PrevSkins\MultiStock\Narrow.png
+
+/**************************板块监控******************************/
+Monitor_DelStock RCDATA .\White\PrevSkins\Price\Del.png
+Monitor_DelStock_Hot RCDATA .\White\PrevSkins\Price\Del_Hot.png
+
+/*************************控件ScrollBar**************************/
+Controls_ScrollBar_Horz RCDATA .\White\PrevSkins\Controls\ScrollBar\Horz.png 
+Controls_ScrollBar_Horz_Down RCDATA .\White\PrevSkins\Controls\ScrollBar\Horz_Down.png 
+Controls_ScrollBar_Horz_Hot RCDATA .\White\PrevSkins\Controls\ScrollBar\Horz_Hot.png 
+Controls_ScrollBar_Vertical RCDATA .\White\PrevSkins\Controls\ScrollBar\Vertical.png 
+Controls_ScrollBar_Vertical_Down RCDATA .\White\PrevSkins\Controls\ScrollBar\Vertical_Down.png 
+Controls_ScrollBar_Vertical_Hot RCDATA .\White\PrevSkins\Controls\ScrollBar\Vertical_Hot.png 
+
+/*************************控件RadioBox**************************/
+Controls_RadioBox_Selected RCDATA .\White\PrevSkins\Controls\RadioBox\RadioBox.png 
+Controls_RadioBox_UnSelected RCDATA .\White\PrevSkins\Controls\RadioBox\UnRadioBox.png
+
+/*************************分笔成交过滤图标**************************/
+Filter RCDATA .\White\PrevSkins\Controls\Filter.png 
+
+/***************************持仓股分类******************************/
+PosManager_MoveBottom RCDATA .\White\PrevSkins\PosManager\MoveBottom.png
+PosManager_MoveDown RCDATA .\White\PrevSkins\PosManager\MoveDown.png
+PosManager_MoveTop RCDATA .\White\PrevSkins\PosManager\MoveTop.png
+PosManager_MoveUp RCDATA .\White\PrevSkins\PosManager\MoveUp.png
+
+/*************************面板布局**********************************/
+WSPageCtrl_AddTab RCDATA .\White\PrevSkins\Layout\AddTab.png
+WSPageCtrl_CloseTab RCDATA .\White\PrevSkins\Layout\CloseTab.png
+WSPageCtrl_CloseTabHot RCDATA .\White\PrevSkins\Layout\CloseTabHot.png
+WSPageCtrl_CloseTabDown RCDATA .\White\PrevSkins\Layout\CloseTabDown.png
+
+Layout_Model_A RCDATA .\White\PrevSkins\Layout\Model\ModelA.png
+Layout_Model_B RCDATA .\White\PrevSkins\Layout\Model\ModelB.png
+Layout_Model_C RCDATA .\White\PrevSkins\Layout\Model\ModelC.png
+Layout_Model_D RCDATA .\White\PrevSkins\Layout\Model\ModelD.png
+Layout_Model_E RCDATA .\White\PrevSkins\Layout\Model\ModelE.png
+Layout_Model_F RCDATA .\White\PrevSkins\Layout\Model\ModelF.png
+Layout_Model_G RCDATA .\White\PrevSkins\Layout\Model\ModelG.png
+Layout_CheckBox RCDATA .\White\PrevSkins\Layout\Model\CheckBox.png
+Layout_UnCheckBox RCDATA .\White\PrevSkins\Layout\Model\UnCheckBox.png
+Layout_RadioBox RCDATA .\White\PrevSkins\Layout\Model\RadioBox.png
+Layout_UnRadioBox RCDATA .\White\PrevSkins\Layout\Model\UnRadioBox.png
+Layout_ComboxDown RCDATA .\White\PrevSkins\Layout\Model\ComboxDown.png
+
+Layout_ToolBox_AdjustPos RCDATA .\White\PrevSkins\Layout\ToolBox\AdjustPos.png
+Layout_ToolBox_BuySale RCDATA .\White\PrevSkins\Layout\ToolBox\BuySale.png
+Layout_ToolBox_Information RCDATA .\White\PrevSkins\Layout\ToolBox\Information.png
+Layout_ToolBox_KLine RCDATA .\White\PrevSkins\Layout\ToolBox\KLine.png
+Layout_ToolBox_PosDetail RCDATA .\White\PrevSkins\Layout\ToolBox\PosDetail.png
+Layout_ToolBox_Price RCDATA .\White\PrevSkins\Layout\ToolBox\Price.png
+Layout_ToolBox_ProductGlance RCDATA .\White\PrevSkins\Layout\ToolBox\ProductGlance.png
+Layout_ToolBox_Quote RCDATA .\White\PrevSkins\Layout\ToolBox\Quote.png
+Layout_ToolBox_QuoteCombi RCDATA .\White\PrevSkins\Layout\ToolBox\QuoteCombi.png
+Layout_ToolBox_QuoteIndex RCDATA .\White\PrevSkins\Layout\ToolBox\QuoteIndex.png
+Layout_ToolBox_SimplePrice RCDATA .\White\PrevSkins\Layout\ToolBox\SimplePrice.png
+Layout_ToolBox_Time RCDATA .\White\PrevSkins\Layout\ToolBox\Time.png
+
+Layout_TitleBar_Close RCDATA .\White\PrevSkins\Layout\SubCtrl\Close.png
+Layout_TitleBar_CloseHot RCDATA .\White\PrevSkins\Layout\SubCtrl\CloseHot.png
+Layout_TitleBar_CloseDown RCDATA .\White\PrevSkins\Layout\SubCtrl\CloseDown.png
+Layout_TitleBar_CloseNew RCDATA .\White\PrevSkins\Layout\SubCtrl\CloseNew.png
+Layout_TitleBar_CloseNewHot RCDATA .\White\PrevSkins\Layout\SubCtrl\CloseNew.png
+Layout_TitleBar_CloseNewDown RCDATA .\White\PrevSkins\Layout\SubCtrl\CloseNew.png
+Layout_TitleBar_Setting RCDATA .\White\PrevSkins\Layout\SubCtrl\Setting.png
+Layout_TitleBar_SettingHot RCDATA .\White\PrevSkins\Layout\SubCtrl\SettingHot.png
+Layout_TitleBar_SettingDown RCDATA .\White\PrevSkins\Layout\SubCtrl\SettingDown.png
+
+Layout_TemplateClose RCDATA .\White\PrevSkins\Layout\Template\TemplateClose.png
+Layout_TemplateCloseHot RCDATA .\White\PrevSkins\Layout\Template\TemplateCloseHot.png
+Layout_TemplateCloseDown RCDATA .\White\PrevSkins\Layout\Template\TemplateCloseDown.png
+Layout_TemplateEdit RCDATA .\White\PrevSkins\Layout\Template\TemplateEdit.png
+Layout_TemplateEditHot RCDATA .\White\PrevSkins\Layout\Template\TemplateEditHot.png
+Layout_TemplateEditDown RCDATA .\White\PrevSkins\Layout\Template\TemplateEditDown.png
+
+/*************************系统设置模块**************************/
+check_check RCDATA .\White\PrevSkins\Tools\SystemSet\check_check.png
+check_uncheck RCDATA .\White\PrevSkins\Tools\SystemSet\check_uncheck.png
+hybz_prompt RCDATA .\White\PrevSkins\Tools\SystemSet\hybz_prompt.png
+radio_check RCDATA .\White\PrevSkins\Tools\SystemSet\radio_check.png
+radio_uncheck RCDATA .\White\PrevSkins\Tools\SystemSet\radio_uncheck.png
+resetb RCDATA .\White\PrevSkins\Tools\SystemSet\resetb.png
+resetb_hot RCDATA .\White\PrevSkins\Tools\SystemSet\resetb_hot.png
+resetb_sel RCDATA .\White\PrevSkins\Tools\SystemSet\resetb_sel.png
+saveb RCDATA .\White\PrevSkins\Tools\SystemSet\saveb.png
+saveb_hot RCDATA .\White\PrevSkins\Tools\SystemSet\saveb_hot.png
+saveb_sel RCDATA .\White\PrevSkins\Tools\SystemSet\saveb_sel.png
+xxsx_prompt RCDATA .\White\PrevSkins\Tools\SystemSet\xxsx_prompt.png
+
+/*************************工具模块**************************/
+CustomUI RCDATA .\White\PrevSkins\Tools\tool\CustomUI.png
+CustomUI_hot RCDATA .\White\PrevSkins\Tools\tool\CustomUI_hot.png
+CustomUI_sel RCDATA .\White\PrevSkins\Tools\tool\CustomUI_sel.png
+PanelMNG RCDATA .\White\PrevSkins\Tools\tool\PanelMNG.png
+PanelMNG_hot RCDATA .\White\PrevSkins\Tools\tool\PanelMNG_hot.png
+PanelMNG_sel RCDATA .\White\PrevSkins\Tools\tool\PanelMNG_sel.png
+PriceWarning RCDATA .\White\PrevSkins\Tools\tool\PriceWarning.png
+PriceWarning_hot RCDATA .\White\PrevSkins\Tools\tool\PriceWarning_hot.png
+PriceWarning_sel RCDATA .\White\PrevSkins\Tools\tool\PriceWarning_sel.png
+SystemSet RCDATA .\White\PrevSkins\Tools\tool\SystemSet.png
+SystemSet_hot RCDATA .\White\PrevSkins\Tools\tool\SystemSet_hot.png
+SystemSet_sel RCDATA .\White\PrevSkins\Tools\tool\SystemSet_sel.png
+WXhelper RCDATA .\White\PrevSkins\Tools\tool\WXhelper.png
+WXhelper_hot RCDATA .\White\PrevSkins\Tools\tool\WXhelper_hot.png
+WXhelper_sel RCDATA .\White\PrevSkins\Tools\tool\WXhelper_sel.png
+PositionExport_hot RCDATA .\White\PrevSkins\Tools\tool\PositionExport_hot.png
+PositionExport_sel RCDATA .\White\PrevSkins\Tools\tool\PositionExport_sel.png
+PositionExport RCDATA .\White\PrevSkins\Tools\tool\PositionExport.png 
+PBoxSet_hot RCDATA .\White\PrevSkins\Tools\tool\PBoxSet_hot.png
+PBoxSet_sel RCDATA .\White\PrevSkins\Tools\tool\PBoxSet_sel.png
+PBoxSet RCDATA .\White\PrevSkins\Tools\tool\PBoxSet.png 
+WarnResult_hot RCDATA .\White\PrevSkins\Tools\tool\WarnResult_hot.png
+WarnResult_sel RCDATA .\White\PrevSkins\Tools\tool\WarnResult_sel.png
+WarnResult RCDATA .\White\PrevSkins\Tools\tool\WarnResult.png
+IndexIntrod_hot RCDATA .\White\PrevSkins\Tools\tool\IndexIntrod_hot.png
+IndexIntrod_sel RCDATA .\White\PrevSkins\Tools\tool\IndexIntrod_sel.png
+IndexIntrod RCDATA .\White\PrevSkins\Tools\tool\IndexIntrod.png
+
+/***********************常规设置*****************************/
+NormalSetting_CheckBox RCDATA .\White\PrevSkins\NormalSetting\CheckBox.png
+NormalSetting_UnCheckBox RCDATA .\White\PrevSkins\NormalSetting\UnCheckBox.png
+NormalSetting_RadioBox RCDATA .\White\PrevSkins\NormalSetting\RadioBox.png
+NormalSetting_UnRadioBox RCDATA .\White\PrevSkins\NormalSetting\UnRadioBox.png
+
+/*************************关于我们模块**************************/
+AboutUs RCDATA .\White\PrevSkins\AboutUs\AboutUs.png
+/*************************密码设置模块**************************/
+PassWordSetting_Right RCDATA .\White\PrevSkins\PassWordSetting\right.png 
+PassWordSetting_Warn RCDATA .\White\PrevSkins\PassWordSetting\warn.png 
+PassWordSetting_Error RCDATA .\White\PrevSkins\PassWordSetting\error.png 
+
+/*************************报价牌菜单****************************/
+
+PlateMenu_QuotePrice RCDATA .\White\PrevSkins\PlateMenu\QuotePrice.png
+PlateMenu_MultiStock_Enable RCDATA .\White\PrevSkins\PlateMenu\MultiStock_Enable.png
+PlateMenu_MultiStock_UnEnable RCDATA .\White\PrevSkins\PlateMenu\MultiStock_UnEnable.png
+PlateMenu_ComplexRank_Enable RCDATA .\White\PrevSkins\PlateMenu\ComplexRank_Enable.png
+PlateMenu_ComplexRank_UnEnable RCDATA .\White\PrevSkins\PlateMenu\ComplexRank_UnEnable.png
+PlateMenu_Right RCDATA .\White\PrevSkins\PlateMenu\Right.png
+PlateMenu_SmallAdd RCDATA .\White\PrevSkins\PlateMenu\SmallAdd.png
+PlateMenu_SmallAdd_Hot RCDATA .\White\PrevSkins\PlateMenu\SmallAdd_Hot.png
+PlateMenu_Add RCDATA .\White\PrevSkins\PlateMenu\Add.png
+PlateMenu_Add_Hot RCDATA .\White\PrevSkins\PlateMenu\Add_Hot.png
+
+/*************************持仓明细****************************/
+PositionAsset_Gou RCDATA .\White\PrevSkins\PositionAsset\gou.png
+PositionAsset_Kuang RCDATA .\White\PrevSkins\PositionAsset\kuang.png
+
+/*************************资产资讯控件****************************/
+StocksInformation_Selected RCDATA .\White\PrevSkins\StocksInformation\Selected.png
+StocksInformation_UnSelected RCDATA .\White\PrevSkins\StocksInformation\UnSelected.png
+StocksInformation_Disabled RCDATA .\White\PrevSkins\StocksInformation\Disabled.png
+StocksInformation_More RCDATA .\White\PrevSkins\StocksInformation\More.png
+
+/*************************持仓K线设置****************************/
+KPositionsSetting_Warn RCDATA .\White\PrevSkins\KPositionsSetting\warn.png
+KPositionsSetting_AddFund RCDATA .\White\PrevSkins\KPositionsSetting\AddFund.png
+
+/*************************板块管理****************************/
+PlateSet_Add RCDATA .\White\PrevSkins\Tools\PlateSet\Add.png
+PlateSet_Delete RCDATA .\White\PrevSkins\Tools\PlateSet\Delete.png
+PlateSet_Import RCDATA .\White\PrevSkins\Tools\PlateSet\Import.png
+PlateSet_Export RCDATA .\White\PrevSkins\Tools\PlateSet\Export.png
+PlateSet_Fail RCDATA .\White\PrevSkins\Tools\PlateSet\Fail.png
+PlateSet_Question RCDATA .\White\PrevSkins\Tools\PlateSet\Question.png
+PlateSet_Hint RCDATA .\White\PrevSkins\Tools\PlateSet\Hint.png
+PlateSet_Arrow RCDATA .\White\PrevSkins\Tools\PlateSet\Arrow.png
+PlateSet_Sample RCDATA .\White\PrevSkins\Tools\PlateSet\Sample.png
+
+/*************************基金排名****************************/
+FundRank_RoundBtn RCDATA .\White\PrevSkins\FundRank\RoundBtn.png
+FundRank_RoundDot RCDATA .\White\PrevSkins\FundRank\RoundDot.png
+FundRank_Kuang RCDATA .\White\PrevSkins\FundRank\kuang.png
+FundRank_Gou RCDATA .\White\PrevSkins\FundRank\gou.png
+FundRank_Rise RCDATA .\White\PrevSkins\FundRank\rise.png
+FundRank_Fall RCDATA .\White\PrevSkins\FundRank\fall.png
+
+/*************************持仓导出****************************/
+PositionExport_UnSelected RCDATA .\White\PrevSkins\Tools\PositionExport\UnSelected.png
+PositionExport_Selected RCDATA .\White\PrevSkins\Tools\PositionExport\Selected.png
+PositionExport_Export RCDATA .\White\PrevSkins\Tools\PositionExport\Export.gif
+PositionExport_Search RCDATA .\White\PrevSkins\Tools\PositionExport\Search.png
+
+/*************************期货保证金设置****************************/
+MarginSet_HintBig RCDATA .\White\PrevSkins\Settings\MarginSet\Hint_Big.png
+MarginSet_Hint RCDATA .\White\PrevSkins\Settings\MarginSet\Hint.png
+
+/*************************预警设置****************************/
+EarlyWarn_Hint RCDATA .\White\PrevSkins\EarlyWarn\hint.png
+EarlyWarnSet_UnSelected RCDATA .\White\PrevSkins\EarlyWarn\EarlyWarnSet\unselected.png
+EarlyWarnSet_Selected RCDATA .\White\PrevSkins\EarlyWarn\EarlyWarnSet\selected.png
+
+/*************************预警结果****************************/
+EarlyWarnResult_TypeSet RCDATA .\White\PrevSkins\EarlyWarn\EarlyWarnResult\WarnType.png
+EarlyWarnResult_HeaderShow RCDATA .\White\PrevSkins\EarlyWarn\EarlyWarnResult\ShowHeader.png
+EarlyWarnResult_HeaderHide RCDATA .\White\PrevSkins\EarlyWarn\EarlyWarnResult\HideHeader.png
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

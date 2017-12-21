@@ -16,18 +16,18 @@ uses
   Classes,
   SysUtils,
   Vcl.Forms,
+  BaseObject,
   AppContext,
   CommonQueue,
   LoadProcess,
   LoadProcessUI,
   ExecutorThread,
-  CommonRefCounter,
-  AppContextObject;
+  CommonRefCounter;
 
 type
 
   // LoadProcess Implementation
-  TLoadProcessImpl = class(TAppContextObject, ILoadProcess)
+  TLoadProcessImpl = class(TBaseInterfacedObject, ILoadProcess)
   private
     // WaitEvent
     FWaitEvent: Cardinal;

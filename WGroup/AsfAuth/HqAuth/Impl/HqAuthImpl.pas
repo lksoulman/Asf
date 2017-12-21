@@ -16,15 +16,15 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   WNDataSetInf,
-  AppContextObject,
   Generics.Collections;
 
 type
 
   // HqAuth Implementation
-  THqAuthImpl = class(TAppContextObject, IHqAuth)
+  THqAuthImpl = class(TBaseInterfacedObject, IHqAuth)
   private
     // IsHasHKReal
     FIsHasHKReal: Boolean;

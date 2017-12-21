@@ -18,14 +18,13 @@ uses
   SysUtils,
   IniFiles,
   ProxyInfo,
-  AppContext,
-  AppContextObject,
-  CommonRefCounter;
+  BaseObject,
+  AppContext;
 
 type
 
   // ProxyInfo Implementation
-  TProxyInfoImpl = class(TAppContextObject, IProxyInfo)
+  TProxyInfoImpl = class(TBaseInterfacedObject, IProxyInfo)
   private
     // Proxy
     FProxy: TProxy;

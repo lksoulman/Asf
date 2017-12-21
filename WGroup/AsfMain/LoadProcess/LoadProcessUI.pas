@@ -25,22 +25,23 @@ uses
   GDIPOBJ,
   RenderUtil,
   AppContext,
-  BaseFormUI;
+  CustomBaseUI;
 
 type
 
   // LoadProcessUI
-  TLoadProcessUI = class(TBaseFormUI)
+  TLoadProcessUI = class(TCustomBaseUI)
   private
     // ShowInfo
     FShowInfo: string;
   protected
     // Update Skin Style
     procedure DoUpdateSkinStyle; override;
+
     // Draw Client
-    procedure DrawC(ADC: HDC; ARect: TRect); override;
-    // Draw ShowInfo
-    procedure DrawShowInfo(ADC: HDC; ARect: TRect);
+//    procedure DrawC(ADC: HDC; ARect: TRect); override;
+//    // Draw ShowInfo
+//    procedure DrawShowInfo(ADC: HDC; ARect: TRect);
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -69,31 +70,31 @@ end;
 
 procedure TLoadProcessUI.DoUpdateSkinStyle;
 begin
-  if Color <> FAppContext.GetGdiMgr.GetColorRefLoadProcessBack then begin
-    Color := FAppContext.GetGdiMgr.GetColorRefLoadProcessBack;
-  end;
-  FBorderColor := FAppContext.GetGdiMgr.GetColorRefLoadProcessBorder;
-  FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefLoadProcessCaptionBack;
-  FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefLoadProcessCaptionText;
+//  if Color <> FAppContext.GetGdiMgr.GetColorRefLoadProcessBack then begin
+//    Color := FAppContext.GetGdiMgr.GetColorRefLoadProcessBack;
+//  end;
+//  FBorderColor := FAppContext.GetGdiMgr.GetColorRefLoadProcessBorder;
+//  FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefLoadProcessCaptionBack;
+//  FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefLoadProcessCaptionText;
 end;
 
-procedure TLoadProcessUI.DrawC(ADC: HDC; ARect: TRect);
-begin
-  inherited;
-  DrawShowInfo(ADC, ARect);
-end;
+//procedure TLoadProcessUI.DrawC(ADC: HDC; ARect: TRect);
+//begin
+//  inherited;
+//  DrawShowInfo(ADC, ARect);
+//end;
 
-procedure TLoadProcessUI.DrawShowInfo(ADC: HDC; ARect: TRect);
-var
-  LRect: TRect;
-begin
-  if FShowInfo <> '' then begin
-    LRect := ARect;
-    LRect.Inflate(-10, 80);
-    DrawTextX(ADC, LRect, FShowInfo,
-      FAppContext.GetGdiMgr.GetColorRefLoadProcessCaptionText, dtaLeft, False, True);
-  end;
-end;
+//procedure TLoadProcessUI.DrawShowInfo(ADC: HDC; ARect: TRect);
+//var
+//  LRect: TRect;
+//begin
+//  if FShowInfo <> '' then begin
+//    LRect := ARect;
+//    LRect.Inflate(-10, 80);
+//    DrawTextX(ADC, LRect, FShowInfo,
+//      FAppContext.GetGdiMgr.GetColorRefLoadProcessCaptionText, dtaLeft, False, True);
+//  end;
+//end;
 
 procedure TLoadProcessUI.ShowInfo(AInfo: string);
 begin

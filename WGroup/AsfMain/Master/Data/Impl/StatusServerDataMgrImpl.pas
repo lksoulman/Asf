@@ -16,18 +16,17 @@ uses
   Classes,
   SysUtils,
   Command,
+  BaseObject,
   AppContext,
   CommonLock,
   ServerDataMgr,
-  AppContextObject,
-  CommonRefCounter,
   StatusServerDataMgr,
   Generics.Collections;
 
 type
 
   // StatusServerDataMgr Implementation
-  TStatusServerDataMgrImpl = class(TAppContextObject, IStatusServerDataMgr)
+  TStatusServerDataMgrImpl = class(TBaseInterfacedObject, IStatusServerDataMgr)
   private
     // Lock
     FLock: TCSLock;

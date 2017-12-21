@@ -30,7 +30,7 @@ type
                );
 
   // Result Call Back
-  TOnResultCallBack = procedure(ASecuMainItems: TDynArray<PSecuMainItem>) of Object;
+  TOnResultCallBack = procedure(ASecuInfos: TDynArray<PSecuInfo>) of Object;
 
   TKeySearchFilter = class;
 
@@ -52,7 +52,7 @@ type
     // ResultCallBack
     FOnResultCallBack: TNotifyEvent;
     // ResultItems
-    FResultItems: TDynArray<PSecuMainItem>;
+    FResultItems: TDynArray<PSecuInfo>;
     // KeySearchFilters
     FKeySearchFilters: TList<TKeySearchFilter>;
 
@@ -86,7 +86,7 @@ type
     // SearchExecute
     procedure DoSearchExecute(AObject: TObject);
     // GetKeySearchFilter
-    function GetKeySearchFilter(ASecuMainItem: PSecuMainItem): TKeySearchFilter;
+    function GetKeySearchFilter(ASecuInfo: PSecuInfo): TKeySearchFilter;
   public
     // Constructor
     constructor Create; override;
@@ -96,10 +96,10 @@ type
     procedure Start;
     // ShutDown
     procedure ShutDown;
-    // Clear SecuMainItems
-    procedure ClearSecuMainItems;
-    // AddSecuMainItem
-    procedure AddSecuMainItem(ASecuMainItem: PSecuMainItem);
+    // Clear SecuInfos
+    procedure ClearSecuInfos;
+    // AddSecuInfo
+    procedure AddSecuInfo(ASecuInfo: PSecuInfo);
     // SetOnResultCallBack
     procedure SetResultCallBack(AOnResultCallBack: TNotifyEvent);
 
@@ -110,7 +110,7 @@ type
     property IsTerminated: Boolean read GetIsTerminated;
     property MaxCount: Integer read FMaxCount write FMaxCount;
     property CharType: TCharType read FCharType write FCharType;
-    property ResultItems: TDynArray<PSecuMainItem> read FResultItems;
+    property ResultItems: TDynArray<PSecuInfo> read FResultItems;
   end;
 
   // KeySearchFilter
@@ -120,11 +120,11 @@ type
     FSearchType: Integer;
     // KeySearchObject
     FKeySearchObject: TKeySearchObject;
-    // SecuMainItems
-    FSecuMainItems: TDynArray<PSecuMainItem>;
+    // SecuInfos
+    FSecuInfos: TDynArray<PSecuInfo>;
   protected
     // Filter
-    function DoFilter(ASecuMainItem: PSecuMainItem): Boolean;
+    function DoFilter(ASecuInfo: PSecuInfo): Boolean;
   public
     // Constructor
     constructor Create(AObject: TKeySearchObject); reintroduce;
@@ -132,10 +132,10 @@ type
     destructor Destroy; override;
     // FuzzySearchKey
     procedure FuzzySearchKey;
-    // Clear SecuMainItems
-    procedure ClearSecuMainItems;
-    // AddSecuMainItem
-    procedure AddSecuMainItem(ASecuMainItem: PSecuMainItem);
+    // Clear SecuInfos
+    procedure ClearSecuInfos;
+    // AddSecuInfo
+    procedure AddSecuInfo(ASecuInfo: PSecuInfo);
 
     property SearchType: Integer read FSearchType write FSearchType;
   end;
@@ -148,7 +148,7 @@ constructor TKeySearchObject.Create;
 begin
   inherited;
   FMaxCount := 200;
-  FResultItems := TDynArray<PSecuMainItem>.Create;
+  FResultItems := TDynArray<PSecuInfo>.Create;
   FKeySearchFilters := TList<TKeySearchFilter>.Create;
   FSearchThread := TExecutorThread.Create;
   FSearchThread.ThreadMethod := DoSearchExecute;
@@ -172,7 +172,7 @@ begin
   FSearchThread.ShutDown;
 end;
 
-procedure TKeySearchObject.ClearSecuMainItems;
+procedure TKeySearchObject.ClearSecuInfos;
 var
   LIndex: Integer;
   LKeySearchFilter: TKeySearchFilter;
@@ -180,18 +180,18 @@ begin
   for LIndex := 0 to FKeySearchFilters.Count - 1 do begin
     LKeySearchFilter := FKeySearchFilters.Items[LIndex];
     if LKeySearchFilter <> nil then begin
-      LKeySearchFilter.ClearSecuMainItems;
+      LKeySearchFilter.ClearSecuInfos;
     end;
   end;
 end;
 
-procedure TKeySearchObject.AddSecuMainItem(ASecuMainItem: PSecuMainItem);
+procedure TKeySearchObject.AddSecuInfo(ASecuInfo: PSecuInfo);
 var
   LKeySearchFilter: TKeySearchFilter;
 begin
-  LKeySearchFilter := GetKeySearchFilter(ASecuMainItem);
+  LKeySearchFilter := GetKeySearchFilter(ASecuInfo);
   if LKeySearchFilter <> nil then begin
-    LKeySearchFilter.AddSecuMainItem(ASecuMainItem);
+    LKeySearchFilter.AddSecuInfo(ASecuInfo);
   end;
 end;
 
@@ -256,9 +256,9 @@ begin
   end;
 end;
 
-function TKeySearchObject.GetKeySearchFilter(ASecuMainItem: PSecuMainItem): TKeySearchFilter;
+function TKeySearchObject.GetKeySearchFilter(ASecuInfo: PSecuInfo): TKeySearchFilter;
 begin
-  case ASecuMainItem.FSearchType of
+  case ASecuInfo.FSearchType of
     // ª¶…Óπ…∆±
     SEARCHTYPE_STOCK_HS:
       begin
@@ -382,70 +382,70 @@ constructor TKeySearchFilter.Create(AObject: TKeySearchObject);
 begin
   inherited Create;
   FKeySearchObject := AObject;
-  FSecuMainItems := TDynArray<PSecuMainItem>.Create;
+  FSecuInfos := TDynArray<PSecuInfo>.Create;
 end;
 
 destructor TKeySearchFilter.Destroy;
 begin
-  FSecuMainItems.Free;
+  FSecuInfos.Free;
   inherited;
 end;
 
 procedure TKeySearchFilter.FuzzySearchKey;
 var
   LIndex: Integer;
-  LSecuMainItem: PSecuMainItem;
+  LSecuInfo: PSecuInfo;
 begin
-  for LIndex := 0 to FSecuMainItems.GetCount - 1 do begin
+  for LIndex := 0 to FSecuInfos.GetCount - 1 do begin
     if FKeySearchObject.FIsStop
       or FKeySearchObject.IsTerminated
       or FKeySearchObject.IsMaxLimited then Exit;
 
-    LSecuMainItem := FSecuMainItems.GetElement(LIndex);
-    if (LSecuMainItem <> nil)
-      and DoFilter(LSecuMainItem)then begin
-      FKeySearchObject.FResultItems.Add(LSecuMainItem);
+    LSecuInfo := FSecuInfos.GetElement(LIndex);
+    if (LSecuInfo <> nil)
+      and DoFilter(LSecuInfo)then begin
+      FKeySearchObject.FResultItems.Add(LSecuInfo);
     end;
   end;
 end;
 
-procedure TKeySearchFilter.ClearSecuMainItems;
+procedure TKeySearchFilter.ClearSecuInfos;
 begin
-  FSecuMainItems.ClearCount;
+  FSecuInfos.ClearCount;
 end;
 
-procedure TKeySearchFilter.AddSecuMainItem(ASecuMainItem: PSecuMainItem);
+procedure TKeySearchFilter.AddSecuInfo(ASecuInfo: PSecuInfo);
 begin
-  FSecuMainItems.Add(ASecuMainItem);
+  FSecuInfos.Add(ASecuInfo);
 end;
 
-function TKeySearchFilter.DoFilter(ASecuMainItem: PSecuMainItem): Boolean;
+function TKeySearchFilter.DoFilter(ASecuInfo: PSecuInfo): Boolean;
 begin
   Result := False;
   case FKeySearchObject.FCharType of
     ctNomeric:
       begin
-        if Pos(FKeySearchObject.FKey, ASecuMainItem^.FSecuCode) > 0 then begin
+        if Pos(FKeySearchObject.FKey, ASecuInfo^.FSecuCode) > 0 then begin
           Result := True;
         end;
       end;
     ctAlpha:
       begin
-        if (Pos(FKeySearchObject.FKey, ASecuMainItem.FSecuSpell) > 0)
-          or (Pos(FKeySearchObject.FKey, ASecuMainItem.FSecuAbbr) > 0)
-          or (Pos(FKeySearchObject.FKey, ASecuMainItem.FSecuCode) > 0) then begin
+        if (Pos(FKeySearchObject.FKey, ASecuInfo.FSecuSpell) > 0)
+          or (Pos(FKeySearchObject.FKey, ASecuInfo.FSecuAbbr) > 0)
+          or (Pos(FKeySearchObject.FKey, ASecuInfo.FSecuCode) > 0) then begin
           Result := True;
         end;
       end;
     ctChinese:
       begin
-        if (Pos(FKeySearchObject.FKey, ASecuMainItem.FSecuAbbr) > 0) then begin
+        if (Pos(FKeySearchObject.FKey, ASecuInfo.FSecuAbbr) > 0) then begin
           Result := True;
         end else begin
 
-//          if ASecuMainItem.FFormerAbbr = '' then Exit;
+//          if ASecuInfo.FFormerAbbr = '' then Exit;
 //
-//          if Pos(FKeySearchObject.FKey, ASecuMainItem.FFormerAbbr) > 0 then begin
+//          if Pos(FKeySearchObject.FKey, ASecuInfo.FFormerAbbr) > 0 then begin
 //            Result := True;
 //          end;
         end;

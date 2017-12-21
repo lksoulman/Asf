@@ -137,7 +137,7 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment>
-                <DeployFile LocalName="Win32\Debug\AsfResources.dll" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\bin\Debug\AsfResources.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AsfResources.dll</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -151,7 +151,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\bin\Debug\AsfResources.dll" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="Win32\Debug\AsfResources.dll" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AsfResources.dll</RemoteName>
                         <Overwrite>true</Overwrite>

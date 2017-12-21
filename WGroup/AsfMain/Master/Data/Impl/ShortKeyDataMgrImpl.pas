@@ -15,17 +15,16 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   CommonLock,
   ShortKeyDataMgr,
-  AppContextObject,
-  CommonRefCounter,
   Generics.Collections;
 
 type
 
   // ShortKeyDataMgr Implementation
-  TShortKeyDataMgrImpl = class(TAppContextObject, IShortKeyDataMgr)
+  TShortKeyDataMgrImpl = class(TBaseInterfacedObject, IShortKeyDataMgr)
   private
     // Lock
     FLock: TCSLock;

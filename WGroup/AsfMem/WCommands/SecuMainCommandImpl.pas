@@ -15,8 +15,8 @@ uses
   Windows,
   Classes,
   SysUtils,
-  SecuMain,
   Command,
+  SecuMain,
   AppContext,
   CommandImpl;
 

@@ -13,26 +13,26 @@ interface
 
 uses
   WebCfg,
-  WebInfo,
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
-  AppContextObject,
-  CommonRefCounter,
   Generics.Collections;
 
 type
 
   // WebCfg Implementation
-  TWebCfgImpl = class(TAppContextObject, IWebCfg)
+  TWebCfgImpl = class(TBaseInterfacedObject, IWebCfg)
   private
-    // Url Info Dictionary
-    FWebInfoDic: TDictionary<Integer, IWebInfo>;
+    // WebInfoDic
+    FWebInfoDic: TDictionary<Integer, PWebInfo>;
   protected
-    // Init Web Info
+    // InitWebInfo
     procedure DoInitWebInfos;
-    // Load Xml Nodes
+    // UnInitWebInfos
+    procedure DoUnInitWebInfos;
+    // LoadXmlNodes
     procedure DoLoadXmlNodes(ANodeList: TList);
   public
     // Constructor
@@ -42,10 +42,10 @@ type
 
     { IWebCfg }
 
-    // Get url
+    // GetUrl
     function GetUrl(AWebID: Integer): WideString;
-    // Get UrlInfo
-    function GetUrlInfo(AWebID: Integer): IWebInfo;
+    // GetWebInfo
+    function GetWebInfo(AWebID: Integer): PWebInfo;
   end;
 
 implementation
@@ -55,8 +55,7 @@ uses
   Utils,
   LogLevel,
   NativeXml,
-  SystemInfo,
-  WebInfoImpl;
+  SystemInfo;
 
 const
   SERVERIP = '!ServerIP';
@@ -68,12 +67,13 @@ const
 constructor TWebCfgImpl.Create(AContext: IAppContext);
 begin
   inherited;
-  FWebInfoDic := TDictionary<Integer, IWebInfo>.Create;
+  FWebInfoDic := TDictionary<Integer, PWebInfo>.Create;
   DoInitWebInfos;
 end;
 
 destructor TWebCfgImpl.Destroy;
 begin
+  DoUnInitWebInfos;
   FWebInfoDic.Free;
   inherited;
 end;
@@ -107,10 +107,26 @@ begin
   end;
 end;
 
+procedure TWebCfgImpl.DoUnInitWebInfos;
+var
+  LIndex: Integer;
+  LWebInfo: PWebInfo;
+  LWebInfos: TArray<PWebInfo>;
+begin
+  LWebInfos := FWebInfoDic.Values.ToArray;
+  for LIndex := Low(LWebInfos) to High(LWebInfos) do begin
+    if LWebInfos[LIndex] <> nil then begin
+      LWebInfo := LWebInfos[LIndex];
+      Dispose(LWebInfo);
+    end;
+  end;
+  FWebInfoDic.Clear;
+end;
+
 procedure TWebCfgImpl.DoLoadXmlNodes(ANodeList: TList);
 var
   LNode: TXmlNode;
-  LWebInfo: IWebInfo;
+  LWebInfo: PWebInfo;
   LIndex, LWebID: Integer;
 begin
   if ANodeList = nil then Exit;
@@ -120,12 +136,12 @@ begin
     if LNode <> nil then begin
       LWebID := Utils.GetIntegerByChildNodeName(LNode, 'WebID', 0);
       if not FWebInfoDic.ContainsKey(LWebID) then begin
-        LWebInfo := TWebInfoImpl.Create as IWebInfo;
+        New(LWebInfo);
+        LWebInfo^.FWebID := LWebID;
+        LWebInfo^.FUrl := Utils.GetStringByChildNodeName(LNode, 'Url');
+        LWebInfo^.FServerName := Utils.GetStringByChildNodeName(LNode, 'ServerName');
+        LWebInfo^.FDescription := Utils.GetStringByChildNodeName(LNode, 'Description');
         FWebInfoDic.AddOrSetValue(LWebID, LWebInfo);
-        LWebInfo.SetWebID(LWebID);
-        LWebInfo.SetUrl(Utils.GetStringByChildNodeName(LNode, 'Url'));
-        LWebInfo.SetServerName(Utils.GetStringByChildNodeName(LNode, 'ServerName'));
-        LWebInfo.SetDescription(Utils.GetStringByChildNodeName(LNode, 'Description'));
       end;
     end;
   end;
@@ -133,13 +149,13 @@ end;
 
 function TWebCfgImpl.GetUrl(AWebID: Integer): WideString;
 var
-  LWebInfo: IWebInfo;
+  LWebInfo: PWebInfo;
   LServerIP, LSkinStyle, LFontRatio: string;
 begin
   if FWebInfoDic.TryGetValue(AWebID, LWebInfo)
     and (LWebInfo <> nil) then begin
-    LServerIP := FAppContext.GetCfg.GetServerCfg.GetServerUrl(LWebInfo.GetServerName);
-    Result := StringReplace(LWebInfo.GetUrl, SERVERIP, LServerIP, [rfReplaceAll]);
+    LServerIP := FAppContext.GetCfg.GetServerCfg.GetServerUrl(LWebInfo^.FServerName);
+    Result := StringReplace(LWebInfo^.FUrl, SERVERIP, LServerIP, [rfReplaceAll]);
     LSkinStyle := FAppContext.GetCfg.GetSysCfg.GetSystemInfo.GetSystemInfo^.FSkinStyle;
     if LSkinStyle <> '' then begin
       Result := StringReplace(Result, SKINSTYLE, LSkinStyle, [rfReplaceAll]);
@@ -153,7 +169,7 @@ begin
   end;
 end;
 
-function TWebCfgImpl.GetUrlInfo(AWebID: Integer): IWebInfo;
+function TWebCfgImpl.GetWebInfo(AWebID: Integer): PWebInfo;
 begin
   if not (FWebInfoDic.TryGetValue(AWebID, Result)
     and (Result <> nil)) then begin

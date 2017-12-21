@@ -17,15 +17,15 @@ uses
   SysUtils,
   SecuMain,
   KeyFairy,
+  BaseObject,
   AppContext,
   KeyFairyUI,
-  KeySearchEngine,
-  AppContextObject;
+  KeySearchEngine;
 
 type
 
   // KeyFairy Implementation
-  TKeyFairyImpl = class(TAppContextObject, IKeyFairy)
+  TKeyFairyImpl = class(TBaseInterfacedObject, IKeyFairy)
   private
     // KeyFairyUI
     FKeyFairyUI: TKeyFairyUI;
@@ -39,9 +39,9 @@ type
     { IKeyFairy }
 
     // Display
-    function Display(AHandle: THandle; AKey: string; var ASecuMainItem: PSecuMainItem): Boolean;
+    function Display(AHandle: THandle; AKey: string; var ASecuInfo: PSecuInfo): Boolean;
     // DisplayEx
-    function DisplayEx(AHandle: THandle; AKey: string; ALeft, ATop: Integer; var ASecuMainItem: PSecuMainItem): Boolean;
+    function DisplayEx(AHandle: THandle; AKey: string; ALeft, ATop: Integer; var ASecuInfo: PSecuInfo): Boolean;
   end;
 
 implementation
@@ -60,7 +60,7 @@ begin
   inherited;
 end;
 
-function TKeyFairyImpl.Display(AHandle: THandle; AKey: string; var ASecuMainItem: PSecuMainItem): Boolean;
+function TKeyFairyImpl.Display(AHandle: THandle; AKey: string; var ASecuInfo: PSecuInfo): Boolean;
 var
   LRect: TRect;
 begin
@@ -69,13 +69,12 @@ begin
   FKeyFairyUI.Left := LRect.Right - FKeyFairyUI.Width;
   FKeyFairyUI.Top := LRect.Bottom - FKeyFairyUI.Height;
   if not FKeyFairyUI.Showing then begin
-//    SetParent(FKeyFairyUI.Handle, AHandle);
     FKeyFairyUI.Show;
     FKeyFairyUI.SetKey(AKey);
   end;
 end;
 
-function TKeyFairyImpl.DisplayEx(AHandle: THandle; AKey: string; ALeft, ATop: Integer; var ASecuMainItem: PSecuMainItem): Boolean;
+function TKeyFairyImpl.DisplayEx(AHandle: THandle; AKey: string; ALeft, ATop: Integer; var ASecuInfo: PSecuInfo): Boolean;
 begin
   Result := False;
 

@@ -15,17 +15,16 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   CommonLock,
-  AppContextObject,
-  CommonRefCounter,
   StatusAlarmDataMgr,
   Generics.Collections;
 
 type
 
   // StatusAlarmDataMgr Implementation
-  TStatusAlarmDataMgrImpl = class(TAppContextObject, IStatusAlarmDataMgr)
+  TStatusAlarmDataMgrImpl = class(TBaseInterfacedObject, IStatusAlarmDataMgr)
   private
     // Lock
     FLock: TCSLock;

@@ -2,9 +2,9 @@ unit MasterUI;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description： Form UI
+// Description： MasterUI
 // Author：      lksoulman
-// Date：        2017-10-16
+// Date：        2017-12-12
 // Comments：
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,61 +19,68 @@ uses
   Variants,
   Graphics,
   Controls,
-  Dialogs,
   Vcl.Forms,
-  Vcl.ExtCtrls,
-  GDIPOBJ,
-  SecuMain,
-  KeyFairy,
-  RenderGDI,
   RenderUtil,
   AppContext,
-  BaseFormUI,
+  ComponentUI,
   StatusBarUI,
-  ShortKeyBarUI,
-  SuperTabBarUI;
+  CaptionBarUI,
+  SuperTabBarUI,
+  CustomMasterUI,
+  KeySearchEngine;
 
 type
 
-  // ClickComponent
-  TOnClickComponent = procedure (AMainForm: TObject; AItem: TObject) of object;
-
   // MasterUI
-  TMasterUI = class(TBaseFormUI)
-    PnlSuperTab: TPanel;
-    PnlChildPages: TPanel;
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
+  TMasterUI = class(TCustomMasterUI)
   private
-    // KeyFairy
-    FKeyFairy: IKeyFairy;
     // StatusBarUI
     FStatusBarUI: TStatusBarUI;
-    // ShortKeyBarUI
-    FShortKeyBarUI: TShortKeyBarUI;
+    // CaptionBarUI
+    FCaptionBarUI: TCaptionBarUI;
     // SuperTabBarUI
     FSuperTabBarUI: TSuperTabBarUI;
   protected
-    procedure AfterConstruction; override;
     // Update Skin Style
     procedure DoUpdateSkinStyle; override;
-    // NC Short Key Menu
-    procedure DrawNCShortKeyMenu(ADC: HDC; var ARect: TRect); override;
-    // Update Hit Test
-    procedure UpdateHitTest(AHitTest: Integer; AHitMenu: Integer = -1); override;
-    // ShortKey Menu Hit Test
-    function NCShortKeyMenuHitTest(var Msg: TMessage; ANCRect: TRect): Boolean; override;
+    // ToStatusBarPt
+    function ToStatusBarPt(APt: TPoint): TPoint;
+    // ToCaptionBarPt
+    function ToCaptionBarPt(APt: TPoint): TPoint;
+    // ToSuperTabBarPt
+    function ToSuperTabBarPt(APt: TPoint): TPoint;
+    // CalcNCStatusBar
+    procedure CalcNCStatusBar(ADC: HDC; ARect: TRect); override;
+    // CalcNCCaptionBar
+    procedure CalcNCCaptionBar(ADC: HDC; ARect: TRect); override;
+    // CalcNCSuperTabBar
+    procedure CalcNCSuperTabBar(ADC: HDC; ARect: TRect); override;
+    // DrawNCStatusBar
+    procedure DrawNCStatusBar(ADC: HDC; ARect: TRect; AId: Integer = -1); override;
+    // DrawNCCaptionBar
+    procedure DrawNCCaptionBar(ADC: HDC; ARect: TRect; AId: Integer = -1); override;
+    // DrawNCStatusBar
+    procedure DrawNCSuperTabBar(ADC: HDC; ARect: TRect; AId: Integer = -1); override;
+    // UpdateBarHitTest
+    procedure DoUpdateBarHitTest(AMouseMoveId, AMouseDownId: Integer); override;
 
     // Create Wnd
     procedure CreateWnd; override;
-    // NC Left Button Up
+    // 非客户区点击测试
+    procedure WMNCHitTest(var Msg: TMessage); message WM_NCHITTEST;
+    // NCLeftButtonUp
     procedure WMNCLButtonUp(var Message: TWMNCLButtonUp); message WM_NCLBUTTONUP;
-    // NC Left Button Down
+    // NCLeftButtonDown
     procedure WMNCLButtonDown(var Message: TWMNCLButtonDown); message WM_NCLBUTTONDOWN;
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
+    // BeforeCreate
+    procedure BeforeCreate; override;
+    // Change
+    procedure Change(ACommandId: Integer);
   end;
 
 implementation
@@ -85,44 +92,41 @@ uses
 
 { TAppMainFormUI }
 
-procedure TMasterUI.AfterConstruction;
-begin
-  inherited;
-//  Self.PopupChildren;
-end;
-
 constructor TMasterUI.Create(AContext: IAppContext);
 begin
   inherited;
   FIsMaster := True;
   Caption := '梵思';
-
-  FShortKeyBarUI := TShortKeyBarUI.Create(AContext);
-  FShortKeyBarUI.ParentHandle := Self.Handle;
-
-  FSuperTabBarUI := TSuperTabBarUI.Create(AContext);
-  FSuperTabBarUI.ParentHandle := Self.Handle;
-  FSuperTabBarUI.Align := alClient;
-  FSuperTabBarUI.Parent := PnlSuperTab;
-  FSuperTabBarUI.Width := 60;
-
-  FStatusBarUI := TStatusBarUI.Create(AContext);
-  FStatusBarUI.ParentHandle := Self.Handle;
-  FStatusBarUI.Align := alBottom;
-  FStatusBarUI.Parent := PnlChildPages;
-  FStatusBarUI.Height := 30;
 end;
 
 destructor TMasterUI.Destroy;
 begin
-  if FKeyFairy <> nil then begin
-    FKeyFairy := nil;
-  end;
-
   FSuperTabBarUI.Free;
+  FCaptionBarUI.Free;
   FStatusBarUI.Free;
-  FShortKeyBarUI.Free;
   inherited;
+end;
+
+procedure TMasterUI.BeforeCreate;
+begin
+  inherited;
+  FStatusBarUI := TStatusBarUI.Create(FAppContext, Self);
+  FCaptionBarUI := TCaptionBarUI.Create(FAppContext, Self);
+  FSuperTabBarUI := TSuperTabBarUI.Create(FAppContext, Self);
+end;
+
+procedure TMasterUI.Change(ACommandId: Integer);
+begin
+  FStatusBarUI.Change(ACommandId);
+  FCaptionBarUI.Change(ACommandId);
+  FSuperTabBarUI.Change(ACommandId);
+end;
+
+procedure TMasterUI.CreateWnd;
+begin
+  inherited;
+  // 设置在任务栏显示应用程序图标
+  SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_APPWINDOW);
 end;
 
 procedure TMasterUI.DoUpdateSkinStyle;
@@ -130,78 +134,287 @@ begin
   inherited;
 end;
 
-procedure TMasterUI.DrawNCShortKeyMenu(ADC: HDC; var ARect: TRect);
+procedure TMasterUI.CalcNCStatusBar(ADC: HDC; ARect: TRect);
 begin
-  if FShortKeyBarUI = nil then Exit;
-  ARect.Left := ARect.Left + 10;
-  FShortKeyBarUI.Draw(FNCRenderDC, ARect);
+  if FStatusBarUI = nil then Exit;
+
+  FStatusBarUI.Calc(ADC, ARect);
 end;
 
-procedure TMasterUI.FormKeyPress(Sender: TObject; var Key: Char);
+procedure TMasterUI.CalcNCCaptionBar(ADC: HDC; ARect: TRect);
+begin
+  if FCaptionBarUI = nil then Exit;
+
+  FCaptionBarUI.Calc(ADC, ARect);
+end;
+
+procedure TMasterUI.CalcNCSuperTabBar(ADC: HDC; ARect: TRect);
+begin
+  if FSuperTabBarUI = nil then Exit;
+
+  FSuperTabBarUI.Calc(ADC, ARect);
+end;
+
+function TMasterUI.ToStatusBarPt(APt: TPoint): TPoint;
+begin
+  Result := APt;
+  if FBorderWidth > 0 then begin
+    Result.X := APt.X - FBorderWidth;
+    Result.Y := APt.Y - FBorderWidth - FClientRect.Height;
+  end;
+  if FCaptionHeight > 0 then begin
+    Result.Y := Result.Y - FCaptionHeight;
+  end;
+  if FSuperTabBarWidth > 0 then begin
+    Result.X := Result.X - FSuperTabBarWidth;
+  end;
+end;
+
+function TMasterUI.ToCaptionBarPt(APt: TPoint): TPoint;
+begin
+  Result := APt;
+  if FBorderWidth > 0 then begin
+    Result.X := APt.X - FBorderWidth;
+    Result.Y := APt.Y - FBorderWidth;
+  end;
+end;
+
+function TMasterUI.ToSuperTabBarPt(APt: TPoint): TPoint;
+begin
+  Result := APt;
+  if FBorderWidth > 0 then begin
+    Result.X := APt.X - FBorderWidth;
+    Result.Y := APt.Y - FBorderWidth;
+  end;
+  if FCaptionHeight > 0 then begin
+    Result.Y := Result.Y - FCaptionHeight;
+  end;
+end;
+
+procedure TMasterUI.DoUpdateBarHitTest(AMouseMoveId, AMouseDownId: Integer);
 var
-  LKey: string;
-  LSecuMainItem: PSecuMainItem;
+  LMsg: Cardinal;
+  LComponent: TComponentUI;
 begin
-//  inherited;
-//  if FKeyFairy = nil then begin
-//    FKeyFairy := FAppContext.FindInterface(ASF_COMMAND_ID_KEYFAIRY) as IKeyFairy;
-//  end;
-//
-//  if FKeyFairy = nil then Exit;
-//
-//  LKey := Char(Key);
-//  FKeyFairy.Display(Self.Handle, LKey, LSecuMainItem);
+  if (FMouseMoveId <> AMouseMoveId)
+    or (FMouseDownId <> AMouseDownId) then begin
+    if FCaptionBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+      LMsg := WM_NCPAINT_CAPTIONBAR;
+    end else if FSuperTabBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+      LMsg := WM_NCPAINT_SUPERTABBAR;
+    end else if FStatusBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+      LMsg := WM_NCPAINT_STATUSBAR;
+    end else begin
+      LMsg := WM_NCPAINT;
+    end;
+    FMouseMoveId := AMouseMoveId;
+    FMouseDownId := AMouseDownId;
+    SendMessage(Handle, LMsg, 0, 0);
+  end;
 end;
 
-procedure TMasterUI.UpdateHitTest(AHitTest: Integer; AHitMenu: Integer = -1);
+procedure TMasterUI.DrawNCStatusBar(ADC: HDC; ARect: TRect; AId: Integer);
 begin
-  if FShortKeyBarUI <> nil then begin
-    if (FHitTest <> AHitTest)
-      or (FShortKeyBarUI.HitId <> AHitMenu) then begin
-      FHitTest := AHitTest;
-      FShortKeyBarUI.HitId := AHitMenu;
-      if FShortKeyBarUI.DownHitId <> AHitMenu then begin
-        FShortKeyBarUI.DownHitId := -1;
+  if FStatusBarUI = nil then Exit;
+
+  FStatusBarUI.Draw(ADC, ARect, AId);
+end;
+
+procedure TMasterUI.DrawNCCaptionBar(ADC: HDC; ARect: TRect; AId: Integer);
+begin
+  if FCaptionBarUI = nil then Exit;
+
+  FCaptionBarUI.Draw(ADC, ARect, AId);
+end;
+
+procedure TMasterUI.DrawNCSuperTabBar(ADC: HDC; ARect: TRect; AId: Integer);
+begin
+  if FSuperTabBarUI = nil then Exit;
+
+  FSuperTabBarUI.Draw(ADC, ARect, AId);
+end;
+
+procedure TMasterUI.WMNCHitTest(var Msg: TMessage);
+var
+  LMousePt: TPoint;
+  LIsPaint: Boolean;
+  LComponent: TComponentUI;
+  LRect, LBorderRect: TRect;
+begin
+  // 如果是无边框嵌入窗体，则让消息继续传递，解决边框拖动问题
+  if FBorderStyleEx = bsNone then begin
+    inherited;
+    Msg.Result := HTTRANSPARENT;
+    Exit;
+  end;
+
+  LMousePt.X := SmallInt(Msg.LParamLo);
+  LMousePt.Y := SmallInt(Msg.LParamHi);
+  GetWindowRect(Handle, LRect);
+  // 如果窗体处在一般状态且可拖动大小，则判断鼠标是否点击在边框
+  if (WindowState = wsNormal)
+    and (FBorderStyleEx = bsSizeable) then begin
+
+    LBorderRect := LRect;
+    InflateRect(LBorderRect, -4, -4);
+
+    // 如果鼠标在边框区域
+    if not PtInRect(LBorderRect, LMousePt) then begin
+      if LMousePt.Y <= LBorderRect.Top then begin
+        if LMousePt.X < LRect.Left + 8 then begin
+          Msg.Result := HTTOPLEFT
+        end else if LMousePt.X > LRect.Right - 8 then begin
+          Msg.Result := HTTOPRIGHT
+        end else begin
+          Msg.Result := HTTOP;
+        end;
+      end else if LMousePt.Y >= LBorderRect.Bottom then begin
+        if LMousePt.X < LRect.Left + 8 then begin
+          Msg.Result := HTBOTTOMLEFT
+        end else if LMousePt.X > LRect.Right - 8 then begin
+          Msg.Result := HTBOTTOMRIGHT
+        end else begin
+          Msg.Result := HTBOTTOM;
+        end;
+      end else if LMousePt.X <= LBorderRect.Left then begin
+        if LMousePt.Y < LRect.Top + 8 then begin
+          Msg.Result := HTTOPLEFT
+        end else if LMousePt.Y > LRect.Bottom - 8 then begin
+          Msg.Result := HTBOTTOMLEFT
+        end else begin
+          Msg.Result := HTLEFT;
+        end;
+      end else begin
+        if LMousePt.Y < LRect.Top + 8 then begin
+          Msg.Result := HTTOPRIGHT
+        end else if LMousePt.Y > LRect.Bottom - 8 then begin
+          Msg.Result := HTBOTTOMRIGHT
+        end else begin
+          Msg.Result := HTRIGHT;
+        end;
       end;
-      SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
+      DoUpdateHitTest(Msg.Result);
+      Exit;
+    end;
+  end;
+
+  LIsPaint := False;
+  LMousePt.X := LMousePt.X - LRect.Left;
+  LMousePt.Y := LMousePt.Y - LRect.Top;
+  if PtInRect(FCaptionBarUI.ComponentsRect, ToCaptionBarPt(LMousePt)) then begin
+    if FCaptionBarUI.FindComponent(ToCaptionBarPt(LMousePt), LComponent) then begin
+      if LComponent is TSysCloseItem then begin
+        Msg.Result := HTCLOSE;
+      end else if LComponent is TSysMaximizeItem then begin
+        Msg.Result := HTMAXBUTTON;
+      end else if LComponent is TSysMinimizeItem then begin
+        Msg.Result := HTMINBUTTON;
+      end else begin
+        Msg.Result := HTMENU;
+      end;
+      if FMouseMoveId <> LComponent.Id then begin
+        FMouseMoveId := LComponent.Id;
+        LIsPaint := True;
+      end;
+    end else begin
+      Msg.Result := HTCAPTION;
+      if FMouseMoveId <> - 1 then begin
+        FMouseMoveId := -1;
+        LIsPaint := True;
+      end;
+    end;
+    if FMouseDownId <> FMouseMoveId then begin
+      FMouseDownId := -1;
+      LIsPaint := True;
+    end;
+    if LIsPaint then begin
+      if FCaptionHeight > 0 then begin
+        SendMessage(Handle, WM_NCPAINT_CAPTIONBAR, 0, 0);
+        Exit;
+      end;
+    end;
+  end else if PtInRect(FSuperTabBarUI.ComponentsRect, ToSuperTabBarPt(LMousePt)) then begin
+    if FSuperTabBarUI.FindComponent(ToSuperTabBarPt(LMousePt), LComponent) then begin
+      Msg.Result := HTMENU;
+      if FMouseMoveId <> LComponent.Id then begin
+        FMouseMoveId := LComponent.Id;
+        LIsPaint := True;
+      end;
+    end else begin
+      if FMouseMoveId <> - 1 then begin
+        FMouseMoveId := -1;
+        LIsPaint := True;
+      end;
+    end;
+    if FMouseDownId <> FMouseMoveId then begin
+      FMouseDownId := -1;
+      LIsPaint := True;
+    end;
+    if LIsPaint then begin
+      if FSuperTabBarWidth > 0 then begin
+        SendMessage(Handle, WM_NCPAINT_SUPERTABBAR, 0, 0);
+        Exit;
+      end;
+    end;
+  end else if PtInRect(FStatusBarUI.ComponentsRect, ToStatusBarPt(LMousePt)) then begin
+    if FStatusBarUI.FindComponent(ToStatusBarPt(LMousePt), LComponent) then begin
+      Msg.Result := HTMENU;
+      if FMouseMoveId <> LComponent.Id then begin
+        FMouseMoveId := LComponent.Id;
+        LIsPaint := True;
+      end;
+    end else begin
+      if FMouseMoveId <> - 1 then begin
+        FMouseMoveId := -1;
+        LIsPaint := True;
+      end;
+    end;
+    if FMouseDownId <> FMouseMoveId then begin
+      FMouseDownId := -1;
+      LIsPaint := True;
+    end;
+    if LIsPaint then begin
+      if FStatusBarHeight > 0 then begin
+        SendMessage(Handle, WM_NCPAINT_STATUSBAR, 0, 0);
+      end;
+      Exit;
     end;
   end else begin
     inherited;
   end;
-end;
-
-function TMasterUI.NCShortKeyMenuHitTest(var Msg: TMessage; ANCRect: TRect): Boolean;
-var
-  LMousePt: TPoint;
-  LShortKeyItem: TShortKeyItem;
-begin
-  Result := False;
-  if FShortKeyBarUI = nil then Exit;
-
-  LMousePt.X := SmallInt(Msg.LParamLo);
-  LMousePt.Y := SmallInt(Msg.LParamHi);
-  if FShortKeyBarUI.GetMenuItemByPt(ANCRect, LMousePt, LShortKeyItem) then begin
-    Result := True;
-    Msg.Result := HTMENU;
-    UpdateHitTest(Msg.Result, LShortKeyItem.Id);
-  end;
+  DoUpdateBarHitTest(-1, -1);
 end;
 
 procedure TMasterUI.WMNCLButtonDown(var Message: TWMNCLButtonDown);
+var
+  LPt: TPoint;
+  LComponent: TComponentUI;
 begin
   // 保存按下时鼠标位置
   FMouseLeavePt.X := Message.XCursor;
   FMouseLeavePt.Y := Message.YCursor;
   // 保存按下是鼠标的点击位置类型
   FDownHitTest := Message.HitTest;
-  if FShortKeyBarUI <> nil then begin
-    FShortKeyBarUI.DownHitId := FShortKeyBarUI.HitId;
+
+  if FCaptionBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+    FMouseDownId := FMouseMoveId;
+    DoNCPaintCaptionBar(FMouseMoveId);
+  end else if FSuperTabBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+    FMouseDownId := FMouseMoveId;
+    DoNCPaintSuperTabBar(FMouseMoveId);
+  end else if FStatusBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+    FMouseDownId := FMouseMoveId;
+    DoNCPaintStatusBar(FMouseMoveId);
   end;
-  SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
-  // 点击激活
-  if not Self.IsActivate then begin
-    PostMessage(Self.Handle, WM_ACTIVATE, 1, 0);
+
+  LPt := ToCaptionBarPt(FMouseLeavePt);
+  if PtInRect(FCaptionBarUI.ComponentsRect, LPt) then begin
+    // 点击激活
+    if not Self.IsActivate then begin
+      PostMessage(Self.Handle, WM_ACTIVATE, 1, 0);
+    end;
   end;
+
   // 调用inherited会导致 WMNCLButtonUp 不响应,所以屏蔽一些，但窗体大小拖动还需要 Inherited
   if (Message.HitTest <> HTCAPTION)
     and (Message.HitTest <> HTCLOSE)
@@ -213,29 +426,28 @@ begin
   end;
 end;
 
-procedure TMasterUI.CreateWnd;
-begin
-  inherited;
-  // 设置在任务栏显示应用程序图标
-  SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_APPWINDOW);
-end;
-
 procedure TMasterUI.WMNCLButtonUp(var Message: TWMNCLButtonUp);
 var
-  LShortKeyItem: TShortKeyItem;
+  LMousePt: TPoint;
+  LComponent: TComponentUI;
 begin
   // 如果抬起时和按下时位置一致
   if Message.HitTest = FDownHitTest then begin
     case Message.HitTest of
       HTMENU:
         begin
-          if FShortKeyBarUI <> nil then begin
-            if FShortKeyBarUI.HitId = FShortKeyBarUI.DownHitId then begin
-              LShortKeyItem := FShortKeyBarUI.GetMenuItemById(FShortKeyBarUI.HitId);
-              FShortKeyBarUI.ClickItem(LShortKeyItem);
-            end;
-            FShortKeyBarUI.DownHitId := -1;
-            SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
+          if FStatusBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+            FMouseDownId := -1;
+            DoNCPaintStatusBar;
+            FStatusBarUI.LButtonClickComponent(LComponent);
+          end else if FCaptionBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+            FMouseDownId := -1;
+            DoNCPaintCaptionBar;
+            FCaptionBarUI.LButtonClickComponent(LComponent);
+          end else if FSuperTabBarUI.FindComponent(FMouseMoveId, LComponent) then begin
+            FMouseDownId := -1;
+            DoNCPaintSuperTabBar;
+            FSuperTabBarUI.LButtonClickComponent(LComponent);
           end;
         end;
       HTCLOSE:

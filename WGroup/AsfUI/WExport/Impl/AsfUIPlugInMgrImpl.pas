@@ -39,6 +39,8 @@ type
 
 implementation
 
+uses
+  SimpleHqTestCommandImpl;
 
 { TAsfUIPlugInMgrImpl }
 
@@ -56,7 +58,7 @@ end;
 
 procedure TAsfUIPlugInMgrImpl.Load;
 begin
-
+  DoAddCommand(TSimpleHqTestCommandImpl.Create(ASF_COMMAND_ID_SIMPLEHQTEST, 'SimpleHqTest', FAppContext));
 end;
 
 end.

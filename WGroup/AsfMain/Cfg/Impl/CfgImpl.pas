@@ -19,15 +19,14 @@ uses
   Classes,
   SysUtils,
   ServerCfg,
+  BaseObject,
   AppContext,
-  UserCacheCfg,
-  AppContextObject,
-  CommonRefCounter;
+  UserCacheCfg;
 
 type
 
   // Cfg Implementation
-  TCfgImpl = class(TAppContextObject, ICfg)
+  TCfgImpl = class(TBaseInterfacedObject, ICfg)
   private
     // AppPath
     FAppPath: string;

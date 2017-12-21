@@ -15,10 +15,9 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   UserCacheCfg,
-  CommonRefCounter,
-  AppContextObject,
   Generics.Collections;
 
 type
@@ -37,7 +36,7 @@ type
   PServerCacheInfo = ^TServerCacheInfo;
 
   // UserCacheCfg Implementation
-  TUserCacheCfgImpl = class(TAppContextObject, IUserCacheCfg)
+  TUserCacheCfgImpl = class(TBaseInterfacedObject, IUserCacheCfg)
   private
     // CurrentAccountInfo
     FCurrentAccountInfo: TCurrentAccountInfo;

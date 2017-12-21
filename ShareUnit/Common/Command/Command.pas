@@ -56,25 +56,33 @@ const
   ASF_COMMAND_ID_MSGEXSERVICE             = 70000001;
 
   // AsfUI.dll
-
+  ASF_COMMAND_ID_SIMPLEHQTEST             = 80000001;
 
 
 type
 
   // Command Interface
   ICommand = interface
-    // Get Id
+    // GetId
     function GetId: Cardinal;
-    // Get Basic Id
+    // GetBasicId
     function GetBasicId: Int64;
-    // Get Caption
+    // GetCaption
     function GetCaption: string;
-    // Get Visible
+    // GetVisible
     function GetVisible: Boolean;
-    // Get Short Key
+    // GetShortKey
     function GetShortKey: Integer;
     // Execute
     procedure Execute(AParams: string);
+  end;
+
+  // CmdInterceptor Interface
+  ICmdInterceptor = interface(IInterface)
+    // ExecuteCmdAfter
+    procedure ExecuteCmdAfter(ACommandId: Integer; AParams: string);
+    // ExecuteCmdBefore
+    procedure ExecuteCmdBefore(ACommandId: Integer; AParams: string);
   end;
 
 implementation

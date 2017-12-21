@@ -2,7 +2,7 @@ unit ResourceSkin;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Resource Skin Interface
+// Description£º ResourceSkin Interface
 // Author£º      lksoulman
 // Date£º        2017-8-25
 // Comments£º
@@ -19,17 +19,17 @@ uses
 
 type
 
-  // Resource Skin Interface
+  // ResourceSkin Interface
   IResourceSkin = interface(IInterface)
     ['{9BB7760F-2A08-4D6F-A021-73E2C27B4AC8}']
-    // Change Skin
+    // ChangeSkin
     function ChangeSkin: Boolean;
-    // Get Instance
+    // GetInstance
     function GetInstance: HMODULE;
-    // Get Color
+    // GetColor
     function GetColor(AKey: string): TColor;
-    // Get Color String
-    function GetColorString(AKey: string): string;
+    // GetConfig
+    function GetConfig(AKey: string): string;
     // Get Stream
     function GetStream(AResourceName: string): TResourceStream;
   end;

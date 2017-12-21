@@ -17,20 +17,18 @@ uses
   Classes,
   SysUtils,
   CommonLock,
+  BaseObject,
   AppContext,
   MsgExSubcriber,
-  CommonRefCounter,
   Generics.Collections;
 
 type
 
   // MsgExSubcriberMgr
-  TMsgExSubcriberMgr = class(TAutoObject)
+  TMsgExSubcriberMgr = class(TBaseObject)
   private
     // Lock
     FLock: TCSLock;
-    // AppContext
-    FAppContext: IAppContext;
     // MsgExSubcriberDic
     FMsgExSubcriberDic: TDictionary<Integer, TList<IMsgExSubcriber>>;
   protected
@@ -38,7 +36,7 @@ type
     procedure DoClearSubcribers;
   public
     // Constructor
-    constructor Create(AContext: IAppContext); reintroduce;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
     // InvokeNotify
@@ -58,8 +56,7 @@ uses
 
 constructor TMsgExSubcriberMgr.Create(AContext: IAppContext);
 begin
-  inherited Create;
-  FAppContext := AContext;
+  inherited;
   FLock := TCSLock.Create;
   FMsgExSubcriberDic := TDictionary<Integer, TList<IMsgExSubcriber>>.Create;
 end;
@@ -69,7 +66,6 @@ begin
   DoClearSubcribers;
   FMsgExSubcriberDic.Free;
   FLock.Free;
-  FAppContext := nil;
   inherited;
 end;
 

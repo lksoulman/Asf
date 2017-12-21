@@ -17,15 +17,14 @@ uses
   SysUtils,
   ServerCfg,
   ServerInfo,
+  BaseObject,
   AppContext,
-  CommonRefCounter,
-  AppContextObject,
   Generics.Collections;
 
 type
 
   // ServerCfg Implementation
-  TServerCfgImpl = class(TAppContextObject, IServerCfg)
+  TServerCfgImpl = class(TBaseInterfacedObject, IServerCfg)
   private
     // Server Info Dictionary
     FServerInfoDic: TDictionary<string, IServerInfo>;

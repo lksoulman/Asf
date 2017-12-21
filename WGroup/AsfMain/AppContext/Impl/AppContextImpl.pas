@@ -23,6 +23,7 @@ uses
   SysUtils,
   LogLevel,
   Behavior,
+  SecuMain,
   Vcl.Forms,
   CacheType,
   BaseCache,
@@ -33,6 +34,7 @@ uses
   WDLLFactory,
   ServiceType,
   ResourceCfg,
+  CommonObject,
   ResourceSkin,
   BasicService,
   AssetService,
@@ -63,9 +65,9 @@ type
     FCommandMgr: ICommandMgr;
     // WDLLFactory
     FWDLLFactory: IWDLLFactory;
-    // Resource Cfg
+    // ResourceCfg
     FResourceCfg: IResourceCfg;
-    // Resource Skin
+    // ResourceSkin
     FResourceSkin: IResourceSkin;
     // Base Cache
     FBaseCache: IBaseCache;
@@ -75,6 +77,8 @@ type
     FBasicService: IBasicService;
     // Asset Service
     FAssetService: IAssetService;
+    // SecuMainQuery
+    FSecuMainQuery: ISecuMainQuery;
     // InterfaceDic
     FInterfaceDic: TDictionary<Integer, IUnknown>;
   protected
@@ -126,23 +130,27 @@ type
     procedure Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
     // UnSubcriber
     procedure UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
-    // HQ Log
+    // HQLog
     procedure HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Web Log
+    // WebLog
     procedure WebLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Sys Log
+    // SysLog
     procedure SysLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Indicator Log
+    // IndicatorLog
     procedure IndicatorLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
-    // Cache Synchronous Query
+    // QuerySecuInfo
+    function QuerySecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;
+    // QuerySecuInfos
+    function QuerySecuInfos(AInnerCodes: TIntegerDynArray; var ASecuInfos: TSecuInfoDynArray): Integer;
+    // CacheSyncQuery
     function CacheSyncQuery(ACacheType: TCacheType; ASql: WideString): IWNDataSet;
-    // Synchronous POST
+    // GFSyncQuery
     function GFSyncQuery(AServiceType: TServiceType; AIndicator: WideString; AWaitTime: DWORD): IWNDataSet;
-    // Asynchronous POST
+    // GFAsyncQuery
     function GFAsyncQuery(AServiceType: TServiceType; AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
-    // Priority Synchronous POST
+    // GFPrioritySyncQuery
     function GFPrioritySyncQuery(AServiceType: TServiceType; AIndicator: WideString; AWaitTime: DWORD): IWNDataSet;
-    // Priority Asynchronous POST
+    // GFPriorityAsyncQuery
     function GFPriorityAsyncQuery(AServiceType: TServiceType; AIndicator: WideString; AEvent: TGFDataEvent; AKey: Int64): IGFData;
   end;
 
@@ -155,7 +163,6 @@ uses
   LogImpl,
   CfgImpl,
   Command,
-  SecuMain,
   ErrorCode,
   GdiMgrImpl,
   EDCryptImpl,
@@ -201,6 +208,7 @@ begin
   FUserCache := nil;
   FBasicService := nil;
   FAssetService := nil;
+  FSecuMainQuery := nil;
   FWDLLFactory := nil;
   FCommandMgr := nil;
   FGdiMgr := nil;
@@ -370,6 +378,34 @@ end;
 procedure TAppContextImpl.IndicatorLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
   FLog.IndicatorLog(ALevel, ALog, AUseTime);
+end;
+
+function TAppContextImpl.QuerySecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;
+begin
+  if FSecuMainQuery <> nil then begin
+    Result := FSecuMainQuery.GetSecuInfo(AInnerCode, ASecuInfo);
+  end else begin
+    FSecuMainQuery := FindInterface(ASF_COMMAND_ID_SECUMAIN) as ISecuMainQuery;
+    if FSecuMainQuery <> nil then begin
+      Result := FSecuMainQuery.GetSecuInfo(AInnerCode, ASecuInfo);
+    end else begin
+      Result := False;
+    end;
+  end;
+end;
+
+function TAppContextImpl.QuerySecuInfos(AInnerCodes: TIntegerDynArray; var ASecuInfos: TSecuInfoDynArray): Integer;
+begin
+  if FSecuMainQuery <> nil then begin
+    Result := FSecuMainQuery.GetSecuInfos(AInnerCodes, ASecuInfos);
+  end else begin
+    FSecuMainQuery := FindInterface(ASF_COMMAND_ID_SECUMAIN) as ISecuMainQuery;
+    if FSecuMainQuery <> nil then begin
+      Result := FSecuMainQuery.GetSecuInfos(AInnerCodes, ASecuInfos);
+    end else begin
+      Result := 0;
+    end;
+  end;
 end;
 
 function TAppContextImpl.CacheSyncQuery(ACacheType: TCacheType; ASql: WideString): IWNDataSet;

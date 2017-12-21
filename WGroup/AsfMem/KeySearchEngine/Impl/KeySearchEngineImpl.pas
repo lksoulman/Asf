@@ -19,18 +19,19 @@ uses
   Command,
   SecuMain,
   CommonLock,
+  BaseObject,
   AppContext,
   MsgExSubcriber,
   KeySearchFilter,
   KeySearchEngine,
-  AppContextObject,
   MsgExSubcriberImpl,
-  Generics.Collections;
+  Generics.Collections,
+  MsgExSubcriberAdapter;
 
 type
 
   // KeySearchEngine Implementation
-  TKeySearchEngineImpl = class(TAppContextObject, IKeySearchEngine)
+  TKeySearchEngineImpl = class(TBaseInterfacedObject, IKeySearchEngine)
   private
     // Lock
     FLock: TCSLock;
@@ -40,10 +41,10 @@ type
     FIsUpdate: Boolean;
     // UpdateVersion
     FUpdateVersion: Integer;
-    // MsgExSubcriber
-    FMsgExSubcriber: IMsgExSubcriber;
     // KeySearchObject
     FKeySearchObject: TKeySearchObject;
+    // MsgExSubcriberAdapter
+    FMsgExSubcriberAdapter: TMsgExSubcriberAdapter;
   protected
     // SetIsUpdate
     procedure SetIsUpdate(AIsUpdate: Boolean);
@@ -81,19 +82,19 @@ begin
   FUpdateVersion := -1;
   FLock := TCSLock.Create;
   FKeySearchObject := TKeySearchObject.Create;
-  FMsgExSubcriber := TMsgExSubcriberImpl.Create(DoUpdateKeySearchEngine);
-  FMsgExSubcriber.SetActive(True);
-  FAppContext.Subcriber(MSG_BASECACHE_TABLE_SECUMAIN_UPDATE, FMsgExSubcriber);
+  FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(AContext, DoUpdateKeySearchEngine);
+  FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfMem_ReUpdateSecuMain);
+  FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
   FKeySearchObject.Start;
   FIsStart := True;
+  FMsgExSubcriberAdapter.SubcribeMsgEx;
 end;
 
 destructor TKeySearchEngineImpl.Destroy;
 begin
   StopService;
-  FMsgExSubcriber.SetActive(False);
-  FAppContext.UnSubcriber(MSG_BASECACHE_TABLE_SECUMAIN_UPDATE, FMsgExSubcriber);
-  FMsgExSubcriber := nil;
+  FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
+  FMsgExSubcriberAdapter.Free;
   FKeySearchObject.Free;
   FLock.Free;
   inherited;
@@ -118,8 +119,8 @@ var
 {$ENDIF}
 
   LSecuMain: ISecuMain;
+  LSecuInfo: PSecuInfo;
   LIndex, LVersion: Integer;
-  LSecuMainItem: PSecuMainItem;
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
@@ -135,11 +136,11 @@ begin
       if LVersion <> FUpdateVersion then begin
         SetIsUpdate(True);
         try
-          FKeySearchObject.ClearSecuMainItems;
+          FKeySearchObject.ClearSecuInfos;
           for LIndex := 0 to LSecuMain.GetItemCount - 1 do begin
-            LSecuMainItem := LSecuMain.GetItem(LIndex);
-            if LSecuMainItem <> nil then begin
-              FKeySearchObject.AddSecuMainItem(LSecuMainItem);
+            LSecuInfo := LSecuMain.GetItem(LIndex);
+            if LSecuInfo <> nil then begin
+              FKeySearchObject.AddSecuInfo(LSecuInfo);
             end;
           end;
           FUpdateVersion := LVersion;

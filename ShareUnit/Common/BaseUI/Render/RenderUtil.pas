@@ -31,28 +31,31 @@ type
                     dtaTopRight,
                     dtaBottomLeft,
                     dtaBottomRight);
-  // Create GPImage
-  function CreateGPImage(AResStream: TResourceStream): TGPImage;
+  // CreateGPImage
+//  function CreateGPImage(AResStream: TResourceStream): TGPImage;
   // GetTextSize
   function GetTextSizeX(ADC: HDC; AFont: HFONT; AText: string; var ASize: TSize): Boolean;
 
-  // Fill Solid Rect
+  // FillSolidRect
   procedure FillSolidRect(ADC: HDC; APRect: PRECT; AColorRef: COLORREF); overload;
 
-  // Fill Solid Rect
+  // FillSolidRect
   procedure FillSolidRect(ADC: HDC; AX, AY, ACX, ACY: Integer; AColorRef: COLORREF); overload;
 
-  // Draw Border
+  // DrawBorder
   procedure DrawBorder(ADC: HDC; ABorderPen : HGDIOBJ; const ARect: TRect; ABorders: integer);
 
-  // Draw Image X
-  procedure DrawImageX(AGraphics: TGPGraphics; AImage: TGPImage; ADesRect, ASrcRect: TRect);
+  // DrawImageX
+  procedure DrawImageX(AGraphics: TGPGraphics; AImage: TGPImage; ADesRect, ASrcRect: TRect); overload;
 
-  // Draw Text X
+  // DrawImageX
+  procedure DrawImageX(AGraphics: TGPGraphics; AResourceStream: TResourceStream; ADesRect, ASrcRect: TRect); overload;
+
+  // DrawTextX
   procedure DrawTextX(ADC: HDC; ARect: TRect; AText: string; AColorRef: COLORREF; ATextAlign: TDrawTextAlign;
     AMulitLine: Boolean = False; AEllipsis: Boolean = True);
 
-  // GdiPlus Draw Text Ex X
+  // GdiPlusDrawTextExX
   procedure GdiPlusDrawTextX(ADC: HDC; AGraphics: TGPGraphics; AText: string; ARect: TRect;
     AFont: HFONT; AColorRef: COLORREF; AHorzAlignment, AVertAlignment: TStringAlignment);
 
@@ -151,6 +154,21 @@ implementation
     DumpRect(@LSrcRectF, @ASrcRect);
     AGraphics.DrawImage(AImage, LDesRectF, LSrcRectF.X, LSrcRectF.Y,
       LSrcRectF.Width, LSrcRectF.Height, UnitPixel);
+  end;
+
+  procedure DrawImageX(AGraphics: TGPGraphics; AResourceStream: TResourceStream; ADesRect, ASrcRect: TRect);
+  var
+    LGPImage: TGPImage;
+    LDesRectF, LSrcRectF: TGPRectF;
+  begin
+    LGPImage := CreateGPImage(AResourceStream);
+    if LGPImage = nil then Exit;
+
+    DumpRect(@LDesRectF, @ADesRect);
+    DumpRect(@LSrcRectF, @ASrcRect);
+    AGraphics.DrawImage(LGPImage, LDesRectF, LSrcRectF.X, LSrcRectF.Y,
+      LSrcRectF.Width, LSrcRectF.Height, UnitPixel);
+    LGPImage.Free;
   end;
 
   procedure DrawTextX(ADC: HDC; ARect: TRect; AText: string; AColorRef: COLORREF; ATextAlign: TDrawTextAlign;

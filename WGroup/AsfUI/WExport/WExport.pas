@@ -34,7 +34,7 @@ uses
   function GetPlugInMgr(AMainApplication: TApplication; AContext: IAppContext): IPlugInMgr;
   begin
     // ÊÍ·Å´°¿Ú±¨´í
-    Application := AMainApplication;
+//    Application := AMainApplication;
     Result := TAsfUIPlugInMgrImpl.Create(AContext) as IPlugInMgr;
   end;
 

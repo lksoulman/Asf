@@ -15,14 +15,14 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
-  SectorMain,
-  AppContextObject;
+  SectorMain;
 
 type
 
   // SectorMain Implementation
-  TSectorMainImpl = class(TAppContextObject, ISectorMain)
+  TSectorMainImpl = class(TBaseInterfacedObject, ISectorMain)
   private
   protected
   public

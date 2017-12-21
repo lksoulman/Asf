@@ -16,11 +16,29 @@ uses
   Classes,
   SysUtils,
   RenderDC,
+  CommonLock,
   CommonRefCounter;
 
 type
 
-  // Component UI
+  // ComponentId
+  TComponentId = class(TAutoObject)
+  private
+    // Id
+    FId: Integer;
+    // Lock
+    FLock: TCSLock;
+  protected
+  public
+    // Constructor
+    constructor Create; override;
+    // Destructor
+    destructor Destroy; override;
+    // GenerateId
+    function GenerateId: Integer;
+  end;
+
+  // ComponentUI
   TComponentUI = class(TAutoObject)
   private
   protected
@@ -41,9 +59,9 @@ type
     constructor Create; override;
     // Destructor
     destructor Destroy; override;
-    // RectEx Is Valid
+    // RectExIsValid
     function RectExIsValid: Boolean; virtual;
-    // Pt In RectEx
+    // PtInRectEx
     function PtInRectEx(APt: TPoint): Boolean; virtual;
     // Draw
     function Draw(ARenderDC: TRenderDC): Boolean; virtual;
@@ -57,6 +75,32 @@ type
   end;
 
 implementation
+
+{ TComponentId }
+
+constructor TComponentId.Create;
+begin
+  inherited;
+  FId := 0;
+  FLock := TCSLock.Create;
+end;
+
+destructor TComponentId.Destroy;
+begin
+  FLock.Free;
+  inherited;
+end;
+
+function TComponentId.GenerateId: Integer;
+begin
+  FLock.Lock;
+  try
+    Result := FId;
+    Inc(FId);
+  finally
+    FLock.UnLock;
+  end;
+end;
 
 { TComponentUI }
 

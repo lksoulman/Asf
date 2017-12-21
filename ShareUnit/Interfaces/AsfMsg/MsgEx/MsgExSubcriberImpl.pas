@@ -28,7 +28,7 @@ type
   private
     // Active
     FActive: Boolean;
-    //
+    // LogInfo
     FLogInfo: string;
     // NotifyEvent
     FNotifyEvent: TNotifyEvent;

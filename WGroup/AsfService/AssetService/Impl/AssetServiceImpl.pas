@@ -252,6 +252,7 @@ end;
 
 function TAssetServiceImpl.SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean;
 begin
+  Result := True;
   FShareMgr.SetReLoginEvent(AReLoginEvent);
 end;
 

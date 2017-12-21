@@ -19,15 +19,14 @@ uses
   UserInfo,
   ProxyInfo,
   SystemInfo,
+  BaseObject,
   AppContext,
-  CompanyInfo,
-  CommonRefCounter,
-  AppContextObject;
+  CompanyInfo;
 
 type
 
   // SystemCfg Implementation
-  TSysCfgImpl = class(TAppContextObject, ISysCfg)
+  TSysCfgImpl = class(TBaseInterfacedObject, ISysCfg)
   private
     // UserInfo
     FUserInfo: IUserInfo;

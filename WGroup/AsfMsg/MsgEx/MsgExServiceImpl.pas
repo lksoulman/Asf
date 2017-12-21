@@ -19,13 +19,13 @@ uses
   MsgEx,
   MsgExImpl,
   MsgExPool,
+  BaseObject,
   AppContext,
   CommonLock,
   CommonQueue,
   MsgExService,
   ExecutorThread,
   MsgExSubcriber,
-  AppContextObject,
   MsgExSubcriberMgr;
 
 const
@@ -35,7 +35,7 @@ const
 type
 
   // MsgExService Implementation
-  TMsgExServiceImpl = class(TAppContextObject, IMsgExService)
+  TMsgExServiceImpl = class(TBaseInterfacedObject, IMsgExService)
   private
     // Lock
     FLock: TCSLock;

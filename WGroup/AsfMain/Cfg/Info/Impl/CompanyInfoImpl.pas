@@ -16,15 +16,14 @@ uses
   Classes,
   SysUtils,
   IniFiles,
+  BaseObject,
   AppContext,
-  CompanyInfo,
-  AppContextObject,
-  CommonRefCounter;
+  CompanyInfo;
 
 type
 
   // CompanyInfo Implementation
-  TCompanyInfoImpl = class(TAppContextObject, ICompanyInfo)
+  TCompanyInfoImpl = class(TBaseInterfacedObject, ICompanyInfo)
   private
     // CompanyInfo
     FCompanyInfo: TCompanyInfo;

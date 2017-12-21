@@ -15,14 +15,14 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
-  UserFundMain,
-  AppContextObject;
+  UserFundMain;
 
 type
 
   // UserFundMain Implementation
-  TUserFundMainImpl = class(TAppContextObject, IUserFundMain)
+  TUserFundMainImpl = class(TBaseInterfacedObject, IUserFundMain)
   private
   protected
   public

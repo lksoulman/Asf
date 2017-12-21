@@ -19,12 +19,11 @@ uses
   GFData,
   GFDataSet,
   ErrorCode,
+  BaseObject,
   AppContext,
   CommonLock,
   CommonPool,
   ServiceType,
-  AppContextObject,
-  CommonRefCounter,
   StatusNewsDataMgr,
   Generics.Collections;
 
@@ -46,7 +45,7 @@ type
   end;
 
   // StatusNewsDataMgr Implementation
-  TStatusNewsDataMgrImpl = class(TAppContextObject, IStatusNewsDataMgr)
+  TStatusNewsDataMgrImpl = class(TBaseInterfacedObject, IStatusNewsDataMgr)
   private
     // Lock
     FLock: TCSLock;

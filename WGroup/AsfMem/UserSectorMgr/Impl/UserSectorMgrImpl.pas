@@ -16,19 +16,18 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   UserSector,
   CommonLock,
   WNDataSetInf,
-  AppContextObject,
-  CommonRefCounter,
   Generics.Collections;
 
 type
 
 
   // UserSectorMgr Implementation
-  TUserSectorMgrImpl = class(TAppContextObject, IUserSector)
+  TUserSectorMgrImpl = class(TBaseInterfacedObject, IUserSector)
   private
     // Lock
     FLock: TCSLock;

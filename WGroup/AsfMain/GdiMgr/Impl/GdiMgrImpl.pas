@@ -2,7 +2,7 @@ unit GdiMgrImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º GdiMgr Interface Implementation
+// Description£º GdiMgr Implementation
 // Author£º      lksoulman
 // Date£º        2017-11-15
 // Comments£º
@@ -21,7 +21,7 @@ uses
 
 type
 
-  // GdiMgr Interface Implementation
+  // GdiMgr Implementation
   TGdiMgrImpl = class(TAutoInterfacedObject, IGdiMgr)
   private
     // AppContext

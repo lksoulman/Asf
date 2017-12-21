@@ -18,14 +18,14 @@ uses
   SysUtils,
   Controls,
   AppContext,
+  BaseObject,
   ServiceType,
-  AbstractLogin,
-  AppContextObject;
+  AbstractLogin;
 
 type
 
   // Login Implementation
-  TLoginImpl = class(TAppContextObject, ILogin)
+  TLoginImpl = class(TBaseInterfacedObject, ILogin)
   private
     // Login
     FLogin: TAbstractLogin;

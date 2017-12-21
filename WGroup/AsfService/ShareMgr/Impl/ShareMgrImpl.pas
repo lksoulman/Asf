@@ -20,15 +20,14 @@ uses
   Classes,
   SysUtils,
   ShareMgr,
+  BaseObject,
   AppContext,
-  HttpContextPool,
-  AppContextObject,
-  CommonRefCounter;
+  HttpContextPool;
 
 type
 
   // ShareMgr Implementation
-  TShareMgrImpl = class(TAppContextObject, IShareMgr)
+  TShareMgrImpl = class(TBaseInterfacedObject, IShareMgr)
   private
     // Url
     FUrl: string;

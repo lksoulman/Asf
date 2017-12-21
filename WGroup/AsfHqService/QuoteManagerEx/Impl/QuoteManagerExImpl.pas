@@ -20,23 +20,22 @@ uses
   StrUtils,
   Proxy,
   SecuMain,
+  BaseObject,
   AppContext,
   CommonLock,
   ServerDataMgr,
   QuoteMngr_TLB,
-  MsgExSubcriber,
   QuoteManagerEx,
   ExecutorThread,
-  AppContextObject,
   QuoteCodeInfosEx,
-  CommonRefCounter,
   QuoteManagerEvents,
-  Generics.Collections;
+  Generics.Collections,
+  MsgExSubcriberAdapter;
 
 type
 
   // QuoteManagerEx Implementation
-  TQuoteManagerExImpl = class(TAppContextObject, IQuoteManagerEx)
+  TQuoteManagerExImpl = class(TBaseInterfacedObject, IQuoteManagerEx)
   private
     // Lock
     FLock: TCSLock;
@@ -54,12 +53,12 @@ type
     FQuoteRealTime: IQuoteRealTime;
     // ServerDataMgr
     FServerDataMgr: IServerDataMgr;
-    // MsgExSubcriber
-    FMsgExSubcriber: IMsgExSubcriber;
     // QuoteManagerEvent
     FQuoteManagerEvent: TQuoteManagerEvents;
     // ConnectStatusMonitorThread
     FConnectStatusMonitorThread: TExecutorThread;
+    // MsgExSubcriberAdapter
+    FMsgExSubcriberAdapter: TMsgExSubcriberAdapter;
 
     // SecuMarket20Dic
     FSecuMarket20Dic: TDictionary<Integer, string>;
@@ -70,12 +69,12 @@ type
     // InnerCodeToCodeInfoStrDic
     FInnerCodeToCodeInfoStrDic: TDictionary<Integer, string>;
     // CodeInfoStrToInnerCodeDic
-    FCodeInfoStrToInnerCodeDic: TDictionary<string, PSecuMainItem>;
+    FCodeInfoStrToInnerCodeDic: TDictionary<string, PSecuInfo>;
 
     // ToProxyKindEnum
     function ToProxyKindEnum(AType: TProxyType): ProxyKindEnum;
     // ToCodeInfoStr
-    function ToCodeInfoStr(ASecuMain: ISecuMain; ASecuMainItem: PSecuMainItem): string;
+    function ToCodeInfoStr(ASecuMain: ISecuMain; ASecuInfo: PSecuInfo): string;
   protected
     // SetProxy
     procedure DoSetProxy;
@@ -101,8 +100,8 @@ type
     procedure DoAddSecuMarket20HsCodes;
     // UpdateSubcribeInfo
     procedure DoUpdateSubcribeInfo(AObject: TObject);
-    // UpdateSecuMainItem
-    procedure DoUpdateCodeInfoBySecuMainItem(ASecuMain: ISecuMain; ASecuMainItem: PSecuMainItem);
+    // UpdateSecuInfo
+    procedure DoUpdateCodeInfoBySecuInfo(ASecuMain: ISecuMain; ASecuInfo: PSecuInfo);
 
     // WriteLog
     procedure DoWriteLog(const ALog: WideString);
@@ -172,25 +171,25 @@ begin
   FConceptCodeInfoStrDic := TDictionary<string, string>.Create(1000);
   FPreConceptCodeInfoStrDic := TDictionary<string, string>.Create(1000);
   FInnerCodeToCodeInfoStrDic := TDictionary<Integer, string>.Create(210000);
-  FCodeInfoStrToInnerCodeDic := TDictionary<string, PSecuMainItem>.Create(210000);
+  FCodeInfoStrToInnerCodeDic := TDictionary<string, PSecuInfo>.Create(210000);
   FConnectStatusMonitorThread := TExecutorThread.Create;
   FConnectStatusMonitorThread.ThreadMethod := DoConnectStatusMonitorExecute;
-  FMsgExSubcriber := TMsgExSubcriberImpl.Create(DoUpdateSubcribeInfo);
-  FMsgExSubcriber.SetActive(True);
-  FAppContext.Subcriber(MSG_SECUMAIN_MEMORY_UPDATE, FMsgExSubcriber);
+  FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(AContext, DoUpdateSubcribeInfo);
+  FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfMem_ReUpdateSecuMain);
+  FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
   DoAddSecuMarket20HsCodes;
   DoInitTypeLib;
   DoInitQuoteManager;
   FConnectStatusMonitorThread.StartEx;
   FIsStart := True;
+  FMsgExSubcriberAdapter.SubcribeMsgEx;
 end;
 
 destructor TQuoteManagerExImpl.Destroy;
 begin
   StopService;
-  FMsgExSubcriber.SetActive(False);
-  FAppContext.UnSubcriber(MSG_SECUMAIN_MEMORY_UPDATE, FMsgExSubcriber);
-  FMsgExSubcriber := nil;
+  FMsgExSubcriberAdapter.SetSubcribeMsgExState(False);
+  FMsgExSubcriberAdapter.Free;
   FServerDataMgr := nil;
   FTypeLib := nil;
   DoUnInitQuoteManager;
@@ -220,7 +219,7 @@ begin
   end;
 end;
 
-function TQuoteManagerExImpl.ToCodeInfoStr(ASecuMain: ISecuMain; ASecuMainItem: PSecuMainItem): string;
+function TQuoteManagerExImpl.ToCodeInfoStr(ASecuMain: ISecuMain; ASecuInfo: PSecuInfo): string;
 var
   LHSCode: string;
   LSecuMarket, LSecuCategory, LListedState: Integer;
@@ -242,7 +241,7 @@ var
         begin // 上海市场
           if (LSecuCategory = 4) then begin // 指数
             if (Pos('2D', AHsCode) = 1)
-              or (ASecuMainItem.FSecuSuffix = 'CSI') then begin// 中证/申万指数
+              or (ASecuInfo.FSecuSuffix = 'CSI') then begin// 中证/申万指数
               Result := Result + '_' + SUFFIX_OT
             end else if (Pos('CI', AHsCode) = 1) then begin // 中信指数
               Result := Copy(AHsCode, 3, 100) + '_' + SUFFIX_ZXI
@@ -295,9 +294,9 @@ var
   end;
 begin
   Result := '';
-  LSecuMarket := ASecuMainItem^.ToGilMarket;
-  LListedState := ASecuMainItem^.FListedState;
-  LSecuCategory := ASecuMainItem^.ToGilCategory;
+  LSecuMarket := ASecuInfo^.ToGilMarket;
+  LListedState := ASecuInfo^.FListedState;
+  LSecuCategory := ASecuInfo^.ToGilCategory;
 
   if ((LSecuMarket in [83,90,81,10,13,15,19,20,72,89,76,77,78,79]) and (LListedState in [1, 3]))
     or ((LSecuMarket = 84) and (LSecuCategory = 4) and (LListedState = 1))
@@ -305,37 +304,37 @@ begin
     or ((LSecuCategory = 930) and (LListedState = 1))
     or ((LSecuCategory = 1) and (LSecuMarket = 9)) then begin
 
-    if (ASecuMainItem^.FSecuSuffix = 'CSI') then begin  // 中证指数
+    if (ASecuInfo^.FSecuSuffix = 'CSI') then begin  // 中证指数
       LHSCode := '';
     end else if LSecuCategory = 110 then begin        // 个股期权
-      LHSCode := ASecuMainItem^.FCompanyName;
+      LHSCode := ASecuInfo^.FCompanyName;
     end else begin
       if LSecuMarket = 20 then begin // 中金所
-        if not FSecuMarket20Dic.TryGetValue(ASecuMainItem^.FInnerCode, LHSCode) then begin
+        if not FSecuMarket20Dic.TryGetValue(ASecuInfo^.FInnerCode, LHSCode) then begin
           LHSCode := '';
         end;
       end else if (LSecuMarket = 83) then begin // 根据恒生提供的转换规则，对沪深指数中以‘000’开头的指数代码做转化
-        if (Pos('000', ASecuMainItem^.FSecuCode) = 1)
+        if (Pos('000', ASecuInfo^.FSecuCode) = 1)
           and (LSecuCategory = 4) then begin
-          if (ASecuMainItem^.FSecuCode = '000001') then begin
+          if (ASecuInfo^.FSecuCode = '000001') then begin
             LHSCode := '1A0001'
-          end else if (ASecuMainItem^.FSecuCode = '000002') then begin
+          end else if (ASecuInfo^.FSecuCode = '000002') then begin
             LHSCode := '1A0002'
-          end else if (ASecuMainItem^.FSecuCode = '000003') then begin
+          end else if (ASecuInfo^.FSecuCode = '000003') then begin
             LHSCode := '1A0003'
           end else begin
-            LHSCode := ReplaceStr(ASecuMainItem^.FSecuCode, '000', '1B0');
+            LHSCode := ReplaceStr(ASecuInfo^.FSecuCode, '000', '1B0');
           end;
         end else begin
-          LHSCode := ASecuMain.GetHsCode(ASecuMainItem.FInnerCode);
+          LHSCode := ASecuMain.GetHsCode(ASecuInfo.FInnerCode);
         end;
       end else begin
-        LHSCode := ASecuMain.GetHsCode(ASecuMainItem.FInnerCode);
+        LHSCode := ASecuMain.GetHsCode(ASecuInfo.FInnerCode);
       end;
     end;
 
     if Trim(LHSCode) = '' then begin
-      LHSCode := ASecuMainItem^.FSecuCode;
+      LHSCode := ASecuInfo^.FSecuCode;
     end;
 
     Result := GetCodeInfoStr(LHSCode);
@@ -438,13 +437,13 @@ var
   LIndex: Integer;
   LPInnerCode: PInteger;
   LPCodeInfo: PCodeInfo;
-  LSecuMainItem: PSecuMainItem;
+  LSecuInfo: PSecuInfo;
 begin
   LPCodeInfo := PCodeInfo(APCodeInfos);
   LPInnerCode := PInteger(AInnerCodes);
   for LIndex := 0 to Count - 1 do begin
-    if FCodeInfoStrToInnerCodeDic.TryGetValue(CodeInfoKey(LPCodeInfo), LSecuMainItem) then begin
-      LPInnerCode^ := LSecuMainItem^.FInnerCode;
+    if FCodeInfoStrToInnerCodeDic.TryGetValue(CodeInfoKey(LPCodeInfo), LSecuInfo) then begin
+      LPInnerCode^ := LSecuInfo^.FInnerCode;
     end else begin
       LPInnerCode^ := 0;
     end;
@@ -704,7 +703,7 @@ procedure TQuoteManagerExImpl.DoUpdateConceptCodes(Sender: TObject);
 var
   LValue: Int64;
   LPCodeInfo: PCodeInfo;
-  LSecuMainItem: PSecuMainItem;
+  LSecuInfo: PSecuInfo;
   LCodeInfoStr, LPreCodeInfoStr: string;
   LEnum: TDictionary<string, string>.TPairEnumerator;
 begin
@@ -719,10 +718,10 @@ begin
         LPCodeInfo := PCodeInfo(LValue);
         LCodeInfoStr := CodeInfoKey(LPCodeInfo);
         LPreCodeInfoStr := LEnum.Current.Value;
-        if FCodeInfoStrToInnerCodeDic.TryGetValue(LPreCodeInfoStr, LSecuMainItem) then begin
+        if FCodeInfoStrToInnerCodeDic.TryGetValue(LPreCodeInfoStr, LSecuInfo) then begin
           FCodeInfoStrToInnerCodeDic.Remove(LPreCodeInfoStr);
           FConceptCodeInfoStrDic.TryGetValue(LPreCodeInfoStr, LCodeInfoStr);
-          FCodeInfoStrToInnerCodeDic.AddOrSetValue(LCodeInfoStr, LSecuMainItem);
+          FCodeInfoStrToInnerCodeDic.AddOrSetValue(LCodeInfoStr, LSecuInfo);
         end;
       end;
     end;
@@ -739,7 +738,7 @@ var
 
   LSecuMain: ISecuMain;
   LIndex, LVersion: Integer;
-  LSecuMainItem: PSecuMainItem;
+  LSecuInfo: PSecuInfo;
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
@@ -756,9 +755,9 @@ begin
         FLock.Lock;
         try
           for LIndex := 0 to LSecuMain.GetItemCount - 1 do begin
-            LSecuMainItem := LSecuMain.GetItem(LIndex);
-            if LSecuMainItem <> nil then begin
-              DoUpdateCodeInfoBySecuMainItem(LSecuMain, LSecuMainItem);
+            LSecuInfo := LSecuMain.GetItem(LIndex);
+            if LSecuInfo <> nil then begin
+              DoUpdateCodeInfoBySecuInfo(LSecuMain, LSecuInfo);
             end;
           end;
         finally
@@ -771,7 +770,7 @@ begin
     LSecuMain := nil;
 
     FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,
-      Format('FuncName=SendMessageEx@Id=%d@Info=%',[MSG_HQSERVICE_RESUBCRIBE, 'HqData Update ReSubcribe']), 2);
+      Format('FuncName=SendMessageEx@Id=%d@Info=%',[Msg_AsfHqService_ReSubcribeHq, 'HqData Update ReSubcribe']), 2);
 
 {$IFDEF DEBUG}
   finally
@@ -781,32 +780,32 @@ begin
 {$ENDIF}
 end;
 
-procedure TQuoteManagerExImpl.DoUpdateCodeInfoBySecuMainItem(ASecuMain: ISecuMain; ASecuMainItem: PSecuMainItem);
+procedure TQuoteManagerExImpl.DoUpdateCodeInfoBySecuInfo(ASecuMain: ISecuMain; ASecuInfo: PSecuInfo);
 var
   LCodeInfoStr, LSecuAbbr: string;
 //  LAnsiName: AnsiString;
 begin
   FLock.Lock;
   try
-    LCodeInfoStr := ToCodeInfoStr(ASecuMain, ASecuMainItem);
+    LCodeInfoStr := ToCodeInfoStr(ASecuMain, ASecuInfo);
     if LCodeInfoStr <> '' then begin
       if not FCodeInfoStrToInnerCodeDic.ContainsKey(LCodeInfoStr) then begin
-        FInnerCodeToCodeInfoStrDic.AddOrSetValue(ASecuMainItem.FInnerCode, LCodeInfoStr);
-        FCodeInfoStrToInnerCodeDic.AddOrSetValue(LCodeInfoStr, ASecuMainItem);
+        FInnerCodeToCodeInfoStrDic.AddOrSetValue(ASecuInfo.FInnerCode, LCodeInfoStr);
+        FCodeInfoStrToInnerCodeDic.AddOrSetValue(LCodeInfoStr, ASecuInfo);
 
-        case ASecuMainItem.ToGilMarket of
+        case ASecuInfo.ToGilMarket of
           0, 84:
             begin
-              case ASecuMainItem.ToGilCategory of
+              case ASecuInfo.ToGilCategory of
                 930:
                   begin
-                    LSecuAbbr := AnsiString(ASecuMainItem.FSecuAbbr);
+                    LSecuAbbr := AnsiString(ASecuInfo.FSecuAbbr);
                     LSecuAbbr := StringReplace(LSecuAbbr, '(', '（', [rfReplaceAll]);
                     LSecuAbbr := StringReplace(LSecuAbbr, ')', '）', [rfReplaceAll]);
                     LSecuAbbr := LeftStr(LSecuAbbr, 16);
                     FPreConceptCodeInfoStrDic.AddOrSetValue(LSecuAbbr, LCodeInfoStr);
 
-//                    LAnsiName := AnsiString(ASecuMainItem.FSecuAbbr);
+//                    LAnsiName := AnsiString(ASecuInfo.FSecuAbbr);
 //                    LAnsiName := StringReplace(LAnsiName, '(', '（', [rfReplaceAll]);
 //                    LAnsiName := StringReplace(LAnsiName, ')', '）', [rfReplaceAll]);
 //                    LAnsiName := LeftStr(LAnsiName, 16);
@@ -845,7 +844,7 @@ begin
       LHqServerInfo.ConnectStatus := csConnected;
       FAppContext.HQLog(llINFO, Format('[TQuoteManagerExImpl][DoConnected] [%s][%s][%d] HqServer Connected.',[LHqServerInfo.ServerName, AIP, APort]));
       FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSSERVERDATAMGR,
-        Format('FuncName=UpdateConnected@ServerName=%s@IsConnected=%s',[MSG_HQSERVICE_CONNECT, LHqServerInfo.ServerName, BoolToStr(True)]), 1);
+        Format('FuncName=UpdateConnected@ServerName=%s@IsConnected=%s',[Msg_AsfHqService_ReConnectServer, LHqServerInfo.ServerName, BoolToStr(True)]), 1);
     end;
   finally
     FServerDataMgr.UnLock;
@@ -865,7 +864,7 @@ begin
       LHqServerInfo.ConnectStatus := csConnected;
       FAppContext.HQLog(llINFO, Format('[TQuoteManagerExImpl][DoDisconnected] [%s][%s][%d] HqServer DisConnected.',[LHqServerInfo.ServerName, AIP, APort]));
       FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSSERVERDATAMGR,
-        Format('FuncName=UpdateConnected@ServerName=%s@IsConnected=%s',[MSG_HQSERVICE_CONNECT, LHqServerInfo.ServerName, BoolToStr(False)]), 1);
+        Format('FuncName=UpdateConnected@ServerName=%s@IsConnected=%s',[Msg_AsfHqService_ReConnectServer, LHqServerInfo.ServerName, BoolToStr(False)]), 1);
     end;
   finally
     FServerDataMgr.UnLock;

@@ -15,38 +15,53 @@ uses
   Windows,
   Classes,
   SysUtils,
+  Controls,
   Vcl.Forms,
   Master,
+  Command,
   MasterUI,
-//  ChildPage,
+  KeyFairy,
+  SecuMain,
+  CmdCookie,
+  ChildPage,
+  BaseObject,
   AppContext,
-  AppContextObject,
-  CommonRefCounter,
   Generics.Collections;
 
 type
 
-  // Child Page Info
+  // ChildPageInfo
   TChildPageInfo = packed record
-    //
-//    FChildPage: IChildPage;
+//    FChildForm: TForm;
+    FChildPage: IChildPage;
   end;
 
-  // Child Page Info Pointer
+  // ChildPageInfo Pointer
   PChildPageInfo = ^TChildPageInfo;
 
   // Master Implementation
-  TMasterImpl = class(TAppContextObject, IMaster)
+  TMasterImpl = class(TBaseInterfacedObject, IMaster)
   private
     // MasterUI
     FMasterUI: TMasterUI;
-    // CurrChildPageInfo
-    FCurrChildPageInfo: PChildPageInfo;
-    // ChildPageInfo
-    FChildPageInfos: TList<PChildPageInfo>;
+    // KeyFairy
+    FKeyFairy: IKeyFairy;
+    // CmdCookieMgr
+    FCmdCookieMgr: TCmdCookieMgr;
+    // FrontChildPageInfo
+    FFrontChildPageInfo: PChildPageInfo;
+    // ChildPageInfoDic
+    FChildPageInfoDic: TDictionary<Integer, PChildPageInfo>;
   protected
+    // InitMasterEvents
+    procedure DoInitMasterEvents;
+    // MasterKeyPress
+    procedure DoMasterKeyPress(Sender: TObject; var Key: Char);
+
     // ClearChildPageInfo
     procedure DoClearChildPageInfos;
+    // BringToFront
+    procedure DoBringToFront(AChildPageInfo: PChildPageInfo; AParams: string);
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -55,28 +70,32 @@ type
 
     { IMaster }
 
+    // GetHandle
+    function GetHandle: Cardinal;
+    // GetWindowState
+    function GetWindowState: TWindowState;
+    // SetWindowState
+    procedure SetWindowState(AWindowState: TWindowState);
+
     // Show
     procedure Show;
     // Hide
     procedure Hide;
-    // Go Back (True is Response, False Is not Response)
+    // GoBack (True is Response, False Is not Response)
     function GoBack: Boolean;
-    // Go Forward (True is Response, False Is not Response)
+    // GoForward (True is Response, False Is not Response)
     function GoForward: Boolean;
-    // Get Handle
-    function GetHandle: Cardinal;
-    // Get Count
-    function GetPageCount: Integer;
-    // Get Active Page
-//    function GetActivePage: IChildPage;
-//    // Find Page
-//    function FindPage(ACommandId: Integer): IChildPage;
-//    // Add ChildPage
-//    procedure AddChildPage(AChildPage: IChildPage);
-//    // Set ActivatePage
-//    procedure SetActivatePage(AChildPage: IChildPage);
-    // Set WindowState
-    procedure SetWindowState(AWindowState: TWindowState);
+    // IsHasChildPage
+    function IsHasChildPage(ACommandId: Integer): Boolean;
+    // AddChildPage
+    function AddChildPage(AChildPage: IChildPage): Boolean;
+    // AddCmdCookie
+    function AddCmdCookie(ACommandId: Integer; AParams: string): Boolean;
+    // BringToFrontChildPage
+    function BringToFrontChildPage(ACommandId: Integer; AParams: string): Boolean;
+
+    property Handle: Cardinal read GetHandle;
+    property WindowState: TWindowState read GetWindowState write SetWindowState;
   end;
 
 implementation
@@ -88,18 +107,95 @@ begin
   inherited;
   FMasterUI := TMasterUI.Create(AContext);
   FMasterUI.PopupParent := nil;
-  FChildPageInfos := TList<PChildPageInfo>.Create;
+  FCmdCookieMgr := TCmdCookieMgr.Create(AContext);
+  FChildPageInfoDic := TDictionary<Integer, PChildPageInfo>.Create(20);
+  DoInitMasterEvents;
 end;
 
 destructor TMasterImpl.Destroy;
 begin
-  FChildPageInfos.Free;
+  DoClearChildPageInfos;
+  FChildPageInfoDic.Free;
+  FCmdCookieMgr.Free;
   FMasterUI.Free;
+  FKeyFairy := nil;
   inherited;
+end;
+
+procedure TMasterImpl.DoInitMasterEvents;
+begin
+  FMasterUI.OnKeyPress := DoMasterKeyPress;
+end;
+
+procedure TMasterImpl.DoMasterKeyPress(Sender: TObject; var Key: Char);
+var
+  LKey: string;
+  LSecuInfo: PSecuInfo;
+begin
+  inherited;
+
+  LKey := Char(Key);
+  if FKeyFairy <> nil then begin
+    FKeyFairy.Display(Self.Handle, LKey, LSecuInfo);
+  end else begin
+    FKeyFairy := FAppContext.FindInterface(ASF_COMMAND_ID_KEYFAIRY) as IKeyFairy;
+    if FKeyFairy = nil then Exit;
+    FKeyFairy.Display(Self.Handle, LKey, LSecuInfo);
+  end;
+end;
+
+procedure TMasterImpl.DoClearChildPageInfos;
+var
+  LIndex: Integer;
+  LChildPageInfo: PChildPageInfo;
+  LChildPageInfos: TArray<PChildPageInfo>;
+begin
+  LChildPageInfos := FChildPageInfoDic.Values.ToArray;
+  for LIndex := Low(LChildPageInfos) to High(LChildPageInfos) do begin
+    if LChildPageInfos[LIndex] <> nil then begin
+      LChildPageInfo := LChildPageInfos[LIndex];
+      if LChildPageInfo.FChildPage <> nil then begin
+        LChildPageInfo.FChildPage := nil;
+      end;
+      Dispose(LChildPageInfo);
+    end;
+  end;
+  FChildPageInfoDic.Clear;
+end;
+
+procedure TMasterImpl.DoBringToFront(AChildPageInfo: PChildPageInfo; AParams: string);
+begin
+  if AChildPageInfo <> FFrontChildPageInfo then begin
+    if FFrontChildPageInfo <> nil then begin
+      FFrontChildPageInfo.FChildPage.GoSendToBack;
+    end;
+    FFrontChildPageInfo := AChildPageInfo;
+    FFrontChildPageInfo.FChildPage.GoBringToFront(AParams);
+  end;
+end;
+
+function TMasterImpl.GetHandle: Cardinal;
+begin
+  Result := FMasterUI.Handle;
+end;
+
+function TMasterImpl.GetWindowState: TWindowState;
+begin
+  Result := FMasterUI.WindowState;
+end;
+
+procedure TMasterImpl.SetWindowState(AWindowState: TWindowState);
+begin
+  if FMasterUI.WindowState <> AWindowState then begin
+    FMasterUI.WindowState := AWindowState;
+  end;
 end;
 
 procedure TMasterImpl.Show;
 begin
+  if FFrontChildPageInfo <> nil then begin
+
+  end;
   FMasterUI.Show;
 end;
 
@@ -109,97 +205,102 @@ begin
 end;
 
 function TMasterImpl.GoBack: Boolean;
+var
+  LParams: string;
+  LCmdCookie: PCmdCookie;
+  LChildPageInfo: PChildPageInfo;
 begin
-
-end;
-
-function TMasterImpl.GoForward: Boolean;
-begin
-
-end;
-
-function TMasterImpl.GetHandle: Cardinal;
-begin
-  Result := FMasterUI.Handle;
-end;
-
-function TMasterImpl.GetPageCount: Integer;
-begin
-  Result := FChildPageInfos.Count;
-end;
-
-//function TMasterImpl.GetActivePage: IChildPage;
-//begin
-//  Result := FCurrChildPageInfo^.FChildPage;
-//end;
-//
-//function TMasterImpl.FindPage(ACommandId: Integer): IChildPage;
-//var
-//  LChildPageInfo: PChildPageInfo;
-//begin
-////  if FCommandChildPageInfoDic.TryGetValue(ACommandId, LChildPageInfo) then begin
-////    Result := LChildPageInfo^.FChildPage;
-////  end else begin
-////    Result := nil;
-////  end;
-//end;
-//
-//procedure TMasterImpl.AddChildPage(AChildPage: IChildPage);
-//var
-//  LChildPageInfo: PChildPageInfo;
-//begin
-//  if AChildPage = nil then Exit;
-//
-////  if not FCommandChildPageInfoDic.ContainsKey(AChildPage.GetCommandId) then begin
-////    New(LChildPageInfo);
-////    LChildPageInfo^.FChildPage := AChildPage;
-////    FChildPageInfos.Add(LChildPageInfo);
-////    FCommandChildPageInfoDic.AddOrSetValue(AChildPage.GetCommandId, LChildPageInfo);
-////  end;
-//end;
-//
-//procedure TMasterImpl.SetActivatePage(AChildPage: IChildPage);
-//var
-//  LChildPageInfo: PChildPageInfo;
-//begin
-//  if AChildPage = nil then Exit;
-//
-//  if FCurrChildPageInfo^.FChildPage <> AChildPage then begin
-//    if FCurrChildPageInfo^.FChildPage <> nil then begin
-//      FCurrChildPageInfo^.FChildPage.SetNoActivate;
-//      FCurrChildPageInfo := nil;
-//    end;
-////    if FCommandChildPageInfoDic.TryGetValue(AChildPage.GetCommandId, LChildPageInfo) then begin
-////      FCurrChildPageInfo := LChildPageInfo;
-////      if (FCurrChildPageInfo <> nil)
-////        and (FCurrChildPageInfo^.FChildPage <> nil)then begin
-////        FCurrChildPageInfo.FChildPage.SetActivate;
-////      end;
-////    end;
-//  end;
-//end;
-
-procedure TMasterImpl.SetWindowState(AWindowState: TWindowState);
-begin
-  if FMasterUI.WindowState <> AWindowState then begin
-    FMasterUI.WindowState := AWindowState;
+  Result := False;
+  LCmdCookie := FCmdCookieMgr.CurrCmdCookie;
+  if LCmdCookie <> nil then begin
+    if FChildPageInfoDic.TryGetValue(LCmdCookie^.FId, LChildPageInfo) then begin
+      Result := LChildPageInfo.FChildPage.GoBack;
+    end;
+  end;
+  if not Result then begin
+    if FCmdCookieMgr.CanPrev then begin
+      FCmdCookieMgr.Prev(LCmdCookie);
+      if LCmdCookie <> nil then begin
+        if LCmdCookie.FParams <> '' then begin
+          LParams := 'GoFuncName=GoBack@' + LCmdCookie.FParams;
+        end else begin
+          LParams := 'GoFuncName=GoBack';
+        end;
+      end;
+    end;
   end;
 end;
 
-procedure TMasterImpl.DoClearChildPageInfos;
+function TMasterImpl.GoForward: Boolean;
 var
-  LIndex: Integer;
+  LParams: string;
+  LCmdCookie: PCmdCookie;
   LChildPageInfo: PChildPageInfo;
 begin
-//  for LIndex := 0 to FChildPageInfos.Count - 1 do begin
-//    LChildPageInfo := FChildPageInfos.Items[LIndex];
-//    if LChildPageInfo <> nil then begin
-//      if LChildPageInfo.FChildPage <> nil then begin
-//        LChildPageInfo.FChildPage := nil;
-//      end;
-//      Dispose(LChildPageInfo);
-//    end;
-//  end;
+  Result := False;
+  LCmdCookie := FCmdCookieMgr.CurrCmdCookie;
+  if LCmdCookie <> nil then begin
+    if FChildPageInfoDic.TryGetValue(LCmdCookie^.FId, LChildPageInfo) then begin
+      Result := LChildPageInfo.FChildPage.GoForward;
+    end;
+  end;
+  if not Result then begin
+    if FCmdCookieMgr.CanNext then begin
+      FCmdCookieMgr.Next(LCmdCookie);
+      if LCmdCookie <> nil then begin
+        if LCmdCookie.FParams <> '' then begin
+          LParams := 'GoFuncName=GoForward@' + LCmdCookie.FParams;
+        end else begin
+          LParams := 'GoFuncName=GoForward';
+        end;
+      end;
+    end;
+  end;
+end;
+
+function TMasterImpl.IsHasChildPage(ACommandId: Integer): Boolean;
+var
+  LChildPageInfo: PChildPageInfo;
+begin
+  if FChildPageInfoDic.TryGetValue(ACommandId, LChildPageInfo) then begin
+    Result := True;
+  end else begin
+    Result := False;
+  end;
+end;
+
+function TMasterImpl.AddChildPage(AChildPage: IChildPage): Boolean;
+var
+  LChildPageInfo: PChildPageInfo;
+begin
+  Result := False;
+  if not FChildPageInfoDic.ContainsKey(AChildPage.CommandId) then begin
+    New(LChildPageInfo);
+    if LChildPageInfo <> nil then begin
+      Result := True;
+      LChildPageInfo.FChildPage := AChildPage;
+      FChildPageInfoDic.AddOrSetValue(AChildPage.CommandId, LChildPageInfo);
+      AChildPage.GetChildPageUI.Parent := FMasterUI;
+      AChildPage.GetChildPageUI.Align := alClient;
+      AChildPage.GetChildPageUI.Show;
+    end;
+  end;
+end;
+
+function TMasterImpl.AddCmdCookie(ACommandId: Integer; AParams: string): Boolean;
+begin
+  FCmdCookieMgr.Push(ACommandId, AParams);
+end;
+
+function TMasterImpl.BringToFrontChildPage(ACommandId: Integer; AParams: string): Boolean;
+var
+  LChildPageInfo: PChildPageInfo;
+begin
+  Result := False;
+  if FChildPageInfoDic.TryGetValue(ACommandId, LChildPageInfo) then begin
+    Result := True;
+    DoBringToFront(LChildPageInfo, AParams);
+  end;
 end;
 
 end.

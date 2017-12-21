@@ -227,8 +227,8 @@ type
                   ltDeListing                   // 非上市
                   );
 
-  // SecuMainItem
-  TSecuMainItem = packed record
+  // SecuInfo
+  TSecuInfo = packed record
     FIsUsed: Boolean;                           // 是不是在用
     FInnerCode: Int32;                          // 证券内码
     FSecuMarket: UInt8;                         // 证券市场
@@ -249,33 +249,33 @@ type
     FCompanyName: string;                       // 证券公司代码
 //    FCodeByAgent: string;                       // CodeByAgent
 
-    // Set Update
+    // SetUpdate
     function SetUpdate: boolean;
-    // Get Margin
+    // GetMargin
     function GetMargin: Integer;
-    // Get Through
+    // GetThrough
     function GetThrough: Integer;
-    // Get SecuType
+    // GetSecuType
     function GetSecuType: TSecuType;
-    // Get MarginType
+    // GetMarginType
     function GetMarginType: TMarginType;
-    // Get ThroughType
+    // GetThroughType
     function GetThroughType: TThroughType;
-    // Get SearchType Name
+    // GetSearchTypeName
     function GetSearchTypeName: string;
-    // To Gil Market
+    // ToGilMarket
     function ToGilMarket: Integer;
-    // To Gil Category
+    // ToGilCategory
     function ToGilCategory: Integer;
-    // To Gil Special Mark
+    // ToGilGilMarkInfo
     function ToGilMarkInfo(var AMargin, AThrough: Integer): Boolean;
   end;
 
-  // SecuMain Item Pointer
-  PSecuMainItem = ^TSecuMainItem;
+  // SecuInfo Pointer
+  PSecuInfo = ^TSecuInfo;
 
-  // SecuMain Item Pointer Dynamic Array
-  TSecuMainItemDynArray = Array Of PSecuMainItem;
+  // SecuInfo Pointer Array
+  TSecuInfoDynArray = Array Of PSecuInfo;
 
   // SecuMain Interface
   ISecuMain = Interface(IInterface)
@@ -295,7 +295,7 @@ type
     // GetUpdateVersion
     function GetUpdateVersion: Integer;
     // GetItem
-    function GetItem(AIndex: Integer): PSecuMainItem;
+    function GetItem(AIndex: Integer): PSecuInfo;
     // GetHsCode
     function GetHsCode(AInnerCode: Integer): string;
   end;
@@ -303,17 +303,17 @@ type
   // SecuMainQuery
   ISecuMainQuery = Interface(IInterface)
     ['{CB6B22C8-1BCF-449A-9328-8D9E85046448}']
-    // Get Security By InnerCode
-    function GetSecurity(AInnerCode: Integer): PSecuMainItem;
-    // Get Securitys By InnerCodes
-    function GetSecuritys(AInnerCodes: TIntegerDynArray; var ASecuMainItems: TSecuMainItemDynArray): Boolean;
+    // GetSecuInfo
+    function GetSecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;
+    // GetSecuInfos
+    function GetSecuInfos(AInnerCodes: TIntegerDynArray; var ASecuInfos: TSecuInfoDynArray): Integer;
   end;
 
 implementation
 
-{ TSecuMainItem }
+{ TSecuInfo }
 
-function TSecuMainItem.SetUpdate: boolean;
+function TSecuInfo.SetUpdate: boolean;
 var
   LSecuMarket: Integer;
 begin
@@ -404,7 +404,7 @@ begin
   end;
 end;
 
-function TSecuMainItem.GetMargin: Integer;
+function TSecuInfo.GetMargin: Integer;
 var
   LMargin: UInt8;
 begin
@@ -413,27 +413,27 @@ begin
   Result := LMargin;
 end;
 
-function TSecuMainItem.GetThrough: Integer;
+function TSecuInfo.GetThrough: Integer;
 begin
   Result := (FSecuMarkInfo and THROUGH_MASK);
 end;
 
-function TSecuMainItem.GetSecuType: TSecuType;
+function TSecuInfo.GetSecuType: TSecuType;
 begin
   Result := FSecuType;
 end;
 
-function TSecuMainItem.GetMarginType: TMarginType;
+function TSecuInfo.GetMarginType: TMarginType;
 begin
   Result := FMarginType;
 end;
 
-function TSecuMainItem.GetThroughType: TThroughType;
+function TSecuInfo.GetThroughType: TThroughType;
 begin
   Result := FThroughType;
 end;
 
-function TSecuMainItem.GetSearchTypeName: string;
+function TSecuInfo.GetSearchTypeName: string;
 var
   LSearchType: Integer;
 begin
@@ -489,7 +489,7 @@ begin
   end;
 end;
 
-function TSecuMainItem.ToGilMarket: Integer;
+function TSecuInfo.ToGilMarket: Integer;
 begin
   if FSecuMarket < SECUMARKET_310 then begin
     Result := FSecuMarket;
@@ -502,12 +502,12 @@ begin
   end;
 end;
 
-function TSecuMainItem.ToGilCategory: Integer;
+function TSecuInfo.ToGilCategory: Integer;
 begin
   Result := FSecuCategory;
 end;
 
-function TSecuMainItem.ToGilMarkInfo(var AMargin, AThrough: Integer): Boolean;
+function TSecuInfo.ToGilMarkInfo(var AMargin, AThrough: Integer): Boolean;
 var
   LMargin, LThrough: UInt8;
 begin

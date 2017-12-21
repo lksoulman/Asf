@@ -17,13 +17,12 @@ uses
   SysUtils,
   Command,
   CommandMgr,
+  BaseObject,
   AppContext,
   CommonPool,
   CommonLock,
   CommonQueue,
   ExecutorThread,
-  CommonRefCounter,
-  AppContextObject,
   Generics.Collections;
 
 type
@@ -42,7 +41,7 @@ type
   end;
 
   // CommandJobList
-  TCommandJobList = class(TAutoObject)
+  TCommandJobList = class(TBaseObject)
   private
     // Lock
     FLock: TCSLock;
@@ -57,7 +56,7 @@ type
     procedure DoClearJobs;
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
     // Lock
@@ -90,12 +89,16 @@ type
   end;
 
   // CommandMgr Implementation
-  TCommandMgrImpl = class(TAppContextObject, ICommandMgr)
+  TCommandMgrImpl = class(TBaseInterfacedObject, ICommandMgr)
   private
     // Lock
     FLock: TCSLock;
+    // IsStart
+    FIsStart: Boolean;
     // Commands
     FCommands: TList<ICommand>;
+    // Interceptors
+    FInterceptors: TList<ICmdInterceptor>;
     // CommandDic
     FCommandDic: TDictionary<Cardinal, ICommand>;
     // SysCommandDic
@@ -115,6 +118,10 @@ type
     procedure DoExecuteFixedJobs;
     // AsyncExecuteCmdThread
     procedure DoAsyncExecuteCmdThread(AObject: TObject);
+    // ExecuteCmdAfter
+    procedure DoExecuteCmdAfter(ACommandId: Cardinal; AParams: string);
+    // ExecuteCmdBefore
+    procedure DoExecuteCmdBefore(ACommandId: Cardinal; AParams: string);
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -123,12 +130,18 @@ type
 
     { ICommandMgr }
 
+    // StopJobs
+    procedure StopJobs;
     // Register
     function RegisterCmd(ACommand: ICommand): Boolean;
     // UnRegister
     function UnRegisterCmd(ACommand: ICommand): Boolean;
     // ExecuteCmd
     function ExecuteCmd(ACommandId: Cardinal; AParams: string): Boolean;
+    // RegisterCmdInterceptor
+    function RegisterInterceptor(AInterceptor: ICmdInterceptor): Boolean;
+    // UnRegisterCmdInterceptor
+    function UnRegisterInterceptor(AInterceptor: ICmdInterceptor): Boolean;
     // DelayExecuteCmd
     function DelayExecuteCmd(ACommandId: Cardinal; AParams: string; ADelaySecs: Cardinal): Boolean;
     // FixedExecuteCmd
@@ -179,7 +192,7 @@ end;
 
 { TCommandJobList }
 
-constructor TCommandJobList.Create;
+constructor TCommandJobList.Create(AContext: IAppContext);
 begin
   inherited;
   FHead := nil;
@@ -339,14 +352,16 @@ begin
   inherited;
   FLock := TCSLock.Create;
   FCommands := TList<ICommand>.Create;
+  FInterceptors := TList<ICmdInterceptor>.Create;
   FCommandDic := TDictionary<Cardinal, ICommand>.Create;
   FSysCommandDic := TDictionary<Cardinal, ICommand>.Create;
   FCommandJobPool := TCommandJobPool.Create(10);
-  FDelayCommandJobs := TCommandJobList.Create;
-  FFixedCommandJobs := TCommandJobList.Create;
+  FDelayCommandJobs := TCommandJobList.Create(AContext);
+  FFixedCommandJobs := TCommandJobList.Create(AContext);
   FAsyncExecuteCmdThread := TExecutorThread.Create;
   FAsyncExecuteCmdThread.ThreadMethod := DoAsyncExecuteCmdThread;
   FAsyncExecuteCmdThread.StartEx;
+  FIsStart := True;
 end;
 
 destructor TCommandMgrImpl.Destroy;
@@ -357,6 +372,7 @@ begin
   FCommandJobPool.Free;
   FSysCommandDic.Free;
   FCommandDic.Free;
+  FInterceptors.Free;
   FCommands.Free;
   FLock.Free;
   inherited;
@@ -424,6 +440,36 @@ begin
   end;
 end;
 
+procedure TCommandMgrImpl.DoExecuteCmdAfter(ACommandId: Cardinal; AParams: string);
+var
+  LIndex: Integer;
+begin
+  for LIndex := 0 to FInterceptors.Count - 1 do begin
+    if FInterceptors.Items[LIndex] <> nil then begin
+      FInterceptors.Items[LIndex].ExecuteCmdAfter(ACommandId, AParams);
+    end;
+  end;
+end;
+
+procedure TCommandMgrImpl.DoExecuteCmdBefore(ACommandId: Cardinal; AParams: string);
+var
+  LIndex: Integer;
+begin
+  for LIndex := 0 to FInterceptors.Count - 1 do begin
+    if FInterceptors.Items[LIndex] <> nil then begin
+      FInterceptors.Items[LIndex].ExecuteCmdBefore(ACommandId, AParams);
+    end;
+  end;
+end;
+
+procedure TCommandMgrImpl.StopJobs;
+begin
+  if FIsStart then begin
+    FAsyncExecuteCmdThread.ShutDown;
+    FIsStart := False;
+  end;
+end;
+
 function TCommandMgrImpl.RegisterCmd(ACommand: ICommand): Boolean;
 var
   LOldCommand: ICommand;
@@ -467,10 +513,31 @@ var
 begin
   if FCommandDic.TryGetValue(ACommandId, LCommand) then begin
     Result := True;
+    DoExecuteCmdBefore(ACommandId, AParams);
     LCommand.Execute(AParams);
+    DoExecuteCmdAfter(ACommandId, AParams);
   end else begin
     Result := False;
   end;
+end;
+
+function TCommandMgrImpl.RegisterInterceptor(AInterceptor: ICmdInterceptor): Boolean;
+begin
+  Result := False;
+  if AInterceptor = nil then Exit;
+
+  if FInterceptors.IndexOf(AInterceptor) < 0 then begin
+    Result := True;
+    FInterceptors.Add(AInterceptor);
+  end;
+end;
+
+function TCommandMgrImpl.UnRegisterInterceptor(AInterceptor: ICmdInterceptor): Boolean;
+begin
+  Result := False;
+  if AInterceptor = nil then Exit;
+
+  FInterceptors.Remove(AInterceptor);
 end;
 
 function TCommandMgrImpl.DelayExecuteCmd(ACommandId: Cardinal; AParams: string; ADelaySecs: Cardinal): Boolean;

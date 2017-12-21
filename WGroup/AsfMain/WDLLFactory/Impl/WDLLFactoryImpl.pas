@@ -17,11 +17,10 @@ uses
   SysUtils,
   Vcl.Forms,
   PlugInMgr,
+  BaseObject,
   AppContext,
   CommonLock,
   WDLLFactory,
-  AppContextObject,
-  CommonRefCounter,
   Generics.Collections;
 
 type
@@ -30,7 +29,7 @@ type
   TDllGetPlugInMgr = function(AMainApplication: TApplication; AContext: IAppContext): IPlugInMgr; stdcall;
 
   // WDLLFactory Implementation
-  TWDLLFactoryImpl = class(TAppContextObject, IWDLLFactory)
+  TWDLLFactoryImpl = class(TBaseInterfacedObject, IWDLLFactory)
   private
     type
       // PlugInMgrInfo

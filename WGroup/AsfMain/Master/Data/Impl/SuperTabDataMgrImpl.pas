@@ -15,17 +15,16 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   CommonLock,
   SuperTabDataMgr,
-  AppContextObject,
-  CommonRefCounter,
   Generics.Collections;
 
 type
 
   // SuperTabDataMgr Implementation
-  TSuperTabDataMgrImpl = class(TAppContextObject, ISuperTabDataMgr)
+  TSuperTabDataMgrImpl = class(TBaseInterfacedObject, ISuperTabDataMgr)
   private
     // Lock
     FLock: TCSLock;

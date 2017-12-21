@@ -163,7 +163,7 @@ begin
 
   FShareMgr.SetUrl(APBasicLogin^.FServerUrl);
   FShareMgr.SetHardDiskIdMD5(APBasicLogin^.FHardDiskIdMD5);
-  LAssetUserId :=  APBasicLogin^.FUserName + '@' + APBasicLogin^.FOrgNo + '@' + APBasicLogin^.FAssetNo;
+  LAssetUserId := APBasicLogin^.FUserName + '@' + APBasicLogin^.FOrgNo + '@' + APBasicLogin^.FAssetNo;
   LIndicator := Format('HS_USER_LOGIN("%s", "%s", "pc", "%s")',
                   [APBasicLogin^.FLicense,
                    LAssetUserId,
@@ -200,6 +200,7 @@ end;
 
 function TBasicServiceImpl.SetReLoginEvent(AReLoginEvent: TReLoginEvent): Boolean;
 begin
+  Result := True;
   FShareMgr.SetReLoginEvent(AReLoginEvent);
 end;
 
@@ -208,7 +209,7 @@ function TBasicServiceImpl.GilPasswordSet(APBasicPasswordSet: PGilBasicPasswordS
 //  LGFData: IGFData;
 //  LIndicator: string;
 begin
-
+  Result := False;
 end;
 
 function TBasicServiceImpl.SyncPost(AIndicator: WideString; AWaitTime: DWORD): IGFData;

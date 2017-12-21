@@ -16,15 +16,15 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
   WNDataSetInf,
-  AppContextObject,
   Generics.Collections;
 
 type
 
   // ProdAuth Implementation
-  TProAuthImpl = class(TAppContextObject, IProAuth)
+  TProAuthImpl = class(TBaseInterfacedObject, IProAuth)
   private
     type
       // Authority

@@ -52,7 +52,7 @@
         <DCC_K>false</DCC_K>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UnitSearchPath>..\..\ShareUnit\Common;..\..\ShareUnit\Common\BaseUI\Component;..\..\ShareUnit\Common\BaseUI\Form;..\..\ShareUnit\Common\BaseUI\Frame;..\..\ShareUnit\Common\BaseUI\G32Graphic;..\..\ShareUnit\Common\BaseUI\Grid;..\..\ShareUnit\Common\BaseUI\Render;..\..\ShareUnit\Common\Cipher;..\..\ShareUnit\Common\Cipher\AES;..\..\ShareUnit\Common\Cipher\RSA;..\..\ShareUnit\Common\Cipher\MD5;..\..\ShareUnit\Common\Cipher\CRC;..\..\ShareUnit\Common\Cipher\Base64;..\..\ShareUnit\Common\OpenSSL;..\..\ShareUnit\Common\Thread;..\..\ShareUnit\Common\Thread\Impl;..\..\ShareUnit\Common\Utils;..\..\ShareUnit\Common\PlugInMgr;..\..\ShareUnit\Common\PlugInMgr\Impl;..\..\ShareUnit\Common\Command;..\..\ShareUnit\Common\Command\Impl;..\..\ShareUnit\InterfacesOld;..\..\ShareUnit\Interfaces\AsfMain\EDCrypt;..\..\ShareUnit\Interfaces\AsfMain\Log;..\..\ShareUnit\Interfaces\AsfMain\GdiMgr;..\..\ShareUnit\Interfaces\AsfMain\AppContext;..\..\ShareUnit\Interfaces\AsfMain\Cfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\Info;..\..\ShareUnit\Interfaces\AsfMain\Cfg\SysCfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\WebCfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\ServerCfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\UserCacheCfg;..\..\ShareUnit\Interfaces\AsfMain\Login;..\..\ShareUnit\Interfaces\AsfMain\Resource;..\..\ShareUnit\Interfaces\AsfMain\CommandMgr;..\..\ShareUnit\Interfaces\AsfService\GFData;..\..\ShareUnit\Interfaces\AsfService\Proxy;..\..\ShareUnit\Interfaces\AsfService\Service;..\..\ShareUnit\Interfaces\AsfService\BasicService;..\..\ShareUnit\Interfaces\AsfService\AssetService;..\..\ShareUnit\Interfaces\AsfHqService\QuoteCodeInfosEx;..\..\ShareUnit\Interfaces\AsfHqService\QuoteManagerEx;..\..\ShareUnit\Interfaces\AsfHqService\ServerDataMgr;..\..\ShareUnit\Interfaces\AsfHqService\SecuMainAdapter;..\..\ShareUnit\Interfaces\AsfMsg\MsgEx;..\..\ShareUnit\Interfaces\AsfCache\Cache;..\..\ShareUnit\Interfaces\AsfCache\BaseCache;..\..\ShareUnit\Interfaces\AsfCache\UserCache;..\..\ShareUnit\Interfaces\AsfCache\UserAssetCache;..\..\ShareUnit\Interfaces\AsfMem\KeySearchEngine;..\..\ShareUnit\Interfaces\AsfMem\WCMemTable\SecuMain;..\..\ShareUnit\Interfaces\AsfMem\UserSector;..\..\ShareUnit\Interfaces\AsfCmd\Behavior;..\..\ShareUnit\Interfaces\AsfAuth\HqAuth;..\..\ShareUnit\Interfaces\AsfAuth\ProAuth;..\..\ShareUnit\Interfaces\AsfLanguage\ErrorCode;..\..\ShareUnit\Interfaces\AsfLanguage\Language;..\..\ShareUnit\Delphi3rd\NativeXML;..\..\ShareUnit\Delphi3rd\UniDAC5_5_12\Source\UniProviders\SQLite;..\..\ShareUnit\Delphi3rd\UniDAC5_5_12\Source;..\..\ShareUnit\Delphi3rd\UniDAC5_5_12\Lib\Delphi21\Win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\ShareUnit\Common;..\..\ShareUnit\Common\BaseUI\Component;..\..\ShareUnit\Common\BaseUI\Form;..\..\ShareUnit\Common\BaseUI\Frame;..\..\ShareUnit\Common\BaseUI\G32Graphic;..\..\ShareUnit\Common\BaseUI\Grid;..\..\ShareUnit\Common\BaseUI\Render;..\..\ShareUnit\Common\Cipher;..\..\ShareUnit\Common\Cipher\AES;..\..\ShareUnit\Common\Cipher\RSA;..\..\ShareUnit\Common\Cipher\MD5;..\..\ShareUnit\Common\Cipher\CRC;..\..\ShareUnit\Common\Cipher\Base64;..\..\ShareUnit\Common\OpenSSL;..\..\ShareUnit\Common\Thread;..\..\ShareUnit\Common\Thread\Impl;..\..\ShareUnit\Common\Utils;..\..\ShareUnit\Common\PlugInMgr;..\..\ShareUnit\Common\PlugInMgr\Impl;..\..\ShareUnit\Common\Command;..\..\ShareUnit\Common\Command\Impl;..\..\ShareUnit\InterfacesOld;..\..\ShareUnit\Interfaces\AsfMain\EDCrypt;..\..\ShareUnit\Interfaces\AsfMain\Log;..\..\ShareUnit\Interfaces\AsfMain\GdiMgr;..\..\ShareUnit\Interfaces\AsfMain\AppContext;..\..\ShareUnit\Interfaces\AsfMain\Cfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\Info;..\..\ShareUnit\Interfaces\AsfMain\Cfg\SysCfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\WebCfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\ServerCfg;..\..\ShareUnit\Interfaces\AsfMain\Cfg\UserCacheCfg;..\..\ShareUnit\Interfaces\AsfMain\Login;..\..\ShareUnit\Interfaces\AsfMain\Master;..\..\ShareUnit\Interfaces\AsfMain\Master\ChildPage;..\..\ShareUnit\Interfaces\AsfMain\Master\ChildPage\Impl;..\..\ShareUnit\Interfaces\AsfMain\Resource;..\..\ShareUnit\Interfaces\AsfMain\CommandMgr;..\..\ShareUnit\Interfaces\AsfService\GFData;..\..\ShareUnit\Interfaces\AsfService\Proxy;..\..\ShareUnit\Interfaces\AsfService\Service;..\..\ShareUnit\Interfaces\AsfService\BasicService;..\..\ShareUnit\Interfaces\AsfService\AssetService;..\..\ShareUnit\Interfaces\AsfHqService\QuoteCodeInfosEx;..\..\ShareUnit\Interfaces\AsfHqService\QuoteManagerEx;..\..\ShareUnit\Interfaces\AsfHqService\ServerDataMgr;..\..\ShareUnit\Interfaces\AsfHqService\SecuMainAdapter;..\..\ShareUnit\Interfaces\AsfMsg\MsgEx;..\..\ShareUnit\Interfaces\AsfCache\Cache;..\..\ShareUnit\Interfaces\AsfCache\BaseCache;..\..\ShareUnit\Interfaces\AsfCache\UserCache;..\..\ShareUnit\Interfaces\AsfCache\UserAssetCache;..\..\ShareUnit\Interfaces\AsfMem\KeySearchEngine;..\..\ShareUnit\Interfaces\AsfMem\WCMemTable\SecuMain;..\..\ShareUnit\Interfaces\AsfMem\UserSector;..\..\ShareUnit\Interfaces\AsfCmd\Behavior;..\..\ShareUnit\Interfaces\AsfAuth\HqAuth;..\..\ShareUnit\Interfaces\AsfAuth\ProAuth;..\..\ShareUnit\Interfaces\AsfLanguage\ErrorCode;..\..\ShareUnit\Interfaces\AsfLanguage\Language;..\..\ShareUnit\Delphi3rd\NativeXML;..\..\ShareUnit\Delphi3rd\UniDAC5_5_12\Source\UniProviders\SQLite;..\..\ShareUnit\Delphi3rd\UniDAC5_5_12\Source;..\..\ShareUnit\Delphi3rd\UniDAC5_5_12\Lib\Delphi21\Win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -99,7 +99,6 @@
         <DCCReference Include="Cfg\ServerCfg\Impl\ServerCfgImpl.pas"/>
         <DCCReference Include="Cfg\UserCacheCfg\Impl\UserCacheCfgImpl.pas"/>
         <DCCReference Include="Cfg\SysCfg\Impl\SysCfgImpl.pas"/>
-        <DCCReference Include="Cfg\Info\Impl\WebInfoImpl.pas"/>
         <DCCReference Include="Cfg\Info\Impl\UserInfoImpl.pas"/>
         <DCCReference Include="Cfg\Info\Impl\ProxyInfoImpl.pas"/>
         <DCCReference Include="Cfg\Info\Impl\SystemInfoImpl.pas"/>
@@ -123,7 +122,6 @@
         <DCCReference Include="Login\Impl\LoginImpl.pas"/>
         <DCCReference Include="Resource\Impl\ResourceCfgImpl.pas"/>
         <DCCReference Include="Resource\Impl\ResourceSkinImpl.pas"/>
-        <DCCReference Include="WCommands\LoginCommandImpl.pas"/>
         <DCCReference Include="WDLLFactory\WDLLFactory.pas"/>
         <DCCReference Include="WDLLFactory\Impl\WDLLFactoryImpl.pas"/>
         <DCCReference Include="GdiMgr\Impl\GdiMgrImpl.pas"/>
@@ -132,33 +130,20 @@
         <DCCReference Include="LoadProcess\LoadProcessUI.pas">
             <Form>LoadProcessUI</Form>
         </DCCReference>
-        <DCCReference Include="WCommands\LoadProcessCommandImpl.pas"/>
-        <DCCReference Include="Cookie\CommandCookieMgr.pas"/>
-        <DCCReference Include="Cookie\Impl\CommandCookieMgrImpl.pas"/>
-        <DCCReference Include="WCommands\CommandCookieMgrCommandImpl.pas"/>
         <DCCReference Include="VirtualMain\VirtualMain.pas">
             <Form>VirtualMainUI</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="Master\Master.pas"/>
-        <DCCReference Include="Master\MasterMgr.pas"/>
-        <DCCReference Include="Master\Impl\MasterImpl.pas"/>
-        <DCCReference Include="Master\Impl\MasterMgrImpl.pas"/>
         <DCCReference Include="Master\UI\MasterUI.pas">
             <Form>MasterUI</Form>
         </DCCReference>
-        <DCCReference Include="Master\UI\StatusBarUI\StatusBarUI.pas"/>
-        <DCCReference Include="Master\UI\ShortKeyBarUI\ShortKeyBarUI.pas"/>
-        <DCCReference Include="Master\UI\SuperTabBarUI\SuperTabBarUI.pas"/>
-        <DCCReference Include="WCommands\KeyFairyCommandImpl.pas"/>
-        <DCCReference Include="WCommands\MasterMgrCommandImpl.pas"/>
-        <DCCReference Include="WCommands\ShortKeyDataMgrCommandImpl.pas"/>
-        <DCCReference Include="WCommands\StatusAlarmDataMgrCommandImpl.pas"/>
-        <DCCReference Include="WCommands\StatusHqDataMgrCommandImpl.pas"/>
-        <DCCReference Include="WCommands\StatusNewsDataMgrCommandImpl.pas"/>
-        <DCCReference Include="WCommands\StatusReportDataMgrCommandImpl.pas"/>
-        <DCCReference Include="WCommands\StatusServerDataMgrCommandImpl.pas"/>
-        <DCCReference Include="WCommands\SuperTabDataMgrCommandImpl.pas"/>
+        <DCCReference Include="Master\UI\StatusBarUI.pas"/>
+        <DCCReference Include="Master\UI\CaptionBarUI.pas"/>
+        <DCCReference Include="Master\UI\SuperTabBarUI.pas"/>
+        <DCCReference Include="Master\Cookie\CmdCookie.pas"/>
+        <DCCReference Include="Master\Master.pas"/>
+        <DCCReference Include="Master\Impl\MasterImpl.pas"/>
+        <DCCReference Include="Master\Impl\MasterMgrImpl.pas"/>
         <DCCReference Include="Master\Data\ShortKeyDataMgr.pas"/>
         <DCCReference Include="Master\Data\SuperTabDataMgr.pas"/>
         <DCCReference Include="Master\Data\StatusHqDataMgr.pas"/>
@@ -166,12 +151,6 @@
         <DCCReference Include="Master\Data\StatusAlarmDataMgr.pas"/>
         <DCCReference Include="Master\Data\StatusReportDataMgr.pas"/>
         <DCCReference Include="Master\Data\StatusServerDataMgr.pas"/>
-        <DCCReference Include="KeyFairy\UI\KeyFairyUI.pas">
-            <Form>KeyFairyUI</Form>
-        </DCCReference>
-        <DCCReference Include="KeyFairy\UI\KeyReportUI.pas"/>
-        <DCCReference Include="KeyFairy\KeyFairy.pas"/>
-        <DCCReference Include="KeyFairy\Impl\KeyFairyImpl.pas"/>
         <DCCReference Include="Master\Data\Impl\SuperTabDataMgrImpl.pas"/>
         <DCCReference Include="Master\Data\Impl\ShortKeyDataMgrImpl.pas"/>
         <DCCReference Include="Master\Data\Impl\StatusHqDataMgrImpl.pas"/>
@@ -179,6 +158,23 @@
         <DCCReference Include="Master\Data\Impl\StatusAlarmDataMgrImpl.pas"/>
         <DCCReference Include="Master\Data\Impl\StatusReportDataMgrImpl.pas"/>
         <DCCReference Include="Master\Data\Impl\StatusServerDataMgrImpl.pas"/>
+        <DCCReference Include="WCommands\LoginCommandImpl.pas"/>
+        <DCCReference Include="WCommands\KeyFairyCommandImpl.pas"/>
+        <DCCReference Include="WCommands\MasterMgrCommandImpl.pas"/>
+        <DCCReference Include="WCommands\LoadProcessCommandImpl.pas"/>
+        <DCCReference Include="WCommands\ShortKeyDataMgrCommandImpl.pas"/>
+        <DCCReference Include="WCommands\StatusAlarmDataMgrCommandImpl.pas"/>
+        <DCCReference Include="WCommands\StatusHqDataMgrCommandImpl.pas"/>
+        <DCCReference Include="WCommands\StatusNewsDataMgrCommandImpl.pas"/>
+        <DCCReference Include="WCommands\StatusReportDataMgrCommandImpl.pas"/>
+        <DCCReference Include="WCommands\StatusServerDataMgrCommandImpl.pas"/>
+        <DCCReference Include="WCommands\SuperTabDataMgrCommandImpl.pas"/>
+        <DCCReference Include="KeyFairy\UI\KeyFairyUI.pas">
+            <Form>KeyFairyUI</Form>
+        </DCCReference>
+        <DCCReference Include="KeyFairy\UI\KeyReportUI.pas"/>
+        <DCCReference Include="KeyFairy\KeyFairy.pas"/>
+        <DCCReference Include="KeyFairy\Impl\KeyFairyImpl.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

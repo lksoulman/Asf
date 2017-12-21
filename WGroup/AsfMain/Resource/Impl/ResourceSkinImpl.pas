@@ -93,14 +93,14 @@ type
 
     { IResourceSkin }
 
-    // Change Skin
+    // ChangeSkin
     function ChangeSkin: Boolean;
-    // Get Instance
+    // GetInstance
     function GetInstance: HMODULE;
-    // Get Color
+    // GetColor
     function GetColor(AKey: string): TColor;
-    // Get Color String
-    function GetColorString(AKey: string): string;
+    // GetConfig
+    function GetConfig(AKey: string): string;
     // Get Stream
     function GetStream(AResourceName: string): TResourceStream;
   end;
@@ -227,7 +227,7 @@ begin
   end;
 end;
 
-function TResourceSkinImpl.GetColorString(AKey: string): string;
+function TResourceSkinImpl.GetConfig(AKey: string): string;
 var
   LPColorInfo: PColorInfo;
 begin

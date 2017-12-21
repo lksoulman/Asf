@@ -68,7 +68,7 @@ uses
     G_AppContext.LoadDynLibrary('AsfCache.dll');
     G_AppContext.LoadDynLibrary('AsfMem.dll');
     G_AppContext.LoadDynLibrary('AsfHqService.dll');
-//    G_AppContext.LoadDynLibrary('AsfUI.dll');
+    G_AppContext.LoadDynLibrary('AsfUI.dll');
   end;
 
   // InitUser

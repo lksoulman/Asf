@@ -105,6 +105,8 @@ end;
 
 procedure TRenderDC.SetDC(ADC: HDC);
 begin
+  if ADC = 0 then Exit;
+  
   FMemDC := CreateCompatibleDC(ADC);
 end;
 
@@ -177,8 +179,8 @@ begin
     AInvalidateRect.Width,
     AInvalidateRect.Height,
     FMemDC,
-    AInvalidateRect.Left - FBoundsRect.X,
-    AInvalidateRect.Top - FBoundsRect.Y,
+    FBoundsRect.X,
+    FBoundsRect.Y,
     SRCCOPY);
 end;
 

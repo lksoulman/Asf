@@ -18,22 +18,21 @@ uses
   StrUtils,
   SysUtils,
   SecuMain,
+  BaseObject,
   AppContext,
   CommonLock,
   CommonObject,
   WNDataSetInf,
-  MsgExSubcriber,
   ExecutorThread,
   CommonDynArray,
-  AppContextObject,
-  CommonRefCounter,
   MsgExSubcriberImpl,
-  Generics.Collections;
+  Generics.Collections,
+  MsgExSubcriberAdapter;
 
 type
 
-  // SecuMain implementation
-  TSecuMainImpl = class(TAppContextObject, ISecuMain, ISecuMainQuery)
+  // SecuMain Implementation
+  TSecuMainImpl = class(TBaseInterfacedObject, ISecuMain, ISecuMainQuery)
   private
     // Lock
     FLock: TCSLock;
@@ -41,20 +40,20 @@ type
     FIsStart: Boolean;
     // IsUpdating
     FIsUpdating: Boolean;
+    // ItemCapacity
+    FItemCapacity: Integer;
     // UpdateVersion
     FUpdateVersion: Integer;
-    // SecuMainItemCapacity
-    FItemCapacity: Integer;
-    // MsgExSubcriber
-    FMsgExSubcriber: IMsgExSubcriber;
     // AsyncUpdateThread
     FAsyncUpdateThread: TExecutorThread;
-    // SecuMainItems
-    FSecuMainItems: TDynArray<PSecuMainItem>;
+    // SecuInfos
+    FSecuInfos: TDynArray<PSecuInfo>;
+    // MsgExSubcriberAdapter
+    FMsgExSubcriberAdapter: TMsgExSubcriberAdapter;
     // InnerCodeHSCodeDic
     FInnerCodeToHSCodeDic: TDictionary<Integer, string>;
-    // SecuMainItemDic
-    FSecuMainItemDic: TDictionary<Integer, PSecuMainItem>;
+    // SecuInfoDic
+    FSecuInfoDic: TDictionary<Integer, PSecuInfo>;
 
     // ToMarket
     function ToMarket(AValue: Integer): UInt8;
@@ -77,7 +76,7 @@ type
     // LoadDataSet
     procedure DoLoadDataSet(ADataSet: IWNDataSet);
     // LoadSecuMaintItem
-    procedure DoLoadSecuMainItem(ASecuMainItem: PSecuMainItem;
+    procedure DoLoadSecuInfo(ASecuInfo: PSecuInfo;
 //      AInnerCode,
       ASecuMarket,
       AListedState,
@@ -93,9 +92,9 @@ type
       ACodeByAgent,
       ACompanyCode: IWNField);
     // UpdatingGetItem
-    function DoGetItemUpdating(AInnerCode: Integer): PSecuMainItem;
+    function DoGetItemUpdating(AInnerCode: Integer): PSecuInfo;
     // NoUpdatingGetItem
-    function DoGetItemNoUpdating(AInnerCode: Integer): PSecuMainItem;
+    function DoGetItemNoUpdating(AInnerCode: Integer): PSecuInfo;
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -119,16 +118,16 @@ type
     // GetUpdateVersion
     function GetUpdateVersion: Integer;
     // GetItem
-    function GetItem(AIndex: Integer): PSecuMainItem;
+    function GetItem(AIndex: Integer): PSecuInfo;
     // GetHsCode
     function GetHsCode(AInnerCode: Integer): string;
 
     { ISecuMainQuery }
 
-    // GetSecurityByInnerCode
-    function GetSecurity(AInnerCode: Integer): PSecuMainItem;
-    // GetSecuritysByInnerCodes
-    function GetSecuritys(AInnerCodes: TIntegerDynArray; var ASecuMainItems: TSecuMainItemDynArray): Boolean;
+    // GetSecuInfo
+    function GetSecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;
+    // GetSecuInfos
+    function GetSecuInfos(AInnerCodes: TIntegerDynArray; var ASecuInfos: TSecuInfoDynArray): Integer;
   end;
 
 implementation
@@ -174,24 +173,24 @@ begin
   FItemCapacity := 220000;
   FAsyncUpdateThread := TExecutorThread.Create;
   FAsyncUpdateThread.ThreadMethod := DoAsyncUpdateExecute;
-  FSecuMainItems := TDynArray<PSecuMainItem>.Create(FItemCapacity);
-  FSecuMainItemDic := TDictionary<Integer, PSecuMainItem>.Create(FItemCapacity);
+  FSecuInfos := TDynArray<PSecuInfo>.Create(FItemCapacity);
+  FSecuInfoDic := TDictionary<Integer, PSecuInfo>.Create(FItemCapacity);
   FInnerCodeToHSCodeDic := TDictionary<Integer, string>.Create(413);
-  FMsgExSubcriber := TMsgExSubcriberImpl.Create(DoSecuMainCacheTableUpdate);
-  FMsgExSubcriber.SetActive(True);
-  FAppContext.Subcriber(MSG_BASECACHE_TABLE_SECUMAIN_UPDATE, FMsgExSubcriber);
+  FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(AContext, DoSecuMainCacheTableUpdate);
+  FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfCache_ReUpdateBaseCache_SecuMain);
+  FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
+  FMsgExSubcriberAdapter.SubcribeMsgEx;
 end;
 
 destructor TSecuMainImpl.Destroy;
 begin
   StopService;
-  FMsgExSubcriber.SetActive(False);
-  FAppContext.UnSubcriber(MSG_BASECACHE_TABLE_SECUMAIN_UPDATE, FMsgExSubcriber);
-  FMsgExSubcriber := nil;
+  FMsgExSubcriberAdapter.SetSubcribeMsgExState(False);
+  FMsgExSubcriberAdapter.Free;
   DoClearItems;
   FInnerCodeToHSCodeDic.Free;
-  FSecuMainItemDic.Free;
-  FSecuMainItems.Free;
+  FSecuInfoDic.Free;
+  FSecuInfos.Free;
   FLock.Free;
   inherited;
 end;
@@ -245,12 +244,12 @@ end;
 
 function TSecuMainImpl.GetItemCount: Integer;
 begin
-  Result := FSecuMainItems.GetCount;
+  Result := FSecuInfos.GetCount;
 end;
 
-function TSecuMainImpl.GetItem(AIndex: Integer): PSecuMainItem;
+function TSecuMainImpl.GetItem(AIndex: Integer): PSecuInfo;
 begin
-  Result := FSecuMainItems.GetElement(AIndex);
+  Result := FSecuInfos.GetElement(AIndex);
 end;
 
 function TSecuMainImpl.GetHsCode(AInnerCode: Integer): string;
@@ -264,31 +263,29 @@ begin
   end;
 end;
 
-function TSecuMainImpl.GetSecurity(AInnerCode: Integer): PSecuMainItem;
+function TSecuMainImpl.GetSecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;
 begin
   if FIsUpdating then begin
-    Result := DoGetItemUpdating(AInnerCode);
+    ASecuInfo := DoGetItemUpdating(AInnerCode);
   end else begin
-    Result := DoGetItemNoUpdating(AInnerCode);
+    ASecuInfo := DoGetItemNoUpdating(AInnerCode);
   end;
+  Result := ASecuInfo <> nil;
 end;
 
-function TSecuMainImpl.GetSecuritys(AInnerCodes: TIntegerDynArray; var ASecuMainItems: TSecuMainItemDynArray): Boolean;
+function TSecuMainImpl.GetSecuInfos(AInnerCodes: TIntegerDynArray; var ASecuInfos: TSecuInfoDynArray): Integer;
 var
-  LSecuMainItem: PSecuMainItem;
-  LIndex, LCount, LTotalCount: Integer;
+  LSecuInfo: PSecuInfo;
+  LIndex, LTotalCount: Integer;
 begin
-  Result := True;
+  Result := 0;
   LTotalCount := Length(AInnerCodes);
-  SetLength(ASecuMainItems, LTotalCount);
   if LTotalCount <= 0 then Exit;
 
-  LCount := 0;
   for LIndex := 0 to LTotalCount - 1 do begin
-    LSecuMainItem := GetSecurity(AInnerCodes[LIndex]);
-    if LSecuMainItem <> nil then begin
-      ASecuMainItems[LCount] := LSecuMainItem;
-      Inc(LCount);
+    if GetSecuInfo(AInnerCodes[LIndex], LSecuInfo) then begin
+      ASecuInfos[Result] := LSecuInfo;
+      Inc(Result);
     end;
   end;
 end;
@@ -330,12 +327,12 @@ end;
 procedure TSecuMainImpl.DoClearItems;
 var
   LIndex: Integer;
-  LPSecuMainItem: PSecuMainItem;
+  LPSecuInfo: PSecuInfo;
 begin
-  for LIndex := 0 to FSecuMainItems.GetCount - 1 do begin
-    LPSecuMainItem := FSecuMainItems.GetElement(LIndex);
-    if LPSecuMainItem <> nil then begin
-      Dispose(LPSecuMainItem);
+  for LIndex := 0 to FSecuInfos.GetCount - 1 do begin
+    LPSecuInfo := FSecuInfos.GetElement(LIndex);
+    if LPSecuInfo <> nil then begin
+      Dispose(LPSecuInfo);
     end;
   end;
 end;
@@ -401,7 +398,7 @@ begin
       if LUpdateVersion <> FUpdateVersion then begin
         FUpdateVersion := LUpdateVersion;
         FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,
-          Format('FuncName=SendMessageEx@Id=%d@Info=%s',[MSG_SECUMAIN_MEMORY_UPDATE, 'SecuMain Memory Update']), 2);
+          Format('FuncName=SendMessageEx@Id=%d@Info=%s',[Msg_AsfMem_ReUpdateSecuMain, 'SecuMain Memory Update']), 2);
       end;
     end;
 
@@ -417,8 +414,8 @@ procedure TSecuMainImpl.DoUpdateTableBefore;
 var
   LIndex: Integer;
 begin
-  for LIndex := 0 to self.FSecuMainItems.GetCount - 1 do begin
-    FSecuMainItems.GetElement(LIndex).FIsUsed := False;
+  for LIndex := 0 to self.FSecuInfos.GetCount - 1 do begin
+    FSecuInfos.GetElement(LIndex).FIsUsed := False;
   end;
 end;
 
@@ -442,7 +439,7 @@ var
   LFormerSpell,
   LCodeByAgent,
   LCompanyCode: IWNField;
-  LSecuMainItem: PSecuMainItem;
+  LSecuInfo: PSecuInfo;
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
@@ -471,18 +468,18 @@ begin
 
       LInnerCode := LInnerCodeF.AsInteger;
 
-      if FSecuMainItemDic.TryGetValue(LInnerCode, LSecuMainItem)
-        and (LSecuMainItem <> nil) then begin
-        LSecuMainItem.FIsUsed := True;
+      if FSecuInfoDic.TryGetValue(LInnerCode, LSecuInfo)
+        and (LSecuInfo <> nil) then begin
+        LSecuInfo.FIsUsed := True;
       end else begin
-        New(LSecuMainItem);
-        FSecuMainItemDic.AddOrSetValue(LInnerCode, LSecuMainItem);
-        LSecuMainItem.FIsUsed := True;
-        LSecuMainItem.FInnerCode := LInnerCode;
-        FSecuMainItems.Add(LSecuMainItem);
+        New(LSecuInfo);
+        FSecuInfoDic.AddOrSetValue(LInnerCode, LSecuInfo);
+        LSecuInfo.FIsUsed := True;
+        LSecuInfo.FInnerCode := LInnerCode;
+        FSecuInfos.Add(LSecuInfo);
       end;
 
-      DoLoadSecuMainItem(LSecuMainItem,
+      DoLoadSecuInfo(LSecuInfo,
         LSecuMarket,
         LListedState,
         LSecuCategory,
@@ -497,7 +494,7 @@ begin
         LCodeByAgent,
         LCompanyCode);
 
-      LSecuMainItem.SetUpdate;
+      LSecuInfo.SetUpdate;
 
       ADataSet.Next;
     end;
@@ -524,7 +521,7 @@ begin
   end;
 end;
 
-procedure TSecuMainImpl.DoLoadSecuMainItem(ASecuMainItem: PSecuMainItem;
+procedure TSecuMainImpl.DoLoadSecuInfo(ASecuInfo: PSecuInfo;
 //  AInnerCode,
   ASecuMarket,
   AListedState,
@@ -540,34 +537,34 @@ procedure TSecuMainImpl.DoLoadSecuMainItem(ASecuMainItem: PSecuMainItem;
   ACodeByAgent,
   ACompanyCode: IWNField);
 begin
-  ASecuMainItem^.FSecuMarket := ToMarket(StrToIntDef(ASecuMarket.AsString, 0));
-  ASecuMainItem^.FListedState := AListedState.AsInteger;
-  ASecuMainItem^.FSecuCategory := ToCategory(ASecuCategory.AsInteger);
-  ASecuMainItem^.FSecuMarkInfo := ToMarkInfo(StrToIntDef(AMargin.AsString, 0), StrToIntDef(AThrough.AsString, 0));
-  ASecuMainItem^.FSecuAbbr := ASecuAbbr.AsString;
-  ASecuMainItem^.FSecuCode := ASecuCode.AsString;
-  ASecuMainItem^.FSecuSpell := ASecuSpell.AsString;
-  ASecuMainItem^.FSecuSuffix := ASecuSuffix.AsString;
-//  ASecuMainItem^.FFormerAbbr := AFormerAbbr.AsString;
-//  ASecuMainItem^.FFormerSpell := AFormerSpell.AsString;
-//  ASecuMainItem^.FCodeByAgent := ACodeByAgent.AsString;
-  ASecuMainItem^.FCompanyName := ACompanyCode.AsString;
+  ASecuInfo^.FSecuMarket := ToMarket(StrToIntDef(ASecuMarket.AsString, 0));
+  ASecuInfo^.FListedState := AListedState.AsInteger;
+  ASecuInfo^.FSecuCategory := ToCategory(ASecuCategory.AsInteger);
+  ASecuInfo^.FSecuMarkInfo := ToMarkInfo(StrToIntDef(AMargin.AsString, 0), StrToIntDef(AThrough.AsString, 0));
+  ASecuInfo^.FSecuAbbr := ASecuAbbr.AsString;
+  ASecuInfo^.FSecuCode := ASecuCode.AsString;
+  ASecuInfo^.FSecuSpell := ASecuSpell.AsString;
+  ASecuInfo^.FSecuSuffix := ASecuSuffix.AsString;
+//  ASecuInfo^.FFormerAbbr := AFormerAbbr.AsString;
+//  ASecuInfo^.FFormerSpell := AFormerSpell.AsString;
+//  ASecuInfo^.FCodeByAgent := ACodeByAgent.AsString;
+  ASecuInfo^.FCompanyName := ACompanyCode.AsString;
   if ACodeByAgent.AsString <> '' then begin
-    FInnerCodeToHSCodeDic.AddOrSetValue(ASecuMainItem^.FInnerCode, ACodeByAgent.AsString);
+    FInnerCodeToHSCodeDic.AddOrSetValue(ASecuInfo^.FInnerCode, ACodeByAgent.AsString);
   end;
 end;
 
-function TSecuMainImpl.DoGetItemUpdating(AInnerCode: Integer): PSecuMainItem;
+function TSecuMainImpl.DoGetItemUpdating(AInnerCode: Integer): PSecuInfo;
 begin
-  if not (FSecuMainItemDic.TryGetValue(AInnerCode, Result)
+  if not (FSecuInfoDic.TryGetValue(AInnerCode, Result)
     and (Result <> nil)) then begin
    Result := nil;
   end;
 end;
 
-function TSecuMainImpl.DoGetItemNoUpdating(AInnerCode: Integer): PSecuMainItem;
+function TSecuMainImpl.DoGetItemNoUpdating(AInnerCode: Integer): PSecuInfo;
 begin
-  if not (FSecuMainItemDic.TryGetValue(AInnerCode, Result)
+  if not (FSecuInfoDic.TryGetValue(AInnerCode, Result)
     and (Result <> nil)) and Result.FIsUsed then begin
    Result := nil;
   end;
