@@ -737,8 +737,9 @@ var
 {$ENDIF}
 
   LSecuMain: ISecuMain;
-  LIndex, LVersion: Integer;
   LSecuInfo: PSecuInfo;
+  LIsUpdating: Boolean;
+  LIndex, LVersion: Integer;
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
@@ -750,6 +751,12 @@ begin
 
     LSecuMain.Lock;
     try
+      LIsUpdating := LSecuMain.IsUpdating;
+    finally
+      LSecuMain.UnLock;
+    end;
+
+    if not LIsUpdating then begin
       LVersion := LSecuMain.GetUpdateVersion;
       if FVersion <> LVersion then begin
         FLock.Lock;
@@ -764,9 +771,8 @@ begin
           FLock.UnLock;
         end;
       end;
-    finally
-      LSecuMain.UnLock;
     end;
+
     LSecuMain := nil;
 
     FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,

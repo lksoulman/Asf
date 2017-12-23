@@ -117,7 +117,7 @@ procedure TMasterMgrImpl.DoLoadDefaultChildPage(AMasterInfo: PMasterInfo);
 begin
   if AMasterInfo <> nil then begin
     FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SIMPLEHQTEST,
-      Format('MasterHandle=%d@InnerCode=1752', [AMasterInfo.FMaster.Handle]));
+      Format('MasterHandle=%d@Params=InnerCode=1752', [AMasterInfo.FMaster.Handle]));
   end;
 end;
 

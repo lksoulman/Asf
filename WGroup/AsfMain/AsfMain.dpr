@@ -38,9 +38,9 @@ uses
   LoadProcessUI in 'LoadProcess\LoadProcessUI.pas' {LoadProcessUI},
   VirtualMain in 'VirtualMain\VirtualMain.pas' {VirtualMainUI},
   MasterUI in 'Master\UI\MasterUI.pas' {MasterUI},
-  StatusBarUI in 'Master\UI\StatusBarUI.pas',
-  CaptionBarUI in 'Master\UI\CaptionBarUI.pas',
-  SuperTabBarUI in 'Master\UI\SuperTabBarUI.pas',
+  MasterNCStatusBarUI in 'Master\UI\MasterNCStatusBarUI.pas',
+  MasterNCCaptionBarUI in 'Master\UI\MasterNCCaptionBarUI.pas',
+  MasterNCSuperTabBarUI in 'Master\UI\MasterNCSuperTabBarUI.pas',
   CmdCookie in 'Master\Cookie\CmdCookie.pas',
   Master in 'Master\Master.pas',
   MasterImpl in 'Master\Impl\MasterImpl.pas',
@@ -83,7 +83,7 @@ begin
     Application.ShowMainForm := False;
     Application.MainFormOnTaskbar := True;
     Application.CreateForm(TVirtualMainUI, G_VirtualMainUI);
-    G_AppContext.Initialize;
+  G_AppContext.Initialize;
     try
       LoadCmds;
       if G_AppContext.Login then begin

@@ -12,310 +12,575 @@ unit CustomMasterUI;
 interface
 
 uses
-  CommCtrl,
   Windows,
+  Classes,
   Messages,
   SysUtils,
   Variants,
-  Classes,
   Vcl.Forms,
   Vcl.Dialogs,
   Vcl.Graphics,
   Vcl.Controls,
-  GDIPOBJ,
-  GDIPAPI,
   RenderDC,
   RenderUtil,
   AppContext,
-  CommonLock,
   ComponentUI,
-  CommonRefCounter, Vcl.ExtCtrls;
+  CustomBaseUI;
 
 const
 
-  WM_NCPAINT_STATUSBAR      = WM_USER + 101;
-  WM_NCPAINT_CAPTIONBAR     = WM_USER + 102;
-  WM_NCPAINT_SUPERTABBAR    = WM_USER + 103;
-
-  NCMASK_STATUSBAR          = 1;
-  NCMASK_CAPTIONBAR         = 2;
-  NCMASK_SUPERTABBAR        = 3;
+  // 绘制非客户区 StatusBar
+  NC_DRAW_STATUSBAR    = 2;
+  // 绘制非客户区 SuperTabBar
+  NC_DRAW_SUPERTABBAR  = 3;
 
 type
 
-  // CustomMasterUI
-  TCustomMasterUI = class(TForm)
+  // NCStatusBarUI
+  TNCStatusBarUI = class(TNCCustomBaseUI)
   private
   protected
-    // IsMaxBox
-    FIsMaxBox: Boolean;
-    // IsMinBox
-    FIsMinBox: Boolean;
-    // IsMaster
-    FIsMaster: Boolean;
-    // IsActivate
-    FIsActivate: Boolean;
-    // IsTracking
-    FIsTracking: Boolean;
-    // HitTest
-    FHitTest: Integer;
-    // MouseDownHit
-    FDownHitTest: Integer;
-    // MouseMoveId
-    FMouseMoveId: Integer;
-    // MouseDownId
-    FMouseDownId: Integer;
-    // MouseLeavePoint
-    FMouseLeavePt: TPoint;
-    // MinWidth
-    FMinWidth: Integer;
-    // MinHeight
-    FMinHeight: Integer;
-    // BorderWidth
-    FBorderWidth: Integer;
-    // CaptionHeight
-    FCaptionHeight: Integer;
+  public
+    // Constructor
+    constructor Create(AContext: IAppContext; AParentUI: TCustomBaseUI); override;
+    // Destructor
+    destructor Destroy; override;
+  end;
+
+  // NCStatusBarUIClass
+  TNCStatusBarUIClass = class of TNCStatusBarUI;
+
+  // NCSuperTabBarUI
+  TNCSuperTabBarUI = class(TNCCustomBaseUI)
+  private
+  protected
+  public
+    // Constructor
+    constructor Create(AContext: IAppContext; AParentUI: TCustomBaseUI); override;
+    // Destructor
+    destructor Destroy; override;
+  end;
+
+  // NCSuperTabBarUIClass
+  TNCSuperTabBarUIClass = class of TNCSuperTabBarUI;
+
+  // CustomMasterUI
+  TCustomMasterUI = class(TCustomBaseUI)
+  private
+  protected
+    // StatusBarRect
+    FStatusBarRect: TRect;
+    // SuperTabBarRect
+    FSuperTabBarRect: TRect;
     // StatusBarHeight
     FStatusBarHeight: Integer;
     // SuperTabBarWidth
     FSuperTabBarWidth: Integer;
-    // FormBorderStyle
-    FBorderStyleEx: TFormBorderStyle;
-    // MasterRect
-    FMasterRect: TRect;
-    // ClientRect
-    FClientRect: TRect;
-    // StatusBarRect
-    FStatusBarRect: TRect;
-    // CaptionBarRect
-    FCaptionBarRect: TRect;
-    // SuperTabBarRect
-    FSuperTabBarRect: TRect;
-    // AppContext
-    FAppContext: IAppContext;
-    // ComponentId
-    FComponentId: TComponentId;
-    // BorderColor
-    FBorderColor: COLORREF;
-    // CaptionBackColor
-    FCaptionBackColor: COLORREF;
-    // CaptionTextColor
-    FCaptionTextColor: COLORREF;
 
-    // UpdateSkinStyle
-    procedure DoUpdateSkinStyle; virtual;
-    // DrawClient
-    procedure DoPaintC(Sender: TObject); virtual;
-    // DrawClient
-    procedure DrawC(ADC: HDC; ARect: TRect); virtual;
-    // DrawBackground
-    procedure DrawBK(ADC: HDC; ARect: TRect; AColorRef: COLORREF); virtual;
+    // NCSuperTabBarUI
+    FNCStatusBarUI: TNCStatusBarUI;
+    // NCStatusBarUIClass
+    FNCStatusBarUIClass: TNCStatusBarUIClass;
+    // NCSuperTabBarUI
+    FNCSuperTabBarUI: TNCSuperTabBarUI;
+    // NCSuperTabBarUIClass
+    FNCSuperTabBarUIClass: TNCSuperTabBarUIClass;
 
-
-    // CalcNCStatusBar
-    procedure CalcNCStatusBar(ADC: HDC; ARect: TRect); virtual;
-    // CalcNCCaptionBar
-    procedure CalcNCCaptionBar(ADC: HDC; ARect: TRect); virtual;
-    // CalcNCSuperTabBar
-    procedure CalcNCSuperTabBar(ADC: HDC; ARect: TRect); virtual;
-    // DrawNCStatusBar
-    procedure DrawNCStatusBar(ADC: HDC; ARect: TRect; AId: Integer = -1); virtual;
-    // DrawNCCaptionBar
-    procedure DrawNCCaptionBar(ADC: HDC; ARect: TRect; AId: Integer = -1); virtual;
-    // DrawNCStatusBar
-    procedure DrawNCSuperTabBar(ADC: HDC; ARect: TRect; AId: Integer = -1); virtual;
-    // NCPaintStatusBar
-    procedure DoNCPaintStatusBar(AId: Integer = -1);
-    // NCPaintCaptionBar
-    procedure DoNCPaintCaptionBar(AId: Integer = -1);
-    // NCPaintSuperTabBar
-    procedure DoNCPaintSuperTabBar(AId: Integer = -1);
-    // WMNCPaintStatusBar
-    procedure WMNCPaintStatusBar(var Message: TMessage); message WM_NCPAINT_STATUSBAR;
-    // WMNCPaintCaptionBar
-    procedure WMNCPaintCaptionBar(var Message: TMessage); message WM_NCPAINT_CAPTIONBAR;
-    // WMNCPaintSuperTabBar
-    procedure WMNCPaintSuperTabBar(var Message: TMessage); message WM_NCPAINT_SUPERTABBAR;
-
-    // UpdateHitTest
-    procedure DoUpdateHitTest(AHitTest: Integer); virtual;
-    // UpdateBarHitTest
-    procedure DoUpdateBarHitTest(AMouseMoveId, AMouseDownId: Integer); virtual;
-
-    // 创建句柄
-    procedure CreateWnd; override;
-    // 设置标题消息响应
-    procedure CMTextChanged(var Message: TMessage); message CM_TEXTCHANGED;
-    // 响应程序激活消息
-    procedure OnActivateApp(var message: TWMACTIVATEAPP); message WM_ACTIVATEAPP;
-    // 响应激活消息
-    procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
-    // 获取最大值最小值信息
-    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
-    // 窗口大小变化
-    procedure WMSize(var Message: TWMSize); message WM_SIZE;
-    // 绘制非客户区域
-    procedure WMNCPaint(var Message: TMessage); message WM_NCPAINT;
-    // 非客户区点击测试
-    procedure WMNCHitTest(var Msg: TMessage); message WM_NCHITTEST;
-    // 响应非客户区激活消息
-    procedure WMNCActivate(var Message: TWMNCActivate); message WM_NCACTIVATE;
     // 计算非客户区域大小
     procedure WMNCCalcSize(var Message: TWMNCCalcSize); message WM_NCCALCSIZE;
-    // 响应鼠标离开非客户区消息
-    procedure WMNCMouseLeave(var Message: TMessage); message WM_NCMOUSELEAVE;
-    // 响应在非客户区移动鼠标消息
-    procedure WMNCMouseMove(var Message: TWMMouseMove); message WM_NCMOUSEMOVE;
-    // 非客户去左键抬起消息响应
-    procedure WMNCLButtonUp(var Message: TWMNCLButtonUp); message WM_NCLBUTTONUP;
-    // 非客户去左键按下消息响应
-    procedure WMNCLButtonDown(var Message: TWMNCLButtonDown); message WM_NCLBUTTONDOWN;
-    // 双击非客户区域
-    procedure WMNCLButtonDbClk(var Message: TWMNCLButtonDblClk); message WM_NCLBUTTONDBLCLK;
-    // 修改窗体创建参数
-    procedure CreateParams(var Params: TCreateParams); override;
+
+    // BeforeCreate
+    procedure DoBeforeCreate; override;
+    // CreateNCBarUI
+    procedure DoCreateNCBarUI; override;
+    // DestroyNCBarUI
+    procedure DoDestroyNCBarUI; override;
+    // UpdateSkinStyle
+    procedure DoUpdateSkinStyle; override;
+
+    // CalcNC
+    procedure DoCalcNC; override;
+    // CalcNCStatusBar
+    procedure DoCalcNCStatusBar(ADC: HDC; ARect: TRect);
+    // CalcNCSuperTabBar
+    procedure DoCalcNCSuperTabBar(ADC: HDC; ARect: TRect);
+
+    // DrawNC
+    procedure DoDrawNC(ADC: HDC); override;
+    // DrawNCStatusBar
+    procedure DoDrawNCStatusBar(ADC: HDC; ARect: TRect; AId: Integer = -1);
+    // DrawNCSuperTabBar
+    procedure DoDrawNCSuperTabBar(ADC: HDC; ARect: TRect; AId: Integer = -1);
+
+    // NCHitTest
+    function DoNCHitTest(var Msg: TMessage): Boolean; override;
+    // NCLButtonUp
+    procedure DoNCLButtonUp(var Message: TWMNCLButtonUp); override;
+    // NCLButtonDown
+    procedure DoNCLButtonDown(var Message: TWMNCLButtonDown); override;
+    // WmPaintNCBarsUI
+    procedure DoWmPaintNCBarsUI(var Message: TMessage); message WM_NCPAINT_BARS;
+
+    // ToNCStatusBarPt
+    function DoToNCStatusBarPt(APt: TPoint): TPoint;
+    // ToNCStatusBarPt
+    function DoToNCSuperTabBarPt(APt: TPoint): TPoint;
+
   public
     // Constructor
-    constructor Create(AContext: IAppContext); reintroduce; virtual;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
-    // BeforeCreate
-    procedure BeforeCreate; virtual;
-    // UpdateSkinStyle
-    procedure UpdateSkinStyle;
-
-    property IsActivate: Boolean read FIsActivate;
-    property MinWidth: Integer read FMinWidth write FMinWidth;
-    property MinHeight: Integer read FMinHeight write FMinHeight;
-    property BorderWidth: Integer read FBorderWidth write FBorderWidth;
-    property CaptionHeight: Integer read FCaptionHeight write FCaptionHeight;
-    property ComponentId: TComponentId read FComponentId;
-    property IsMaxBox: Boolean read FIsMaxBox write FIsMaxBox;
-    property IsMinBox: Boolean read FIsMinBox write FIsMinBox;
-    property MouseMoveId: Integer read FMouseMoveId write FMouseMoveId;
-    property MouseDownId: Integer read FMouseDownId write FMouseDownId;
   end;
 
 implementation
 
-uses
-  Math,
-  Vcl.Imaging.pngimage,
-  MultiMon;
-
 {$R *.dfm}
+
+{ TNCStatusBarUI }
+
+constructor TNCStatusBarUI.Create(AContext: IAppContext; AParentUI: TCustomBaseUI);
+begin
+  inherited;
+  FWParam := NC_DRAW_STATUSBAR;
+  FPaintMsg := WM_NCPAINT_BARS;
+end;
+
+destructor TNCStatusBarUI.Destroy;
+begin
+
+  inherited;
+end;
+
+{ TNCSuperTabBarUI }
+
+constructor TNCSuperTabBarUI.Create(AContext: IAppContext; AParentUI: TCustomBaseUI);
+begin
+  inherited;
+  FWParam := NC_DRAW_SUPERTABBAR;
+  FPaintMsg := WM_NCPAINT_BARS;
+end;
+
+destructor TNCSuperTabBarUI.Destroy;
+begin
+
+  inherited;
+end;
 
 { TCustomMasterUI }
 
 constructor TCustomMasterUI.Create(AContext: IAppContext);
 begin
-  FAppContext := AContext;
-  BeforeCreate;
-  inherited Create(nil);
-  OnPaint := DoPaintC;
-  FIsMaster := False;
-  FIsActivate := False;
-  FIsTracking := False;
-  FHitTest := HTNOWHERE;
-  FDownHitTest := HTNOWHERE;
-  FIsTracking := False;
-  DoUpdateSkinStyle;
+  inherited;
+
 end;
 
 destructor TCustomMasterUI.Destroy;
 begin
-  FComponentId.Free;
-  FAppContext := nil;
+
   inherited;
 end;
 
-procedure TCustomMasterUI.BeforeCreate;
+procedure TCustomMasterUI.DoBeforeCreate;
 begin
-  FIsMaxBox := True;
-  FIsMinBox := True;
-  FBorderWidth := 1;
-  FMouseMoveId := -1;
-  FMouseDownId := -1;
-  FCaptionHeight := 30;
+  inherited;
+  FIsAppWind := True;
+  FMinTrackWidth := 0;
+  FMinTrackHeight := 0;
   FStatusBarHeight := 30;
   FSuperTabBarWidth := 60;
-  FDownHitTest := HTNOWHERE;
-  FComponentId := TComponentId.Create;
+  FNCStatusBarUIClass := TNCStatusBarUI;
+  FNCSuperTabBarUIClass := TNCSuperTabBarUI;
 end;
 
-procedure TCustomMasterUI.UpdateSkinStyle;
+procedure TCustomMasterUI.DoCreateNCBarUI;
 begin
-  DoUpdateSkinStyle;
-  Invalidate;
+  inherited;
+  if FStatusBarHeight > 0 then begin
+    FNCStatusBarUI := FNCStatusBarUIClass.Create(FAppContext, Self);
+  end;
+
+  if FSuperTabBarWidth > 0 then begin
+    FNCSuperTabBarUI := FNCSuperTabBarUIClass.Create(FAppContext, Self);
+  end;
+end;
+
+procedure TCustomMasterUI.DoDestroyNCBarUI;
+begin
+  if FNCSuperTabBarUI <> nil then begin
+    FNCSuperTabBarUI.Free;
+  end;
+
+  if FNCStatusBarUI <> nil then begin
+    FNCStatusBarUI.Free;
+  end;
+  inherited;
 end;
 
 procedure TCustomMasterUI.DoUpdateSkinStyle;
 begin
-  if FIsMaster then begin
-    if Color <> TColor(FAppContext.GetGdiMgr.GetColorRefMasterBack) then begin
-      Color := FAppContext.GetGdiMgr.GetColorRefMasterBack;
+  inherited;
+  FBorderPen := FAppContext.GetGdiMgr.GetBrushObjMasterBorder;
+  FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionBack;
+  FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionText;
+end;
+
+procedure TCustomMasterUI.DoCalcNC;
+var
+  LDC: HDC;
+  LIsWindowRect: Boolean;
+  LRect, LNoBorderRect, LTempRect: TRect;
+begin
+  LIsWindowRect := GetWindowRect(Handle, LRect);
+  if LIsWindowRect then begin
+    LDC := GetWindowDC(Handle);
+    try
+      OffsetRect(LRect, -LRect.Left, -LRect.Top);
+
+      LNoBorderRect := LRect;
+      if FBorderWidth > 0 then begin
+        LNoBorderRect.Inflate(-FBorderWidth, -FBorderWidth);
+      end;
+
+      FFormBorderRect := LRect;
+
+      if FCaptionHeight > 0 then begin
+        LTempRect := LNoBorderRect;
+        LTempRect.Bottom := LNoBorderRect.Top + FCaptionHeight;
+        FCaptionBarRect := LTempRect;
+        OffsetRect(LTempRect, -LTempRect.Left, -LTempRect.Top);
+        DoCalcNCCaptionBar(LDC, LTempRect);
+      end;
+
+      if FStatusBarHeight > 0 then begin
+        LTempRect := LNoBorderRect;
+        LTempRect.Top := LNoBorderRect.Bottom - FStatusBarHeight;
+        if FSuperTabBarWidth > 0 then begin
+          LTempRect.Left := LNoBorderRect.Left + FSuperTabBarWidth;
+        end;
+        FStatusBarRect := LTempRect;
+        OffsetRect(LTempRect, -LTempRect.Left, -LTempRect.Top);
+        DoCalcNCStatusBar(LDC, LTempRect);
+      end;
+
+      if FSuperTabBarWidth > 0 then begin
+        LTempRect := LNoBorderRect;
+        if FCaptionHeight > 0 then begin
+          LTempRect.Top := LNoBorderRect.Top + FCaptionHeight;
+        end;
+        LTempRect.Right := LNoBorderRect.Left + FSuperTabBarWidth;
+        FSuperTabBarRect := LTempRect;
+        OffsetRect(LTempRect, -LTempRect.Left, -LTempRect.Top);
+        DoCalcNCSuperTabBar(LDC, LTempRect);
+      end;
+
+    finally
+      ReleaseDC(Handle, LDC);
     end;
-    FBorderColor := FAppContext.GetGdiMgr.GetColorRefMasterBorder;
-    FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionBack;
-    FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionText;
-  end;
-end;
-
-procedure TCustomMasterUI.CreateParams(var Params: TCreateParams);
-begin
-  inherited CreateParams(Params);
-  if FIsMinBox then begin
-    Params.Style := Params.Style or WS_MINIMIZEBOX;
-  end else begin
-    Params.Style := Params.Style and (not (Params.Style and WS_MINIMIZEBOX));
-  end;
-
-  if FIsMaxBox then begin
-    Params.Style := Params.Style or WS_MAXIMIZEBOX;
-  end else begin
-    Params.Style := Params.Style and (not (Params.Style and WS_MAXIMIZEBOX));
-  end;
-end;
-
-procedure TCustomMasterUI.CreateWnd;
-begin
-  if FBorderStyleEx = bsNone then begin
-    FBorderStyleEx := Self.BorderStyle;
-  end;
-  BorderStyle := bsNone;
-  inherited;
-end;
-
-procedure TCustomMasterUI.CMTextChanged(var Message: TMessage);
-begin
-  inherited;
-  if not (csLoading in Self.ComponentState) then begin
-    SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
-  end;
-end;
-
-procedure TCustomMasterUI.OnActivateApp(var message: TWMACTIVATEAPP);
-begin
-  inherited;
-  if not message.Active then begin
     SendMessage(Handle, WM_NCPAINT, 0, 0);
   end;
 end;
 
-procedure TCustomMasterUI.WMActivate(var Message: TWMActivate);
+procedure TCustomMasterUI.DoCalcNCStatusBar(ADC: HDC; ARect: TRect);
 begin
-  if message.Active in [WA_ACTIVE, WA_CLICKACTIVE] then begin
-    FIsActivate := True;
-  end else begin
-    FIsActivate := False;
-  end;
-  SendMessage(Handle, WM_NCPAINT, 0, 0);
-  inherited;
+  if FNCStatusBarUI = nil then Exit;
+
+  FNCStatusBarUI.Calc(ADC, ARect);
 end;
 
-procedure TCustomMasterUI.WMNCActivate(var Message: TWMNCActivate);
+procedure TCustomMasterUI.DoCalcNCSuperTabBar(ADC: HDC; ARect: TRect);
 begin
-  message.Result := 1;          //去掉默认响应，关闭默认标题栏绘制
+  if FNCSuperTabBarUI = nil then Exit;
+
+  FNCSuperTabBarUI.Calc(ADC, ARect);
+end;
+
+procedure TCustomMasterUI.DoDrawNC(ADC: HDC);
+var
+  LRect: TRect;
+begin
+  DoDrawNCStatusBar(ADC, FStatusBarRect);
+  DoDrawNCCaptionBar(ADC, FCaptionBarRect);
+  DoDrawNCSuperTabBar(ADC, FSuperTabBarRect);
+  if FBorderWidth > 0 then begin
+    LRect := FFormBorderRect;
+    Dec(LRect.Right);
+    Dec(LRect.Bottom);
+    DrawBorder(ADC, FBorderPen, LRect, 15);
+  end;
+end;
+
+procedure TCustomMasterUI.DoDrawNCStatusBar(ADC: HDC; ARect: TRect; AId: Integer);
+begin
+  if FNCStatusBarUI = nil then Exit;
+
+  FNCStatusBarUI.Draw(ADC, ARect, AId);
+end;
+
+procedure TCustomMasterUI.DoDrawNCSuperTabBar(ADC: HDC; ARect: TRect; AId: Integer);
+begin
+  if FNCSuperTabBarUI = nil then Exit;
+
+  FNCSuperTabBarUI.Draw(ADC, ARect, AId);
+end;
+
+function TCustomMasterUI.DoNCHitTest(var Msg: TMessage): Boolean;
+var
+  LMousePt: TPoint;
+  LMouseMoveId: Integer;
+  LComponent: TComponentUI;
+  LRect, LBorderRect: TRect;
+begin
+  Result := False;
+
+  // 没有标题没有边框
+  if (FCaptionHeight = 0)
+    and (FBorderWidth = 0) then begin
+    Msg.Result := HTTRANSPARENT;
+    Exit;
+  end;
+
+  LMousePt.X := SmallInt(Msg.LParamLo);
+  LMousePt.Y := SmallInt(Msg.LParamHi);
+  GetWindowRect(Handle, LRect);
+  // 如果窗体处在一般状态且可拖动大小，则判断鼠标是否点击在边框
+  if (WindowState = wsNormal)
+    and (FBorderStyleEx = bsSizeable) then begin
+
+    LBorderRect := LRect;
+    InflateRect(LBorderRect, -4, -4);
+
+    // 如果鼠标在边框区域
+    if not PtInRect(LBorderRect, LMousePt) then begin
+      if LMousePt.Y <= LBorderRect.Top then begin
+        if LMousePt.X < LRect.Left + 8 then begin
+          Msg.Result := HTTOPLEFT
+        end else if LMousePt.X > LRect.Right - 8 then begin
+          Msg.Result := HTTOPRIGHT
+        end else begin
+          Msg.Result := HTTOP;
+        end;
+      end else if LMousePt.Y >= LBorderRect.Bottom then begin
+        if LMousePt.X < LRect.Left + 8 then begin
+          Msg.Result := HTBOTTOMLEFT
+        end else if LMousePt.X > LRect.Right - 8 then begin
+          Msg.Result := HTBOTTOMRIGHT
+        end else begin
+          Msg.Result := HTBOTTOM;
+        end;
+      end else if LMousePt.X <= LBorderRect.Left then begin
+        if LMousePt.Y < LRect.Top + 8 then begin
+          Msg.Result := HTTOPLEFT
+        end else if LMousePt.Y > LRect.Bottom - 8 then begin
+          Msg.Result := HTBOTTOMLEFT
+        end else begin
+          Msg.Result := HTLEFT;
+        end;
+      end else begin
+        if LMousePt.Y < LRect.Top + 8 then begin
+          Msg.Result := HTTOPRIGHT
+        end else if LMousePt.Y > LRect.Bottom - 8 then begin
+          Msg.Result := HTBOTTOMRIGHT
+        end else begin
+          Msg.Result := HTRIGHT;
+        end;
+      end;
+
+      Result := True;
+      DoUpdateHitTest(Msg.Result);
+      Exit;
+    end;
+  end;
+
+  LMousePt.X := LMousePt.X - LRect.Left;
+  LMousePt.Y := LMousePt.Y - LRect.Top;
+  LMouseMoveId := -1;
+  if (FNCCaptionBarUI <> nil)
+    and PtInRect(FNCCaptionBarUI.ComponentsRect, DoToNCCaptionBarPt(LMousePt)) then begin
+
+    if FNCCaptionBarUI.FindComponent(DoToNCCaptionBarPt(LMousePt), LComponent) then begin
+      if LComponent is TCaptionBarClose then begin
+        Msg.Result := HTCLOSE;
+      end else if LComponent is TCaptionBarMaximize then begin
+        Msg.Result := HTMAXBUTTON;
+      end else if LComponent is TCaptionBarMinimize then begin
+        Msg.Result := HTMINBUTTON;
+      end else begin
+        Msg.Result := HTMENU;
+      end;
+
+      LMouseMoveId := LComponent.Id;
+    end else begin
+      Msg.Result := HTCAPTION;
+    end;
+
+    Result := True;
+
+    if (FNCMouseMoveId <> LMouseMoveId)
+      or (FNCMouseDownId <> LMouseMoveId) then begin
+      FNCMouseMoveId := LMouseMoveId;
+      FNCMouseDownId := -1;
+      FNCCaptionBarUI.Invalidate;
+    end;
+  end else if (FNCSuperTabBarUI <> nil)
+    and PtInRect(FNCSuperTabBarUI.ComponentsRect, DoToNCSuperTabBarPt(LMousePt)) then begin
+
+    if FNCSuperTabBarUI.FindComponent(DoToNCSuperTabBarPt(LMousePt), LComponent) then begin
+
+      Result := True;
+      LMouseMoveId := LComponent.Id;
+      Msg.Result := HTMENU;
+    end;
+    if (FNCMouseMoveId <> LMouseMoveId)
+      or (FNCMouseDownId <> LMouseMoveId) then begin
+      FNCMouseMoveId := LMouseMoveId;
+      FNCMouseDownId := -1;
+      FNCSuperTabBarUI.Invalidate;
+    end;
+  end else if (FNCStatusBarUI <> nil)
+    and PtInRect(FNCStatusBarUI.ComponentsRect, DoToNCStatusBarPt(LMousePt)) then begin
+
+    if FNCStatusBarUI.FindComponent(DoToNCStatusBarPt(LMousePt), LComponent) then begin
+      Result := True;
+      LMouseMoveId := LComponent.Id;
+      Msg.Result := HTMENU;
+    end;
+    if (FNCMouseMoveId <> LMouseMoveId)
+      or (FNCMouseDownId <> LMouseMoveId) then begin
+      FNCMouseMoveId := LMouseMoveId;
+      FNCMouseDownId := -1;
+      FNCStatusBarUI.Invalidate;
+    end;
+  end;
+end;
+
+procedure TCustomMasterUI.DoNCLButtonUp(var Message: TWMNCLButtonUp);
+var
+  LComponent: TComponentUI;
+begin
+  // 如果抬起时和按下时位置一致
+  if Message.HitTest = FMouseDownHitTest then begin
+    case Message.HitTest of
+      HTMENU:
+        begin
+          if (FNCCaptionBarUI <> nil)
+            and FNCCaptionBarUI.FindComponent(FNCMouseMoveId, LComponent) then begin
+            FNCMouseDownId := -1;
+            FNCCaptionBarUI.Invalidate(FNCMouseMoveId);
+            FNCCaptionBarUI.LButtonClickComponent(LComponent);
+          end else if (FNCSuperTabBarUI <> nil)
+            and FNCSuperTabBarUI.FindComponent(FNCMouseMoveId, LComponent) then begin
+            FNCMouseDownId := -1;
+            FNCSuperTabBarUI.Invalidate(FNCMouseMoveId);
+            FNCSuperTabBarUI.LButtonClickComponent(LComponent);
+          end else if (FNCStatusBarUI <> nil)
+            and FNCStatusBarUI.FindComponent(FNCMouseMoveId, LComponent) then begin
+            FNCMouseDownId := -1;
+            FNCStatusBarUI.Invalidate(FNCMouseMoveId);
+            FNCStatusBarUI.LButtonClickComponent(LComponent);
+          end;
+        end;
+      HTCLOSE:
+        begin
+          Self.Close;
+          DoCloseEx;
+        end;
+      HTMAXBUTTON:
+        begin
+          FMouseMoveHitTest := HTNOWHERE;
+          if Self.WindowState = wsNormal then begin
+            Self.WindowState := wsMaximized
+          end else begin
+            self.WindowState := wsNormal;
+          end;
+        end;
+      HTMINBUTTON:
+        begin
+          FMouseMoveHitTest := HTNOWHERE;
+          Self.WindowState := wsMinimized;
+        end;
+    end;
+  end;
+end;
+
+procedure TCustomMasterUI.DoNCLButtonDown(var Message: TWMNCLButtonDown);
+var
+  LPt: TPoint;
+  LIsActivate: Boolean;
+  LComponent: TComponentUI;
+begin
+  // 保存按下时鼠标位置
+  FMouseLeavePt.X := Message.XCursor;
+  FMouseLeavePt.Y := Message.YCursor;
+  // 保存按下是鼠标的点击位置类型
+  FMouseDownHitTest := Message.HitTest;
+  FNCMouseDownId := FNCMouseMoveId;
+
+  if (FNCCaptionBarUI <> nil)
+    and FNCCaptionBarUI.FindComponent(FNCMouseMoveId, LComponent) then begin
+    FNCCaptionBarUI.Invalidate(FNCMouseMoveId);
+    LIsActivate := True;
+  end else if (FNCSuperTabBarUI <> nil)
+    and FNCSuperTabBarUI.FindComponent(FNCMouseMoveId, LComponent) then begin
+    LIsActivate := False;
+    FNCSuperTabBarUI.Invalidate(FNCMouseMoveId);
+  end else if (FNCStatusBarUI <> nil)
+    and FNCStatusBarUI.FindComponent(FNCMouseMoveId, LComponent) then begin
+    LIsActivate := False;
+    FNCStatusBarUI.Invalidate(FNCMouseMoveId);
+  end else begin
+    LIsActivate := False;
+  end;
+
+  if LIsActivate
+    or (FMouseDownHitTest = HTCAPTION) then begin
+    // 点击激活
+    if not FIsActivate then begin
+      PostMessage(Self.Handle, WM_ACTIVATE, 1, 0);
+    end;
+  end;
+end;
+
+procedure TCustomMasterUI.DoWmPaintNCBarsUI(var Message: TMessage);
+var
+  LDC: HDC;
+  LRect: TRect;
+begin
+  LDC := GetWindowDC(Self.Handle);
+  try
+    case Message.WParam of
+      NC_DRAW_CAPTIONBAR:
+        begin
+          DoDrawNCCaptionBar(LDC, FCaptionBarRect, Message.LParam);
+        end;
+      NC_DRAW_STATUSBAR:
+        begin
+          DoDrawNCStatusBar(LDC, FStatusBarRect, Message.LParam);
+        end;
+      NC_DRAW_SUPERTABBAR:
+        begin
+          DoDrawNCSuperTabBar(LDC, FSuperTabBarRect, Message.LParam);
+        end;
+    end;
+    LRect := FFormBorderRect;
+    Dec(LRect.Right);
+    Dec(LRect.Bottom);
+    DrawBorder(LDC, FBorderPen, LRect, 15);
+  finally
+    ReleaseDC(Self.Handle, LDC);
+  end;
+end;
+
+function TCustomMasterUI.DoToNCStatusBarPt(APt: TPoint): TPoint;
+begin
+  Result.X := APt.X - FStatusBarRect.Left;
+  Result.Y := APt.Y - FStatusBarRect.Top;
+end;
+
+function TCustomMasterUI.DoToNCSuperTabBarPt(APt: TPoint): TPoint;
+begin
+  Result.X := APt.X - FSuperTabBarRect.Left;
+  Result.Y := APt.Y - FSuperTabBarRect.Top;
 end;
 
 procedure TCustomMasterUI.WMNCCalcSize(var Message: TWMNCCalcSize);
@@ -330,342 +595,6 @@ begin
   Message.CalcSize_Params.rgrc[0].Right := Message.CalcSize_Params.rgrc[0].Right - FBorderWidth;
   Message.CalcSize_Params.rgrc[0].Top := Message.CalcSize_Params.rgrc[0].Top + FBorderWidth + FCaptionHeight;
   Message.CalcSize_Params.rgrc[0].Bottom := Message.CalcSize_Params.rgrc[0].Bottom - FBorderWidth - FStatusBarHeight;
-
-//  if Message.CalcValidRects then begin
-//    Message.CalcSize_Params.rgrc[0].Left := Message.CalcSize_Params.rgrc[0].Left + FBorderWidth + FSuperTabBarWidth;
-//    Message.CalcSize_Params.rgrc[0].Right := Message.CalcSize_Params.rgrc[0].Right - FBorderWidth;
-//    Message.CalcSize_Params.rgrc[0].Top := Message.CalcSize_Params.rgrc[0].Top + FBorderWidth + FCaptionHeight;
-//    Message.CalcSize_Params.rgrc[0].Bottom := Message.CalcSize_Params.rgrc[0].Bottom - FBorderWidth - FStatusBarHeight;
-//  end;
-end;
-
-procedure TCustomMasterUI.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
-var
-//  LMonitor: TMonitor;
-  LMonitor: HMONITOR;
-  LMonitorInfo: MONITORINFO;
-begin
-  if FBorderStyleEx <> bsNone then begin
-    Message.MinMaxInfo.ptMinTrackSize.X := FMinWidth;
-    Message.MinMaxInfo.ptMinTrackSize.Y := FMinHeight;
-//    // 调整窗口最大化时高度，避免窗口最大化时盖住主屏任务栏
-    LMonitorInfo.cbSize := SizeOf(MONITORINFO);
-
-    LMonitor := MonitorFromWindow(Handle, MONITOR_DEFAULTTONULL);
-    if LMonitor <> 0 then begin
-      GetMonitorInfo(LMonitor, @LMonitorInfo);
-      // ptMaxSize的默认大小为主屏的分辨率，在不同分辨率的屏幕上是以默认大小为基准按比例设置的。
-      // 如主屏分辨率X1*Y1,副屏分辨率X2*Y2，如果该值设为x*y，在副屏上计算的实际大小是x*X2/X1和y*Y2/Y1
-
-      Message.MinMaxInfo.ptMaxSize.X :=
-        Min(LMonitorInfo.rcWork.Right - LMonitorInfo.rcWork.Left, Message.MinMaxInfo.ptMaxSize.X);
-      Message.MinMaxInfo.ptMaxSize.Y :=
-        Min(LMonitorInfo.rcWork.Bottom - LMonitorInfo.rcWork.Top, Message.MinMaxInfo.ptMaxSize.Y);
-    end;
-//    LMonitor := Screen.MonitorFromWindow(Self.Handle);
-//    if LMonitor <> nil then begin
-//      Message.MinMaxInfo.ptMaxSize.X   :=   LMonitor.WorkareaRect.Width - 600;
-//      Message.MinMaxInfo.ptMaxSize.Y   :=   LMonitor.WorkareaRect.Height - 300;
-//      Message.Result   :=   0;
-//    end;
-  end;
-//  Message.Result := 0;
-  inherited;
-end;
-
-procedure TCustomMasterUI.WMNCHitTest(var Msg: TMessage);
-begin
-  inherited;
-end;
-
-procedure TCustomMasterUI.WMNCLButtonDown(var Message: TWMNCLButtonDown);
-begin
-  // 保存按下时鼠标位置
-  FMouseLeavePt.X := Message.XCursor;
-  FMouseLeavePt.Y := Message.YCursor;
-  // 保存按下是鼠标的点击位置类型
-  FDownHitTest := Message.HitTest;
-  SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
-  // 点击激活
-  if not Self.IsActivate then begin
-    PostMessage(Self.Handle, WM_ACTIVATE, 1, 0);
-  end;
-  // 调用inherited会导致 WMNCLButtonUp 不响应,所以屏蔽一些，但窗体大小拖动还需要 Inherited
-  if (Message.HitTest <> HTCAPTION)
-    and (Message.HitTest <> HTCLOSE)
-    and (Message.HitTest <> HTMENU)
-    and (Message.HitTest <> HTMAXBUTTON)
-    and (Message.HitTest <> HTMINBUTTON)
-    and (WindowState <> wsMaximized) then begin
-    inherited;
-  end;
-end;
-
-procedure TCustomMasterUI.WMNCLButtonUp(var Message: TWMNCLButtonUp);
-begin
-  inherited;
-end;
-
-procedure TCustomMasterUI.WMNCMouseMove(var Message: TWMMouseMove);
-var
-  LEvent: TTrackMouseEvent;
-  LPosX, LPosY, LWidth: Integer;
-begin
-  if (Abs(FMouseLeavePt.X - Message.XPos) > 3)
-    or (Abs(FMouseLeavePt.Y - Message.YPos) > 3) then begin
-    if FDownHitTest = HTCAPTION then begin
-      //如果窗体最大化状态，则拖动还原
-      if (FBorderStyleEx = bsSizeable)
-        and (Self.WindowState = wsMaximized) then begin
-        LPosX := Self.Left;
-        LPosY := Self.Top;
-        LWidth := Self.Width;
-        Self.WindowState := wsNormal;
-        //收缩窗体后按比例计算窗体的位置
-        LPosX := LPosX + (Message.XPos - LPosX) * Self.Width div LWidth;
-        SetBounds(LPosX, LPosY, Width, Height);
-      end;
-      FMouseLeavePt.X := Message.XPos;
-      FMouseLeavePt.Y := Message.YPos;
-      SendMessage(Self.Handle, WM_SYSCOMMAND, SC_MOVE + HTCAPTION, 0);
-      Exit;
-    end;
-  end;
-
-  inherited;
-  //跟踪鼠标移开非客户区消息，如果无此操作，则收不到 WM_NCMOUSELEAVE 消息
-  if not FIsTracking then begin
-    FIsTracking := True;
-    LEvent.cbSize := SizeOf(TTrackMouseEvent);
-    //Flag 需指定 TME_NONCLIENT，否则只会发送离开客户区域消息
-    LEvent.dwFlags := TME_LEAVE or TME_NONCLIENT;
-    LEvent.hwndTrack := Handle;
-    LEvent.dwHoverTime := 20;
-    //发送离开非客户区消息
-    TrackMouseEvent(LEvent);
-  end;
-end;
-
-procedure TCustomMasterUI.WMNCMouseLeave(var Message: TMessage);
-begin
-  inherited;
-  FIsTracking := False;
-  DoUpdateHitTest(HHT_NOWHERE);
-  DoUpdateBarHitTest(-1, -1);
-end;
-
-procedure TCustomMasterUI.WMNCLButtonDbClk(var Message: TWMNCLButtonDblClk);
-begin
-  if (FBorderStyleEx = bsSizeable)
-    and (Message.HitTest = HTCAPTION) then begin
-    if Self.WindowState = wsMaximized then begin
-      Self.WindowState := wsNormal
-    end else begin
-      Self.WindowState := wsMaximized;
-    end;
-  end;
-  DoUpdateHitTest(HHT_NOWHERE);
-  DoUpdateBarHitTest(-1, -1);
-end;
-
-procedure TCustomMasterUI.WMSize(var Message: TWMSize);
-var
-  LDC: HDC;
-  LIsGetRect: Boolean;
-  LBorderWidth: Integer;
-  LRect, LNoBorderRect, LTempRect: TRect;
-begin
-  inherited;
-  LIsGetRect := GetWindowRect(Handle, LRect);
-  if LIsGetRect then begin
-    LDC := GetWindowDC(Handle);
-    try
-      OffsetRect(LRect, -LRect.Left, -LRect.Top);
-
-      LBorderWidth := FBorderWidth;
-
-      FMasterRect := LRect;
-
-      LNoBorderRect := LRect;
-      LNoBorderRect.Inflate(-LBorderWidth, -LBorderWidth);
-
-      if FCaptionHeight > 0 then begin
-        LTempRect := LNoBorderRect;
-        LTempRect.Bottom := LNoBorderRect.Top + FCaptionHeight;
-        FCaptionBarRect := LTempRect;
-        OffsetRect(LTempRect, -LTempRect.Left, -LTempRect.Top);
-        CalcNCCaptionBar(LDC, LTempRect);
-      end;
-
-      if FStatusBarHeight > 0 then begin
-        LTempRect := LNoBorderRect;
-        LTempRect.Top := LNoBorderRect.Bottom - FStatusBarHeight;
-        if FSuperTabBarWidth > 0 then begin
-          LTempRect.Left := LNoBorderRect.Left + FSuperTabBarWidth;
-        end;
-        FStatusBarRect := LTempRect;
-        OffsetRect(LTempRect, -LTempRect.Left, -LTempRect.Top);
-        CalcNCStatusBar(LDC, LTempRect);
-      end;
-
-      if FSuperTabBarWidth > 0 then begin
-        LTempRect := LNoBorderRect;
-        LTempRect.Right := LNoBorderRect.Left + FSuperTabBarWidth;
-        if FCaptionHeight > 0 then begin
-          LTempRect.Top := LNoBorderRect.Top + FCaptionHeight;
-        end;
-        FSuperTabBarRect := LTempRect;
-        OffsetRect(LTempRect, -LTempRect.Left, -LTempRect.Top);
-        CalcNCSuperTabBar(LDC, LTempRect);
-      end;
-
-      FClientRect := LNoBorderRect;
-      if FCaptionHeight > 0 then begin
-        FClientRect.Top := LNoBorderRect.Top + FCaptionHeight;
-      end;
-      if FSuperTabBarWidth > 0 then begin
-        FClientRect.Left := LNoBorderRect.Left + FSuperTabBarWidth;
-      end;
-      if FStatusBarHeight > 0 then begin
-        FClientRect.Bottom := LNoBorderRect.Bottom - FStatusBarHeight;
-      end;
-    finally
-      ReleaseDC(Handle, LDC);
-    end;
-    SendMessage(Handle, WM_NCPAINT, 0, 0);
-  end;
-end;
-
-procedure TCustomMasterUI.WMNCPaint(var Message: TMessage);
-var
-  LDC: HDC;
-begin
-  LDC := GetWindowDC(Handle);
-  try
-    DrawNCStatusBar(LDC, FStatusBarRect);
-    DrawNCCaptionBar(LDC, FCaptionBarRect);
-    DrawNCSuperTabBar(LDC, FSuperTabBarRect);
-    DrawBorder(LDC, FBorderColor, FMasterRect, 15);
-  finally
-    ReleaseDC(Handle, LDC);
-  end;
-end;
-
-procedure TCustomMasterUI.DoPaintC(Sender: TObject);
-var
-  LDC: HDC;
-begin
-//  LDC := GetWindowDC(Handle);
-//  try
-//    DrawC(FRenderDC.MemDC, FClientRect);
-//    FRenderDC.BitBltX(LDC);
-//  finally
-//    ReleaseDC(Handle, LDC);
-//  end;
-end;
-
-procedure TCustomMasterUI.DrawC(ADC: HDC; ARect: TRect);
-begin
-  DrawBK(ADC, ARect, Color);
-end;
-
-procedure TCustomMasterUI.DrawBK(ADC: HDC; ARect: TRect; AColorRef: COLORREF);
-begin
-  FillSolidRect(ADC, @ARect, AColorRef);
-end;
-
-procedure TCustomMasterUI.DrawNCStatusBar(ADC: HDC; ARect: TRect; AId: Integer);
-begin
-
-end;
-
-procedure TCustomMasterUI.DrawNCCaptionBar(ADC: HDC; ARect: TRect; AId: Integer);
-begin
-
-end;
-
-procedure TCustomMasterUI.DrawNCSuperTabBar(ADC: HDC; ARect: TRect; AId: Integer);
-begin
-
-end;
-
-procedure TCustomMasterUI.CalcNCStatusBar(ADC: HDC; ARect: TRect);
-begin
-
-end;
-
-procedure TCustomMasterUI.CalcNCCaptionBar(ADC: HDC; ARect: TRect);
-begin
-
-end;
-
-procedure TCustomMasterUI.CalcNCSuperTabBar(ADC: HDC; ARect: TRect);
-begin
-
-end;
-
-procedure TCustomMasterUI.DoNCPaintStatusBar(AId: Integer);
-var
-  LDC: HDC;
-begin
-  LDC := GetWindowDC(Handle);
-  try
-    DrawNCStatusBar(LDC, FStatusBarRect, AId);
-  finally
-    ReleaseDC(Handle, LDC);
-  end;
-end;
-
-procedure TCustomMasterUI.DoNCPaintCaptionBar(AId: Integer);
-var
-  LDC: HDC;
-begin
-  LDC := GetWindowDC(Handle);
-  try
-    DrawNCCaptionBar(LDC, FCaptionBarRect, AId);
-  finally
-    ReleaseDC(Handle, LDC);
-  end;
-end;
-
-procedure TCustomMasterUI.DoNCPaintSuperTabBar(AId: Integer);
-var
-  LDC: HDC;
-begin
-  LDC := GetWindowDC(Handle);
-  try
-    DrawNCSuperTabBar(LDC, FSuperTabBarRect, AId);
-  finally
-    ReleaseDC(Handle, LDC);
-  end;
-end;
-
-procedure TCustomMasterUI.WMNCPaintStatusBar(var Message: TMessage);
-begin
-  DoNCPaintStatusBar;
-end;
-
-procedure TCustomMasterUI.WMNCPaintCaptionBar(var Message: TMessage);
-begin
-  DoNCPaintCaptionBar;
-end;
-
-procedure TCustomMasterUI.WMNCPaintSuperTabBar(var Message: TMessage);
-begin
-  DoNCPaintSuperTabBar;
-end;
-
-procedure TCustomMasterUI.DoUpdateHitTest(AHitTest: Integer);
-begin
-  if (FHitTest <> AHitTest) then begin
-    FHitTest := AHitTest;
-    SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
-  end;
-end;
-
-procedure TCustomMasterUI.DoUpdateBarHitTest(AMouseMoveId, AMouseDownId: Integer);
-begin
-
 end;
 
 end.

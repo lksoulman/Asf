@@ -53,18 +53,17 @@ type
     // KeySearchEngine
     FKeySearchEngine: IKeySearchEngine;
 
+  protected
     // WMActivate
-    procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
+//    procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
 
     // BeforeCreate
     procedure DoBeforeCreate; override;
-    // CreateNCBarUI
-    procedure DoCreateNCBarUI; override;
-    // DestroyNCBarUI
-    procedure DoDestroyNCBarUI; override;
+    // NCBarInitDatas
+    procedure DoNCBarInitDatas; override;
     // UpdateSkinStyle
     procedure DoUpdateSkinStyle; override;
-  protected
+
     // SearchDelayTimer
     procedure DoSearchDelayTimer(Sender: TObject);
     // LoadSearchResult
@@ -88,7 +87,6 @@ implementation
 constructor TKeyFairyUI.Create(AContext: IAppContext);
 begin
   inherited;
-  Caption := 'èóË¼¼üÅÌ¾«Áé';
 
   EdtSearch.ParentFont := False;
   EdtSearch.ParentColor := False;
@@ -96,11 +94,11 @@ begin
   EdtSearch.Font.Charset := GB2312_CHARSET;
   EdtSearch.Font.Height := -14;
 
-  FKeyReportUI := TKeyReportUI.Create(nil);
-  FKeyReportUI.Parent := PnlClient;
-  FKeyReportUI.Align := alClient;
-
-  FKeyReportUI.InitGridData;
+//  FKeyReportUI := TKeyReportUI.Create(nil);
+//  FKeyReportUI.Parent := PnlClient;
+//  FKeyReportUI.Align := alClient;
+//
+//  FKeyReportUI.InitGridData;
 
   FSearchDelayTimer := TTimer.Create(nil);
   FSearchDelayTimer.Enabled := False;
@@ -110,32 +108,28 @@ end;
 
 destructor TKeyFairyUI.Destroy;
 begin
-  FKeyReportUI.Free;
+//  FKeyReportUI.Free;
   inherited;
 end;
 
 procedure TKeyFairyUI.DoBeforeCreate;
 begin
-  inherited DoBeforeCreate;
+  inherited;
   FIsMaximize := False;
   FIsMinimize := False;
-  FBorderStyleEx := bsNone;
+//  FBorderStyleEx := bsNone;
 end;
 
-procedure TKeyFairyUI.DoCreateNCBarUI;
+procedure TKeyFairyUI.DoNCBarInitDatas;
 begin
-  inherited;
-
-end;
-
-procedure TKeyFairyUI.DoDestroyNCBarUI;
-begin
-
-  inherited;
+  if FNCCaptionBarUI <> nil then begin
+    FNCCaptionBarUI.Caption := 'èóË¼¼üÅÌ¾«Áé';
+  end;
 end;
 
 procedure TKeyFairyUI.DoUpdateSkinStyle;
 begin
+  inherited;
   if PnlEdit <> nil then begin
     PnlEdit.Color := RGB(26, 26, 26);
     PnlClient.Color := RGB(26, 26, 26);
@@ -146,7 +140,6 @@ begin
     EdtSearch.FrameColor := RGB(55, 55, 55);
     EdtSearch.FrameHotColor := RGB(79, 155, 255);
   end;
-
 end;
 
 procedure TKeyFairyUI.SetKey(AKey: string);
@@ -183,14 +176,14 @@ begin
 //
 end;
 
-procedure TKeyFairyUI.WMActivate(var Message: TWMActivate);
-begin
-  if message.Active = 0 then begin
-    FIsActivate := False;
-    Self.Hide;
-    Exit;
-  end;
-  inherited;
-end;
+//procedure TKeyFairyUI.WMActivate(var Message: TWMActivate);
+//begin
+//  if message.Active = 0 then begin
+//    FIsActivate := False;
+//    Self.Hide;
+//    Exit;
+//  end;
+//  inherited;
+//end;
 
 end.

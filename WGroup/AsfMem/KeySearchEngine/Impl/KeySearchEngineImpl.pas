@@ -120,6 +120,7 @@ var
 
   LSecuMain: ISecuMain;
   LSecuInfo: PSecuInfo;
+  LIsUpdating: Boolean;
   LIndex, LVersion: Integer;
 begin
 {$IFDEF DEBUG}
@@ -132,6 +133,12 @@ begin
 
     LSecuMain.Lock;
     try
+      LIsUpdating := LSecuMain.IsUpdating;
+    finally
+      LSecuMain.UnLock;
+    end;
+
+    if not LIsUpdating then begin
       LVersion := LSecuMain.GetUpdateVersion;
       if LVersion <> FUpdateVersion then begin
         SetIsUpdate(True);
@@ -148,8 +155,6 @@ begin
           SetIsUpdate(False);
         end;
       end;
-    finally
-      LSecuMain.UnLock;
     end;
     LSecuMain := nil;
 

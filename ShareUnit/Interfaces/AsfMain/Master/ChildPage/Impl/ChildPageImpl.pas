@@ -103,10 +103,8 @@ type
     function GetCaption: string;
     // SetCaption
     procedure SetCaption(ACaption: string);
-//    // GetParent
-//    function GetParent: TWinControl;
-//    // SetParent
-//    procedure SetParent(AParent: TWinControl);
+    // MasterHandle
+    function GetMasterHandle: Cardinal;
     // GetCommandId
     function GetCommandId: Integer;
     // SetCommandId
@@ -126,7 +124,7 @@ type
 
     property Active: Boolean read GetActive;
     property Handle: Cardinal read GetHandle;
-//    property Parent: TWinControl read GetParent write SetParent;
+    property MasterHandle: Cardinal read GetMasterHandle;
     property Caption: string read GetCaption write SetCaption;
     property CommandId: Integer read GetCommandId write SetCommandId;
   end;
@@ -179,7 +177,7 @@ begin
   DoActivate;
   DoUpdateNoActiveNotifyMsg;
   DoUpdateCommandParam(FCommandParams);
-//  FChildPageUI.BringToFront;
+  FChildPageUI.BringToFront;
 end;
 
 procedure TChildPageImpl.DoUpdateNoActiveNotifyMsg;
@@ -265,10 +263,14 @@ begin
   FChildPageUI.Caption := ACaption;
 end;
 
-//function TChildPageImpl.GetParent: TWinControl;
-//begin
-//  Result := FChildPageUI.Parent;
-//end;
+function TChildPageImpl.GetMasterHandle: Cardinal;
+begin
+  if FChildPageUI.Parent <> nil then begin
+    Result := FChildPageUI.Parent.Handle;
+  end else begin
+    Result := 0;
+  end;
+end;
 
 function TChildPageImpl.GetActive: Boolean;
 begin
@@ -372,6 +374,7 @@ begin
   FCommandParams := AParams;
   if not FActive then begin
     DoBringToFront;
+    SetActiveWindow(FChildPageUI.Handle);
     FActive := True;
   end;
 end;

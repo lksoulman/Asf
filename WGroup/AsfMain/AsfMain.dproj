@@ -137,9 +137,9 @@
         <DCCReference Include="Master\UI\MasterUI.pas">
             <Form>MasterUI</Form>
         </DCCReference>
-        <DCCReference Include="Master\UI\StatusBarUI.pas"/>
-        <DCCReference Include="Master\UI\CaptionBarUI.pas"/>
-        <DCCReference Include="Master\UI\SuperTabBarUI.pas"/>
+        <DCCReference Include="Master\UI\MasterNCStatusBarUI.pas"/>
+        <DCCReference Include="Master\UI\MasterNCCaptionBarUI.pas"/>
+        <DCCReference Include="Master\UI\MasterNCSuperTabBarUI.pas"/>
         <DCCReference Include="Master\Cookie\CmdCookie.pas"/>
         <DCCReference Include="Master\Master.pas"/>
         <DCCReference Include="Master\Impl\MasterImpl.pas"/>

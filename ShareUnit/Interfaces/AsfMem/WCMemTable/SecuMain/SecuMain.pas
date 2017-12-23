@@ -290,6 +290,8 @@ type
     procedure Update;
     // AsyncUpdate
     procedure AsyncUpdate;
+    // IsUpdating
+    function IsUpdating: Boolean;
     // GetItemCount
     function GetItemCount: Integer;
     // GetUpdateVersion

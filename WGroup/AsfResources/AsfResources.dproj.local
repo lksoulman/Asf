@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899-12-30 00:00:00.000.816,F:\gildata\product\optimize\Resource\Resource.dproj=C:\Users\chengyz\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
     <Transaction>1899-12-30 00:00:00.000.024,=F:\gildata\product\optimize\Resource\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.268,F:\gildata\product\optimize\Resource\Unit2.pas=F:\gildata\product\optimize\Common\Resource\ResourcesImpl.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.816,C:\Users\chengyz\Documents\Embarcadero\Studio\Projects\Project1.dproj=F:\gildata\product\optimize\Resource\Resource.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.824,F:\gildata\AGithub\AIS\ZGroup\AsfResources\Resource.dproj=F:\gildata\AGithub\AIS\ZGroup\AsfResources\AsfResources.dproj</Transaction>
     <Transaction>1899-12-30 00:00:00.000.493,=C:\Users\chengyz\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.824,F:\gildata\AGithub\AIS\ZGroup\AsfResources\AsfResources.dproj=F:\gildata\AGithub\AIS\ZGroup\AsfResources\Resource.dproj</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.268,F:\gildata\product\optimize\Common\Resource\ResourcesImpl.pas=F:\gildata\product\optimize\Resource\Unit2.pas</Transaction>
   </Transactions>
 </BorlandProject>

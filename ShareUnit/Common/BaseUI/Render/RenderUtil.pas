@@ -208,7 +208,7 @@ implementation
     if AEllipsis then begin
       LFormat := LFormat + DT_END_ELLIPSIS;
     end;
-
+    SetBkMode(ADC, TRANSPARENT);
     SetTextColor(ADC, AColorRef);
     DrawText(ADC, PChar(AText), Length(AText), ARect, LFormat + DT_NOPREFIX);
   end;

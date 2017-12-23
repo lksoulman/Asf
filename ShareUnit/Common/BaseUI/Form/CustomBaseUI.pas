@@ -35,6 +35,7 @@ const
   // 重绘 NCBars
   WM_NCPAINT_BARS       = WM_USER + 100;
 
+  // 绘制非客户区 CaptionBar
   NC_DRAW_CAPTIONBAR    = 1;
 
 type
@@ -42,8 +43,8 @@ type
   // CustomBaseUI
   TCustomBaseUI = class;
 
-  // CustomNCUI
-  TCustomBaseNCUI = class(TBaseObject)
+  // NCCustomBase
+  TNCCustomBaseUI = class(TBaseObject)
   private
   protected
     // ParentUI
@@ -78,6 +79,8 @@ type
     destructor Destroy; override;
     // Invaliate
     procedure Invalidate(AId: Integer= -1); virtual;
+    // InvalidateEx
+    procedure InvalidateEx(AId: Integer= -1); virtual;
     // Change
     procedure Change(ACommandId: Integer); virtual;
     // Calc
@@ -91,6 +94,7 @@ type
     // FindComponent
     function FindComponent(AId: Integer; var AComponent: TComponentUI): Boolean; overload; virtual;
 
+    property RenderDC: TRenderDC read FRenderDC;
     property ParentUI: TCustomBaseUI read FParentUI;
     property ComponentsRect: TRect read FComponentsRect write FComponentsRect;
   end;
@@ -99,11 +103,13 @@ type
   TCustomItem = class(TComponentUI)
   private
   protected
+    // AppContext
+    FAppContext: IAppContext;
     // ParentUI
-    FParentUI: TCustomBaseNCUI;
+    FParentUI: TNCCustomBaseUI;
   public
     // Constructor
-    constructor Create(AParentUI: TCustomBaseNCUI); reintroduce; virtual;
+    constructor Create(AContext: IAppContext; AParentUI: TNCCustomBaseUI); reintroduce; virtual;
     // Destructor
     destructor Destroy; override;
     // RectExIsValid
@@ -161,9 +167,12 @@ type
     function Draw(ARenderDC: TRenderDC): Boolean; override;
   end;
 
-  // CaptionBarNCUI
-  TCaptionBarNCUI = class(TCustomBaseNCUI)
+  // NCCaptionBarUI
+  TNCCaptionBarUI = class(TNCCustomBaseUI)
   private
+    // Caption
+    FCaption: string;
+  protected
     // CaptionBarIcon
     FCaptionBarIcon: TCaptionBarIcon;
     // CaptionBarText
@@ -174,9 +183,11 @@ type
     FCaptionBarMaximize: TCaptionBarMaximize;
     // CaptionBarMinimize
     FCaptionBarMinimize: TCaptionBarMinimize;
-  protected
+
     // CalcComponentsRect
     procedure DoCalcComponentsRect; override;
+    // DrawBK
+    procedure DoDrawBK(ARenderDC: TRenderDC); override;
   public
     // Constructor
     constructor Create(AContext: IAppContext; AParentUI: TCustomBaseUI); override;
@@ -184,9 +195,11 @@ type
     destructor Destroy; override;
     // LButtonClickComponent
     procedure LButtonClickComponent(AComponent: TComponentUI); override;
+
+    property Caption: string read FCaption write FCaption;
   end;
 
-  TCaptionBarNCUIClass = class of TCaptionBarNCUI;
+  TNCCaptionBarUIClass = class of TNCCaptionBarUI;
 
   // CustomBaseUI
   TCustomBaseUI = class(TForm)
@@ -230,15 +243,19 @@ type
     FMouseMoveHitTest: Integer;
     // BorderStyleEx
     FBorderStyleEx: TFormBorderStyle;
-    // BorderColor
-    FBorderColor: COLORREF;
+    // BorderPen
+    FBorderPen: HGDIOBJ;
+    // CaptionBackColor
+    FCaptionBackColor: COLORREF;
+    // CaptionTextColor
+    FCaptionTextColor: COLORREF;
 
     // AppContext
     FAppContext: IAppContext;
-    // CaptionBarNCUI
-    FCaptionBarNCUI: TCaptionBarNCUI;
-    // CaptionBarNCUIClass
-    FCaptionBarNCUIClass: TCaptionBarNCUIClass;
+    // NCCaptionBarUI
+    FNCCaptionBarUI: TNCCaptionBarUI;
+    // NCCaptionBarUIClass
+    FNCCaptionBarUIClass: TNCCaptionBarUIClass;
 
     // CreateWnd
     procedure CreateWnd; override;
@@ -279,11 +296,15 @@ type
     procedure DoCreateNCBarUI; virtual;
     // DestroyNCBarUI
     procedure DoDestroyNCBarUI; virtual;
+    // NCBarInitDatas
+    procedure DoNCBarInitDatas; virtual;
     // UpdateSkinStyle
     procedure DoUpdateSkinStyle; virtual;
 
     // UpdateHitTest
-    procedure DoUpdateHitTest(AHitTest: Integer); virtual;
+    procedure DoUpdateHitTest(AHitTest: Integer);
+    // UpdateBarHitTest
+    procedure DoUpdateBarHitTest(AMouseMoveId, AMouseDownId: Integer);
 
     // CalcNC
     procedure DoCalcNC; virtual;
@@ -295,8 +316,14 @@ type
     // DrawNCCaptionBar
     procedure DoDrawNCCaptionBar(ADC: HDC; ARect: TRect; AId: Integer = -1); virtual;
 
-    // DoPaintNCBars
-    procedure DoWmPaintNCBars(var Message: TMessage); message WM_NCPAINT_BARS;
+    // NCHitTest
+    function DoNCHitTest(var Msg: TMessage): Boolean; virtual;
+    // NCLButtonUp
+    procedure DoNCLButtonUp(var Message: TWMNCLButtonUp); virtual;
+    // NCLButtonDown
+    procedure DoNCLButtonDown(var Message: TWMNCLButtonDown); virtual;
+    // WmPaintNCBarsUI
+    procedure DoWmPaintNCBarsUI(var Message: TMessage); message WM_NCPAINT_BARS;
 
     // ToNCCaptionBarPt
     function DoToNCCaptionBarPt(APt: TPoint): TPoint;
@@ -317,6 +344,8 @@ type
     property IsMinimize: Boolean read FIsMinimize;
     property NCMouseMoveId: Integer read FNCMouseMoveId;
     property NCMouseDownId: Integer read FNCMouseDownId;
+    property CaptionBackColor: COLORREF read FCaptionBackColor write FCaptionBackColor;
+    property CaptionTextColor: COLORREF read FCaptionTextColor write FCaptionTextColor;
   end;
 
 implementation
@@ -328,9 +357,9 @@ uses
 
 {$R *.dfm}
 
-{ TCustomBaseNCUI }
+{ TNCCustomBaseUI }
 
-constructor TCustomBaseNCUI.Create(AContext: IAppContext; AParentUI: TCustomBaseUI);
+constructor TNCCustomBaseUI.Create(AContext: IAppContext; AParentUI: TCustomBaseUI);
 begin
   inherited Create(AContext);
   FWParam := 0;
@@ -341,7 +370,7 @@ begin
   FComponentDic := TDictionary<Integer, TComponentUI>.Create;
 end;
 
-destructor TCustomBaseNCUI.Destroy;
+destructor TNCCustomBaseUI.Destroy;
 begin
   DoClearComponents;
   FComponentDic.Free;
@@ -350,7 +379,7 @@ begin
   inherited;
 end;
 
-procedure TCustomBaseNCUI.DoClearComponents;
+procedure TNCCustomBaseUI.DoClearComponents;
 var
   LIndex: Integer;
   LComponent: TComponentUI;
@@ -364,17 +393,17 @@ begin
   FComponents.Clear;
 end;
 
-procedure TCustomBaseNCUI.DoCalcComponentsRect;
+procedure TNCCustomBaseUI.DoCalcComponentsRect;
 begin
 
 end;
 
-procedure TCustomBaseNCUI.DoDrawBK(ARenderDC: TRenderDC);
+procedure TNCCustomBaseUI.DoDrawBK(ARenderDC: TRenderDC);
 begin
 
 end;
 
-procedure TCustomBaseNCUI.DoDrawComponents(ARenderDC: TRenderDC);
+procedure TNCCustomBaseUI.DoDrawComponents(ARenderDC: TRenderDC);
 var
   LIndex: Integer;
   LComponent: TComponentUI;
@@ -388,7 +417,7 @@ begin
   end;
 end;
 
-procedure TCustomBaseNCUI.DoAddComponent(AComponent: TComponentUI);
+procedure TNCCustomBaseUI.DoAddComponent(AComponent: TComponentUI);
 begin
   if FComponents.IndexOf(AComponent) < 0 then begin
     AComponent.Id := FParentUI.GetUniqueId;
@@ -397,21 +426,28 @@ begin
   end;
 end;
 
-procedure TCustomBaseNCUI.Invalidate(AId: Integer);
+procedure TNCCustomBaseUI.Invalidate(AId: Integer);
 begin
   if FPaintMsg = 0 then Exit;
 
+  if FParentUI.Showing then begin
+    SendMessage(FParentUI.Handle, FPaintMsg, FWParam, AId);
+  end;
+end;
+
+procedure TNCCustomBaseUI.InvalidateEx(AId: Integer= -1);
+begin
   if FParentUI.Showing then begin
     PostMessage(FParentUI.Handle, FPaintMsg, FWParam, AId);
   end;
 end;
 
-procedure TCustomBaseNCUI.Change(ACommandId: Integer);
+procedure TNCCustomBaseUI.Change(ACommandId: Integer);
 begin
 
 end;
 
-procedure TCustomBaseNCUI.Calc(ADC: HDC; ARect: TRect);
+procedure TNCCustomBaseUI.Calc(ADC: HDC; ARect: TRect);
 begin
   if not FRenderDC.IsInit then begin
     FRenderDC.SetDC(ADC);
@@ -426,7 +462,7 @@ begin
   end;
 end;
 
-procedure TCustomBaseNCUI.Draw(ADC: HDC; ARect: TRect; AId: Integer);
+procedure TNCCustomBaseUI.Draw(ADC: HDC; ARect: TRect; AId: Integer);
 var
   LComponentUI: TComponentUI;
 begin
@@ -446,12 +482,12 @@ begin
   FRenderDC.BitBltX(ADC, ARect);
 end;
 
-procedure TCustomBaseNCUI.LButtonClickComponent(AComponent: TComponentUI);
+procedure TNCCustomBaseUI.LButtonClickComponent(AComponent: TComponentUI);
 begin
 
 end;
 
-function TCustomBaseNCUI.FindComponent(APt: TPoint; var AComponent: TComponentUI): Boolean;
+function TNCCustomBaseUI.FindComponent(APt: TPoint; var AComponent: TComponentUI): Boolean;
 var
   LIndex: Integer;
 begin
@@ -468,7 +504,7 @@ begin
   end;
 end;
 
-function TCustomBaseNCUI.FindComponent(AId: Integer; var AComponent: TComponentUI): Boolean;
+function TNCCustomBaseUI.FindComponent(AId: Integer; var AComponent: TComponentUI): Boolean;
 begin
   if FComponentDic.TryGetValue(AId, AComponent) then begin
     Result := True;
@@ -480,16 +516,17 @@ end;
 
 { TCustomItem }
 
-constructor TCustomItem.Create(AParentUI: TCustomBaseNCUI);
+constructor TCustomItem.Create(AContext: IAppContext; AParentUI: TNCCustomBaseUI);
 begin
   inherited Create;
   FParentUI := AParentUI;
+  FAppContext := AContext;
   FRectEx := Rect(0, 0, 0, 0);
 end;
 
 destructor TCustomItem.Destroy;
 begin
-
+  FAppContext := nil;
   inherited;
 end;
 
@@ -537,13 +574,13 @@ var
   LOBJ: HGDIOBJ;
   LCaption: string;
 begin
-  LCaption := FParentUI.ParentUI.Caption;
+  LCaption := TNCCaptionBarUI(FParentUI).Caption;
   if LCaption = '' then Exit;
 
   LOBJ := SelectObject(ARenderDC.MemDC, FParentUI.FAppContext.GetGdiMgr.GetFontObjHeight20);
   try
     DrawTextX(ARenderDC.MemDC, FRectEx, LCaption,
-      FParentUI.FAppContext.GetGdiMgr.GetColorRefMasterCaptionText, dtaLeft, False, True);
+      FParentUI.ParentUI.CaptionTextColor, dtaLeft, False, True);
   finally
     SelectObject(ARenderDC.MemDC, LOBJ);
   end;
@@ -609,41 +646,41 @@ begin
   DrawImageX(ARenderDC.GPGraphics, LResourceStream, FRectEx, LSrcRect);
 end;
 
-{ TCaptionBarNCUI }
+{ TNCCaptionBarUI }
 
-constructor TCaptionBarNCUI.Create(AContext: IAppContext; AParentUI: TCustomBaseUI);
+constructor TNCCaptionBarUI.Create(AContext: IAppContext; AParentUI: TCustomBaseUI);
 begin
   inherited;
   FWParam := NC_DRAW_CAPTIONBAR;
   FPaintMsg := WM_NCPAINT_BARS;
 
-  FCaptionBarIcon := TCaptionBarIcon.Create(Self);
+  FCaptionBarIcon := TCaptionBarIcon.Create(FAppContext, Self);
   DoAddComponent(FCaptionBarIcon);
 
-  FCaptionBarText := TCaptionBarText.Create(Self);
+  FCaptionBarText := TCaptionBarText.Create(FAppContext, Self);
   DoAddComponent(FCaptionBarText);
 
-  FCaptionBarClose := TCaptionBarClose.Create(Self);
+  FCaptionBarClose := TCaptionBarClose.Create(FAppContext, Self);
   DoAddComponent(FCaptionBarClose);
 
   if AParentUI.IsMaximize then begin
-    FCaptionBarMaximize := TCaptionBarMaximize.Create(Self);
+    FCaptionBarMaximize := TCaptionBarMaximize.Create(FAppContext, Self);
     DoAddComponent(FCaptionBarMaximize);
   end;
 
   if AParentUI.IsMinimize then begin
-    FCaptionBarMinimize := TCaptionBarMinimize.Create(Self);
+    FCaptionBarMinimize := TCaptionBarMinimize.Create(FAppContext, Self);
     DoAddComponent(FCaptionBarMinimize);
   end;
 end;
 
-destructor TCaptionBarNCUI.Destroy;
+destructor TNCCaptionBarUI.Destroy;
 begin
 
   inherited;
 end;
 
-procedure TCaptionBarNCUI.DoCalcComponentsRect;
+procedure TNCCaptionBarUI.DoCalcComponentsRect;
 var
   LSize: TSize;
   LCaption: string;
@@ -659,7 +696,7 @@ begin
 
   // CalcCaption
   LTempRect.Left := LTempRect.Right;
-  LCaption := FParentUI.Caption;
+  LCaption := Caption;
   if GetTextSizeX(FRenderDC.MemDC, FAppContext.GetGdiMgr.GetFontObjHeight20, LCaption, LSize) then begin
     LTempRect.Right := LTempRect.Left + LSize.cx;
   end;
@@ -717,7 +754,12 @@ begin
 //  LRight := LTempRect.Left;
 end;
 
-procedure TCaptionBarNCUI.LButtonClickComponent(AComponent: TComponentUI);
+procedure TNCCaptionBarUI.DoDrawBK(ARenderDC: TRenderDC);
+begin
+  FillSolidRect(ARenderDC.MemDC, @FComponentsRect, FParentUI.CaptionBackColor);
+end;
+
+procedure TNCCaptionBarUI.LButtonClickComponent(AComponent: TComponentUI);
 begin
   inherited;
 
@@ -730,18 +772,19 @@ begin
   FAppContext := AContext;
   DoBeforeCreate;
   DoCreateNCBarUI;
+  DoNCBarInitDatas;
   DoUpdateSkinStyle;
   inherited Create(nil);
-//  if BorderStyle <> bsNone then begin
-//    BorderStyle := bsNone;
-//  end;
+  if FNCCaptionBarUI <> nil then begin
+    Caption := FNCCaptionBarUI.Caption;
+  end;
 end;
 
 destructor TCustomBaseUI.Destroy;
 begin
+  inherited;
   DoDestroyNCBarUI;
   FAppContext := nil;
-  inherited;
 end;
 
 procedure TCustomBaseUI.UpdateSkinStyle;
@@ -778,34 +821,51 @@ begin
   FMouseDownHitTest := -1;
   FMouseMoveHitTest := -1;
   FBorderStyleEx := bsSizeable;
-  FCaptionBarNCUIClass := TCaptionBarNCUI;
+  FNCCaptionBarUIClass := TNCCaptionBarUI;
 end;
 
 procedure TCustomBaseUI.DoCreateNCBarUI;
 begin
   FLock := TCSLock.Create;
   if FCaptionHeight > 0 then begin
-    FCaptionBarNCUI := FCaptionBarNCUIClass.Create(FAppContext, Self);
+    FNCCaptionBarUI := FNCCaptionBarUIClass.Create(FAppContext, Self);
   end;
 end;
 
 procedure TCustomBaseUI.DoDestroyNCBarUI;
 begin
-  if FCaptionBarNCUI <> nil then begin
-    FCaptionBarNCUI.Free;
+  if FNCCaptionBarUI <> nil then begin
+    FNCCaptionBarUI.Free;
   end;
   FLock.Free;
 end;
 
+procedure TCustomBaseUI.DoNCBarInitDatas;
+begin
+
+end;
+
 procedure TCustomBaseUI.DoUpdateSkinStyle;
 begin
-  FBorderColor := clRed;
+  FBorderPen := FAppContext.GetGdiMgr.GetBrushObjFormBorder;
+  FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionBack;
+  FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionText;
 end;
 
 procedure TCustomBaseUI.DoUpdateHitTest(AHitTest: Integer);
 begin
   if (FMouseMoveHitTest <> AHitTest) then begin
     FMouseMoveHitTest := AHitTest;
+    SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
+  end;
+end;
+
+procedure TCustomBaseUI.DoUpdateBarHitTest(AMouseMoveId, AMouseDownId: Integer);
+begin
+  if (FNCMouseMoveId <> AMouseMoveId)
+    or (FNCMouseDownId <> AMouseDownId) then begin
+    FNCMouseDownId := AMouseMoveId;
+    FNCMouseMoveId := AMouseDownId;
     SendMessage(Self.Handle, WM_NCPAINT, 0, 0);
   end;
 end;
@@ -846,9 +906,9 @@ end;
 
 procedure TCustomBaseUI.DoCalcNCCaptionBar(ADC: HDC; ARect: TRect);
 begin
-  if FCaptionBarNCUI = nil then Exit;
+  if FNCCaptionBarUI = nil then Exit;
 
-  FCaptionBarNCUI.Calc(ADC, ARect);
+  FNCCaptionBarUI.Calc(ADC, ARect);
 end;
 
 procedure TCustomBaseUI.DoDrawNC(ADC: HDC);
@@ -860,20 +920,189 @@ begin
     LRect := FFormBorderRect;
     Dec(LRect.Right);
     Dec(LRect.Bottom);
-    DrawBorder(ADC, FBorderColor, LRect, 15);
+    DrawBorder(ADC, FBorderPen, LRect, 15);
   end;
 end;
 
 procedure TCustomBaseUI.DoDrawNCCaptionBar(ADC: HDC; ARect: TRect; AId: Integer = -1);
 begin
-  if FCaptionBarNCUI = nil then Exit;
+  if FNCCaptionBarUI = nil then Exit;
 
-  FCaptionBarNCUI.Draw(ADC, ARect, AId);
+  FNCCaptionBarUI.Draw(ADC, ARect, AId);
 end;
 
-procedure TCustomBaseUI.DoWmPaintNCBars(var Message: TMessage);
+function TCustomBaseUI.DoNCHitTest(var Msg: TMessage): Boolean;
+var
+  LMousePt: TPoint;
+  LMouseMoveId: Integer;
+  LComponent: TComponentUI;
+  LRect, LBorderRect: TRect;
+begin
+  Result := False;
+
+  // 没有标题没有边框
+  if (FCaptionHeight = 0)
+    and (FBorderWidth = 0) then begin
+    Msg.Result := HTTRANSPARENT;
+    Exit;
+  end;
+
+  LMousePt.X := SmallInt(Msg.LParamLo);
+  LMousePt.Y := SmallInt(Msg.LParamHi);
+  GetWindowRect(Handle, LRect);
+  // 如果窗体处在一般状态且可拖动大小，则判断鼠标是否点击在边框
+  if (WindowState = wsNormal)
+    and (FBorderStyleEx = bsSizeable) then begin
+
+    LBorderRect := LRect;
+    InflateRect(LBorderRect, -4, -4);
+
+    // 如果鼠标在边框区域
+    if not PtInRect(LBorderRect, LMousePt) then begin
+      if LMousePt.Y <= LBorderRect.Top then begin
+        if LMousePt.X < LRect.Left + 8 then begin
+          Msg.Result := HTTOPLEFT
+        end else if LMousePt.X > LRect.Right - 8 then begin
+          Msg.Result := HTTOPRIGHT
+        end else begin
+          Msg.Result := HTTOP;
+        end;
+      end else if LMousePt.Y >= LBorderRect.Bottom then begin
+        if LMousePt.X < LRect.Left + 8 then begin
+          Msg.Result := HTBOTTOMLEFT
+        end else if LMousePt.X > LRect.Right - 8 then begin
+          Msg.Result := HTBOTTOMRIGHT
+        end else begin
+          Msg.Result := HTBOTTOM;
+        end;
+      end else if LMousePt.X <= LBorderRect.Left then begin
+        if LMousePt.Y < LRect.Top + 8 then begin
+          Msg.Result := HTTOPLEFT
+        end else if LMousePt.Y > LRect.Bottom - 8 then begin
+          Msg.Result := HTBOTTOMLEFT
+        end else begin
+          Msg.Result := HTLEFT;
+        end;
+      end else begin
+        if LMousePt.Y < LRect.Top + 8 then begin
+          Msg.Result := HTTOPRIGHT
+        end else if LMousePt.Y > LRect.Bottom - 8 then begin
+          Msg.Result := HTBOTTOMRIGHT
+        end else begin
+          Msg.Result := HTRIGHT;
+        end;
+      end;
+
+      Result := True;
+      DoUpdateHitTest(Msg.Result);
+      Exit;
+    end;
+  end;
+
+  LMousePt.X := LMousePt.X - LRect.Left;
+  LMousePt.Y := LMousePt.Y - LRect.Top;
+  LMouseMoveId := -1;
+  if (FNCCaptionBarUI <> nil)
+    and PtInRect(FNCCaptionBarUI.ComponentsRect, DoToNCCaptionBarPt(LMousePt)) then begin
+
+    if FNCCaptionBarUI.FindComponent(DoToNCCaptionBarPt(LMousePt), LComponent) then begin
+      if LComponent is TCaptionBarClose then begin
+        Msg.Result := HTCLOSE;
+      end else if LComponent is TCaptionBarMaximize then begin
+        Msg.Result := HTMAXBUTTON;
+      end else if LComponent is TCaptionBarMinimize then begin
+        Msg.Result := HTMINBUTTON;
+      end else begin
+        Msg.Result := HTMENU;
+      end;
+      LMouseMoveId := LComponent.Id;
+    end else begin
+      Msg.Result := HTCAPTION;
+    end;
+
+    Result := True;
+
+    if (FNCMouseMoveId <> LMouseMoveId)
+      or (FNCMouseDownId <> LMouseMoveId) then begin
+      FNCMouseMoveId := LMouseMoveId;
+      FNCMouseDownId := -1;
+      FNCCaptionBarUI.Invalidate;
+    end;
+  end;
+end;
+
+procedure TCustomBaseUI.DoNCLButtonUp(var Message: TWMNCLButtonUp);
+var
+  LComponent: TComponentUI;
+begin
+  // 如果抬起时和按下时位置一致
+  if Message.HitTest = FMouseDownHitTest then begin
+    case Message.HitTest of
+      HTMENU:
+        begin
+          if (FNCCaptionBarUI <> nil)
+            and FNCCaptionBarUI.FindComponent(FNCMouseMoveId, LComponent) then begin
+            FNCMouseDownId := -1;
+            FNCCaptionBarUI.Invalidate(FNCMouseMoveId);
+            FNCCaptionBarUI.LButtonClickComponent(LComponent);
+          end;
+        end;
+      HTCLOSE:
+        begin
+          Self.Close;
+          DoCloseEx;
+        end;
+      HTMAXBUTTON:
+        begin
+          FMouseMoveHitTest := HTNOWHERE;
+          if Self.WindowState = wsNormal then begin
+            Self.WindowState := wsMaximized
+          end else begin
+            self.WindowState := wsNormal;
+          end;
+        end;
+      HTMINBUTTON:
+        begin
+          FMouseMoveHitTest := HTNOWHERE;
+          Self.WindowState := wsMinimized;
+        end;
+    end;
+  end;
+end;
+
+procedure TCustomBaseUI.DoNCLButtonDown(var Message: TWMNCLButtonDown);
+var
+  LPt: TPoint;
+  LIsActivate: Boolean;
+  LComponent: TComponentUI;
+begin
+  // 保存按下时鼠标位置
+  FMouseLeavePt.X := Message.XCursor;
+  FMouseLeavePt.Y := Message.YCursor;
+  // 保存按下是鼠标的点击位置类型
+  FMouseDownHitTest := Message.HitTest;
+  FNCMouseDownId := FNCMouseMoveId;
+  if (FNCCaptionBarUI <> nil)
+    and (FNCCaptionBarUI.FindComponent(FNCMouseMoveId, LComponent)) then begin
+    LIsActivate := True;
+    FNCCaptionBarUI.Invalidate(FNCMouseMoveId);
+  end else begin
+    LIsActivate := False;
+  end;
+
+  if LIsActivate
+    or (FMouseDownHitTest = HTCAPTION) then begin
+    // 点击激活
+    if not FIsActivate then begin
+      PostMessage(Self.Handle, WM_ACTIVATE, 1, 0);
+    end;
+  end;
+end;
+
+procedure TCustomBaseUI.DoWmPaintNCBarsUI(var Message: TMessage);
 var
   LDC: HDC;
+  LRect: TRect;
 begin
   LDC := GetWindowDC(Self.Handle);
   try
@@ -883,6 +1112,10 @@ begin
           DoDrawNCCaptionBar(LDC, FCaptionBarRect, Message.LParam);
         end;
     end;
+    LRect := FFormBorderRect;
+    Dec(LRect.Right);
+    Dec(LRect.Bottom);
+    DrawBorder(LDC, FBorderPen, LRect, 15);
   finally
     ReleaseDC(Self.Handle, LDC);
   end;
@@ -890,11 +1123,8 @@ end;
 
 function TCustomBaseUI.DoToNCCaptionBarPt(APt: TPoint): TPoint;
 begin
-  Result := APt;
-  if FBorderWidth > 0 then begin
-    Result.X := APt.X - FBorderWidth;
-    Result.Y := APt.Y - FBorderWidth;
-  end;
+  Result.X := APt.X - FCaptionBarRect.Left;
+  Result.Y := APt.Y - FCaptionBarRect.Top;
 end;
 
 procedure TCustomBaseUI.DoCloseEx;
@@ -995,96 +1225,8 @@ begin
 end;
 
 procedure TCustomBaseUI.WMNCHitTest(var Msg: TMessage);
-var
-  LMousePt: TPoint;
-  LMouseMoveId: Integer;
-  LComponent: TComponentUI;
-  LRect, LBorderRect: TRect;
 begin
-  // 没有标题没有边框
-  if (FCaptionHeight = 0)
-    and (FBorderWidth = 0) then begin
-    inherited;
-    Msg.Result := HTTRANSPARENT;
-    Exit;
-  end;
-
-
-  LMousePt.X := SmallInt(Msg.LParamLo);
-  LMousePt.Y := SmallInt(Msg.LParamHi);
-  GetWindowRect(Handle, LRect);
-  // 如果窗体处在一般状态且可拖动大小，则判断鼠标是否点击在边框
-  if (WindowState = wsNormal)
-    and (FBorderStyleEx = bsSizeable) then begin
-
-    LBorderRect := LRect;
-    InflateRect(LBorderRect, -4, -4);
-
-    // 如果鼠标在边框区域
-    if not PtInRect(LBorderRect, LMousePt) then begin
-      if LMousePt.Y <= LBorderRect.Top then begin
-        if LMousePt.X < LRect.Left + 8 then begin
-          Msg.Result := HTTOPLEFT
-        end else if LMousePt.X > LRect.Right - 8 then begin
-          Msg.Result := HTTOPRIGHT
-        end else begin
-          Msg.Result := HTTOP;
-        end;
-      end else if LMousePt.Y >= LBorderRect.Bottom then begin
-        if LMousePt.X < LRect.Left + 8 then begin
-          Msg.Result := HTBOTTOMLEFT
-        end else if LMousePt.X > LRect.Right - 8 then begin
-          Msg.Result := HTBOTTOMRIGHT
-        end else begin
-          Msg.Result := HTBOTTOM;
-        end;
-      end else if LMousePt.X <= LBorderRect.Left then begin
-        if LMousePt.Y < LRect.Top + 8 then begin
-          Msg.Result := HTTOPLEFT
-        end else if LMousePt.Y > LRect.Bottom - 8 then begin
-          Msg.Result := HTBOTTOMLEFT
-        end else begin
-          Msg.Result := HTLEFT;
-        end;
-      end else begin
-        if LMousePt.Y < LRect.Top + 8 then begin
-          Msg.Result := HTTOPRIGHT
-        end else if LMousePt.Y > LRect.Bottom - 8 then begin
-          Msg.Result := HTBOTTOMRIGHT
-        end else begin
-          Msg.Result := HTRIGHT;
-        end;
-      end;
-      DoUpdateHitTest(Msg.Result);
-      Exit;
-    end;
-  end;
-
-  LMousePt.X := LMousePt.X - LRect.Left;
-  LMousePt.Y := LMousePt.Y - LRect.Top;
-  LMouseMoveId := -1;
-  if (FCaptionBarNCUI <> nil)
-    and PtInRect(FCaptionBarNCUI.ComponentsRect, DoToNCCaptionBarPt(LMousePt)) then begin
-    if FCaptionBarNCUI.FindComponent(DoToNCCaptionBarPt(LMousePt), LComponent) then begin
-      if LComponent is TCaptionBarClose then begin
-        Msg.Result := HTCLOSE;
-      end else if LComponent is TCaptionBarMaximize then begin
-        Msg.Result := HTMAXBUTTON;
-      end else if LComponent is TCaptionBarMinimize then begin
-        Msg.Result := HTMINBUTTON;
-      end else begin
-        Msg.Result := HTMENU;
-      end;
-      LMouseMoveId := LComponent.Id;
-    end else begin
-      Msg.Result := HTCAPTION;
-    end;
-    if (FNCMouseMoveId <> LMouseMoveId)
-      or (FNCMouseDownId <> LMouseMoveId) then begin
-      FNCMouseDownId := -1;
-      FCaptionBarNCUI.Invalidate;
-    end;
-  end else begin
+  if not DoNCHitTest(Msg) then begin
     inherited;
   end;
 end;
@@ -1112,6 +1254,8 @@ procedure TCustomBaseUI.WMNCMouseLeave(var Message: TMessage);
 begin
   inherited;
   FIsTracking := False;
+  DoUpdateHitTest(HHT_NOWHERE);
+  DoUpdateBarHitTest(-1, -1);
 end;
 
 procedure TCustomBaseUI.WMNCMouseMove(var Message: TWMMouseMove);
@@ -1156,69 +1300,15 @@ begin
 end;
 
 procedure TCustomBaseUI.WMNCLButtonUp(var Message: TWMNCLButtonUp);
-var
-  LComponent: TComponentUI;
 begin
-  // 如果抬起时和按下时位置一致
-  if Message.HitTest = FMouseDownHitTest then begin
-    case Message.HitTest of
-      HTMENU:
-        begin
-          if (FCaptionBarNCUI <> nil)
-            and FCaptionBarNCUI.FindComponent(FNCMouseMoveId, LComponent) then begin
-            FNCMouseDownId := -1;
-            FCaptionBarNCUI.Invalidate(FNCMouseMoveId);
-            FCaptionBarNCUI.LButtonClickComponent(LComponent);
-          end;
-        end;
-      HTCLOSE:
-        begin
-          Self.Close;
-          DoCloseEx;
-        end;
-      HTMAXBUTTON:
-        begin
-          FMouseMoveHitTest := HTNOWHERE;
-          if Self.WindowState = wsNormal then begin
-            Self.WindowState := wsMaximized
-          end else begin
-            self.WindowState := wsNormal;
-          end;
-        end;
-      HTMINBUTTON:
-        Self.WindowState := wsMinimized;
-    end;
-  end;
+  DoNCLButtonUp(Message);
   FMouseDownHitTest := HTNOWHERE;
   inherited;
 end;
 
 procedure TCustomBaseUI.WMNCLButtonDown(var Message: TWMNCLButtonDown);
-var
-  LPt: TPoint;
-  LComponent: TComponentUI;
 begin
-  // 保存按下时鼠标位置
-  FMouseLeavePt.X := Message.XCursor;
-  FMouseLeavePt.Y := Message.YCursor;
-  // 保存按下是鼠标的点击位置类型
-  FMouseDownHitTest := Message.HitTest;
-
-  if FCaptionBarNCUI <> nil then begin
-    if FCaptionBarNCUI.FindComponent(FNCMouseMoveId, LComponent) then begin
-      FNCMouseDownId := FNCMouseMoveId;
-      FCaptionBarNCUI.Invalidate(FNCMouseMoveId);
-    end;
-
-    LPt := DoToNCCaptionBarPt(FMouseLeavePt);
-    if PtInRect(FCaptionBarNCUI.ComponentsRect, LPt) then begin
-      // 点击激活
-      if not FIsActivate then begin
-        PostMessage(Self.Handle, WM_ACTIVATE, 1, 0);
-      end;
-    end;
-  end;
-
+  DoNCLButtonDown(Message);
   // 调用inherited会导致 WMNCLButtonUp 不响应,所以屏蔽一些，但窗体大小拖动还需要 Inherited
   if (Message.HitTest <> HTCAPTION)
     and (Message.HitTest <> HTCLOSE)
@@ -1240,6 +1330,8 @@ begin
       Self.WindowState := wsMaximized;
     end;
   end;
+  DoUpdateHitTest(HHT_NOWHERE);
+  DoUpdateBarHitTest(-1, -1);
 end;
 
 end.

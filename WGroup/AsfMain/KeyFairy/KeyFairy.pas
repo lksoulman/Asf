@@ -23,9 +23,9 @@ type
   IKeyFairy = interface(IInterface)
     ['{ACA3A476-66E3-4953-8213-E1E7CEC2D062}']
     // Display
-    function Display(AHandle: THandle; AKey: string; var ASecuInfo: PSecuInfo): Boolean;
+    function Display(AMasterHandle: THandle; AKey: string; var ASecuInfo: PSecuInfo): Boolean;
     // DisplayEx
-    function DisplayEx(AHandle: THandle; AKey: string; ALeft, ATop: Integer; var ASecuInfo: PSecuInfo): Boolean;
+    function DisplayEx(AMasterHandle, APosHandle: THandle; AKey: string; ALeft, ATop: Integer; var ASecuInfo: PSecuInfo): Boolean;
   end;
 
 implementation

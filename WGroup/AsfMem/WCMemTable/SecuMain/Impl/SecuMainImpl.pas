@@ -48,12 +48,13 @@ type
     FAsyncUpdateThread: TExecutorThread;
     // SecuInfos
     FSecuInfos: TDynArray<PSecuInfo>;
+    // SecuInfoDic
+    FSecuInfoDic: TDictionary<Integer, PSecuInfo>;
     // MsgExSubcriberAdapter
     FMsgExSubcriberAdapter: TMsgExSubcriberAdapter;
     // InnerCodeHSCodeDic
     FInnerCodeToHSCodeDic: TDictionary<Integer, string>;
-    // SecuInfoDic
-    FSecuInfoDic: TDictionary<Integer, PSecuInfo>;
+
 
     // ToMarket
     function ToMarket(AValue: Integer): UInt8;
@@ -61,6 +62,8 @@ type
     function ToCategory(AValue: Integer): UInt16;
     // ToMarkInfo
     function ToMarkInfo(AMargin, AThrough: Integer): UInt8;
+    // SetIsUpdating
+    procedure SetIsUpdating(AIsUpdating: Boolean);
   protected
     // Clear
     procedure DoClearItems;
@@ -113,6 +116,8 @@ type
     procedure Update;
     // AsyncUpdate
     procedure AsyncUpdate;
+    // IsUpdating
+    function IsUpdating: Boolean;
     // GetItemCount
     function GetItemCount: Integer;
     // GetUpdateVersion
@@ -215,11 +220,11 @@ end;
 
 procedure TSecuMainImpl.Update;
 begin
-  FLock.Lock;
+  SetIsUpdating(True);
   try
     DoUpdateTable;
   finally
-    FLock.UnLock;
+    SetIsUpdating(False);
   end;
 end;
 
@@ -235,6 +240,11 @@ begin
   finally
     FLock.UnLock;
   end;
+end;
+
+function TSecuMainImpl.IsUpdating: Boolean;
+begin
+  Result := FIsUpdating;
 end;
 
 function TSecuMainImpl.GetUpdateVersion: Integer;
@@ -264,9 +274,17 @@ begin
 end;
 
 function TSecuMainImpl.GetSecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;
+var
+  LIsUpdating: Boolean;
 begin
-  if FIsUpdating then begin
-    ASecuInfo := DoGetItemUpdating(AInnerCode);
+  FLock.Lock;
+  try
+    LIsUpdating := FIsUpdating;
+  finally
+    FLock.UnLock;
+  end;
+  if LIsUpdating then begin
+    ASecuInfo := nil;
   end else begin
     ASecuInfo := DoGetItemNoUpdating(AInnerCode);
   end;
@@ -276,14 +294,24 @@ end;
 function TSecuMainImpl.GetSecuInfos(AInnerCodes: TIntegerDynArray; var ASecuInfos: TSecuInfoDynArray): Integer;
 var
   LSecuInfo: PSecuInfo;
+  LIsUpdating: Boolean;
   LIndex, LTotalCount: Integer;
 begin
   Result := 0;
   LTotalCount := Length(AInnerCodes);
   if LTotalCount <= 0 then Exit;
 
+  FLock.Lock;
+  try
+    LIsUpdating := FIsUpdating;
+  finally
+    FLock.UnLock;
+  end;
+  if LIsUpdating then Exit;
+  
   for LIndex := 0 to LTotalCount - 1 do begin
-    if GetSecuInfo(AInnerCodes[LIndex], LSecuInfo) then begin
+    LSecuInfo := DoGetItemNoUpdating(AInnerCodes[LIndex]);
+    if LSecuInfo <> nil then begin
       ASecuInfos[Result] := LSecuInfo;
       Inc(Result);
     end;
@@ -324,6 +352,16 @@ begin
   Result := LMargin or LThrough;
 end;
 
+procedure TSecuMainImpl.SetIsUpdating(AIsUpdating: Boolean);
+begin
+  FLock.Lock;
+  try
+    FIsUpdating := AIsUpdating;
+  finally
+    FLock.UnLock;
+  end;
+end;
+
 procedure TSecuMainImpl.DoClearItems;
 var
   LIndex: Integer;
@@ -346,11 +384,11 @@ begin
     case LResult of
       WAIT_OBJECT_0:
         begin
-          FLock.Lock;
+          SetIsUpdating(True);
           try
             DoUpdateTable;
           finally
-            FLock.UnLock;
+            SetIsUpdating(False);
           end;
         end;
     end;
@@ -445,7 +483,6 @@ begin
   LTick := GetTickCount;
 {$ENDIF}
 
-  FIsUpdating := True;
   try
     ADataSet.First;
     LInnerCodeF := ADataSet.FieldByName('InnerCode');
@@ -512,7 +549,6 @@ begin
     LFormerAbbr := nil;
     LFormerSpell := nil;
   finally
-    FIsUpdating := False;
 
 {$IFDEF DEBUG}
     LTick := GetTickCount - LTick;
@@ -563,10 +599,13 @@ begin
 end;
 
 function TSecuMainImpl.DoGetItemNoUpdating(AInnerCode: Integer): PSecuInfo;
+var
+  LSecuInfo: PSecuInfo;
 begin
-  if not (FSecuInfoDic.TryGetValue(AInnerCode, Result)
-    and (Result <> nil)) and Result.FIsUsed then begin
-   Result := nil;
+  if FSecuInfoDic.TryGetValue(AInnerCode, LSecuInfo) then begin
+    Result := LSecuInfo;
+  end else begin
+    Result := nil;
   end;
 end;
 

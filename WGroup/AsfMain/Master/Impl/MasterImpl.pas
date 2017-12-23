@@ -32,7 +32,6 @@ type
 
   // ChildPageInfo
   TChildPageInfo = packed record
-//    FChildForm: TForm;
     FChildPage: IChildPage;
   end;
 
@@ -132,8 +131,6 @@ var
   LKey: string;
   LSecuInfo: PSecuInfo;
 begin
-  inherited;
-
   LKey := Char(Key);
   if FKeyFairy <> nil then begin
     FKeyFairy.Display(Self.Handle, LKey, LSecuInfo);
@@ -300,6 +297,7 @@ begin
   if FChildPageInfoDic.TryGetValue(ACommandId, LChildPageInfo) then begin
     Result := True;
     DoBringToFront(LChildPageInfo, AParams);
+    SetActiveWindow(Self.Handle);
   end;
 end;
 
