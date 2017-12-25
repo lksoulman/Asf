@@ -93,6 +93,7 @@ procedure TMasterUI.DoUpdateSkinStyle;
 begin
   inherited;
   FBorderPen := FAppContext.GetGdiMgr.GetBrushObjMasterBorder;
+  FBackColor := FAppContext.GetGdiMgr.GetColorRefMasterBack;
   FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionBack;
   FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionText;
 end;

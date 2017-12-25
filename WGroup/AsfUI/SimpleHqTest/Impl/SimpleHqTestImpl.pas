@@ -68,14 +68,14 @@ implementation
 
 procedure TSimpleHqTestImpl.DoCreateObjects;
 begin
-//  FQuoteTime := TQuoteTime.Create(FAppContext, smNormal);
-//  FQuoteTime.Align := alClient;
-//  FQuoteTime.Parent := FChildPageUI;
+  FQuoteTime := TQuoteTime.Create(FAppContext, smNormal);
+  FQuoteTime.Align := alClient;
+  FQuoteTime.Parent := FChildPageUI;
 end;
 
 procedure TSimpleHqTestImpl.DoDestroyObjects;
 begin
-//  FQuoteTime.Free;
+  FQuoteTime.Free;
 end;
 
 procedure TSimpleHqTestImpl.DoInitObjectDatas;
@@ -105,7 +105,7 @@ var
 begin
   FInnerCode := 1752;
   if FAppContext.QuerySecuInfo(FInnerCode, LSecuInfo) then begin
-//    FQuoteTime.ChangeStock(stSingleDay, LSecuInfo);
+    FQuoteTime.ChangeStock(stSingleDay, LSecuInfo);
   end;
 end;
 
@@ -135,7 +135,7 @@ begin
     ParamsVal('InnerCode', LInnerCodeStr);
     FInnerCode := StrToIntDef(LInnerCodeStr, 0);
     if FAppContext.QuerySecuInfo(FInnerCode, LSecuInfo) then begin
-//      FQuoteTime.ChangeStock(stSingleDay, LSecuInfo);
+      FQuoteTime.ChangeStock(stSingleDay, LSecuInfo);
     end;
   finally
     EndSplitParams;

@@ -132,7 +132,6 @@
         </DCCReference>
         <DCCReference Include="VirtualMain\VirtualMain.pas">
             <Form>VirtualMainUI</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="Master\UI\MasterUI.pas">
             <Form>MasterUI</Form>

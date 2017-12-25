@@ -54,67 +54,60 @@ type
   // KeyReportUI
   TKeyReportUI = class(TSimpleReport)
   private
-    // Back Color
+    // BackColor
     FBackColor: TColor;
-    // Font Color
+    // FontColor
     FFontColor: TColor;
-    // Select Row Back Color
+    // SelectRowBackColor
     FSelectRowBackColor: TColor;
-    // Select Row Font Color
+    // SelectRowFontColor
     FSelectRowFontColor: TColor;
-
-    // App Context
-    FAppContext: IAppContext;
-    //
+    // KeyInfoColumn
     FKeyInfoColumn: TNxTextColumn;
   protected
-    // Clear Rows
+    // ClearRows
     procedure DoClearRows;
-    // Init Grid Columns
+    // InitGridData
+    procedure DoInitGridData;
+    // InitGridColumns
     procedure DoInitGridColumns;
 
-    // Grid Vert Bar Top
+    // GridVertBarTop
     procedure DoGridVertBarTop;
-    // Grid Vert Bar Next Row
+    // GridVertBarNextRow
     procedure DoGridVertBarNextRow;
-    // Grid Vert Bar Prior Row
+    // GridVertBarPriorRow
     procedure DoGridVertBarPriorRow;
-    // Paint Report Before
+    // PaintReportBefore
     procedure DoGridPaintReportBefore; override;
-    // Update Vert Scroll Bar
+    // UpdateVertScrollBar
     procedure DoGridUpdateVertScrollBar; override;
-    // Vert Change
+    // VertChange
     procedure DoGridVertChange(Sender: TObject); override;
-    // Mouse Leave
+    // MouseLeave
     procedure DoGridMouseLeave(Sender: TObject); override;
-    // Wheel Up
+    // WheelUp
     function DoGridWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
-    // Wheel Down
+    // WheelDown
     function DoGridWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
-    // Process Key Down
+    // ProcessKeyDown
     function DoGridProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean; override;
-    // Mouse Move
+    // MouseMove
     procedure DoGridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); override;
-    // Mouse Up
+    // MouseUp
     procedure DoGridMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-    // Mouse Down
+    // MouseDown
     procedure DoGirdMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-    // Draw Cell
+    // DrawCell
     procedure DoGridCustomDrawCell(Sender: TObject; ACol, ARow: Integer; CellRect: TRect; CellState: TCellState); override;
   public
     // Constructor
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AParent: TWinControl; AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
-    // Init
-    procedure Initialize(AContext: IAppContext);
-    // Un Init
-    procedure UnInitialize;
-    // Init
-    procedure InitGridData;
-    // Refresh Skin
-    procedure RefreshSkin;
-    // Load Search Result
+    // UpdateSkinStyle
+    procedure UpdateSkinStyle;
+    // LoadSearchResult
 //    procedure LoadSearchResult(AKeyItems: TDynArray<PKeyItem>);
   end;
 
@@ -137,7 +130,7 @@ end;
 
 {TKeyReportUI}
 
-constructor TKeyReportUI.Create(AOwner: TComponent);
+constructor TKeyReportUI.Create(AParent: TWinControl; AContext: IAppContext);
 var
   LFont: TFont;
 begin
@@ -157,6 +150,9 @@ begin
   LFont.Height := -13;
   FG32GraphicBuffer.G32Graphic.UpdateFont(LFont);
   LFont.Free;
+
+  DoInitGridData;
+  DoInitGridColumns;
 end;
 
 destructor TKeyReportUI.Destroy;
@@ -165,45 +161,7 @@ begin
   inherited;
 end;
 
-procedure TKeyReportUI.Initialize(AContext: IAppContext);
-begin
-  FAppContext := AContext;
-  if FAppContext <> nil then begin
-
-  end;
-end;
-
-procedure TKeyReportUI.UnInitialize;
-begin
-
-  FAppContext := nil;
-end;
-
-procedure TKeyReportUI.InitGridData;
-begin
-  with FSimpleGrid do begin
-    Parent := Self;
-    Align := alCustom;
-    Options := [goDisableColumnMoving, goSelectFullRow];
-    FixedCols := 1;
-    BorderStyle := bsNone;
-    HeaderSize := 0;
-    RowSize := 22;
-//    ParentBackground := False;
-    ParentColor := False;
-    ReadOnly := True;
-    GridStyle := gsReport;
-    GridLinesStyle := lsActiveHorzOnly;
-    AppearanceOptions := [aoHideFocus];
-    OnVerticalScroll := DoGridVertScroll;
-    HideScrollBar := True;
-  end;
-  DoInitGridColumns;
-
-  RefreshSkin;
-end;
-
-procedure TKeyReportUI.RefreshSkin;
+procedure TKeyReportUI.UpdateSkinStyle;
 begin
   FBackColor := RGB(26, 26, 26);
   FFontColor := RGB(134, 134, 134);
@@ -257,6 +215,27 @@ begin
     end;
   end;
   FSimpleGrid.ClearRows;
+end;
+
+procedure TKeyReportUI.DoInitGridData;
+begin
+  with FSimpleGrid do begin
+    Parent := Self;
+    Align := alCustom;
+    Options := [goDisableColumnMoving, goSelectFullRow];
+    FixedCols := 1;
+    BorderStyle := bsNone;
+    HeaderSize := 0;
+    RowSize := 22;
+//    ParentBackground := False;
+    ParentColor := False;
+    ReadOnly := True;
+    GridStyle := gsReport;
+    GridLinesStyle := lsActiveHorzOnly;
+    AppearanceOptions := [aoHideFocus];
+    OnVerticalScroll := DoGridVertScroll;
+    HideScrollBar := True;
+  end;
 end;
 
 procedure TKeyReportUI.DoInitGridColumns;

@@ -40,7 +40,8 @@ type
 implementation
 
 uses
-  SimpleHqTestCommandImpl;
+  SimpleHqTestTimeCommandImpl,
+  SimpleHqTestMarketCommandImpl;
 
 { TAsfUIPlugInMgrImpl }
 
@@ -59,6 +60,7 @@ end;
 procedure TAsfUIPlugInMgrImpl.Load;
 begin
   DoAddCommand(TSimpleHqTestCommandImpl.Create(ASF_COMMAND_ID_SIMPLEHQTEST, 'SimpleHqTest', FAppContext));
+  DoAddCommand(TSimpleHqTestMarketCommandImpl.Create(ASF_COMMAND_ID_SIMPLEHQTEST + 1, 'SimpleHqTest', FAppContext));
 end;
 
 end.

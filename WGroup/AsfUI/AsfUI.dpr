@@ -16,7 +16,7 @@ uses
   WExport in 'WExport\WExport.pas',
   AsfUIPlugInMgrImpl in 'WExport\Impl\AsfUIPlugInMgrImpl.pas',
   SimpleHqTestImpl in 'SimpleHqTest\Impl\SimpleHqTestImpl.pas',
-  SimpleHqTestCommandImpl in 'WCommands\SimpleHqTestCommandImpl.pas',
+  SimpleHqTestTimeCommandImpl in 'WCommands\SimpleHqTestTimeCommandImpl.pas',
   QuoteTime in 'AQuote\Time\QuoteTime.pas',
   QuoteTimeButton in 'AQuote\Time\QuoteTimeButton.pas',
   QuoteTimeCross in 'AQuote\Time\QuoteTimeCross.pas',
@@ -45,7 +45,8 @@ uses
   QuoteCommMenu in 'AQuote\Common\QuoteCommMenu.pas',
   QuoteCommMine in 'AQuote\Common\QuoteCommMine.pas',
   QuoteCommStack in 'AQuote\Common\QuoteCommStack.pas',
-  SelfRightMenuComm in 'AQuote\Common\SelfRightMenuComm.pas';
+  SelfRightMenuComm in 'AQuote\Common\SelfRightMenuComm.pas',
+  SimpleHqTestMarketCommandImpl in 'WCommands\SimpleHqTestMarketCommandImpl.pas';
 
 {$R *.res}
 

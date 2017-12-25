@@ -24,6 +24,7 @@ uses
   Vcl.ExtCtrls,
   Vcl.StdCtrls,
   Vcl.Mask,
+  RzCommon,
   RzEdit,
   GDIPOBJ,
   Command,
@@ -36,33 +37,86 @@ uses
 
 type
 
+  // KeyEditEx
+  TKeyEditEx = class(TPanel)
+  private
+    // EditEx
+    FEditEx: TRzEdit;
+    // HorzSpace
+    FHorzSpace: Integer;
+    // VertSpace
+    FVertSpace: Integer;
+    // AppContext
+    FAppContext: IAppContext;
+  protected
+    // GetText
+    function GetText: string;
+    // SetText
+    procedure SetText(AText: string);
+    // GetBackColor
+    function GetBackColor: TColor;
+    // SetBackColor
+    procedure SetBackColor(AColor: TColor);
+    // GetFontColor
+    function GetFontColor: TColor;
+    // SetFontColor
+    procedure SetFontColor(AColor: TColor);
+    // GetFrameColor
+    function GetFrameColor: TColor;
+    // SetFrameColor
+    procedure SetFrameColor(AColor: TColor);
+    // GetFrameHotColor
+    function GetFrameHotColor: TColor;
+    // SetFrameHotColor
+    procedure SetFrameHotColor(AColor: TColor);
+
+    // Resize
+    procedure Resize; override;
+    // ResetEditEx
+    procedure DoResetEditEx; virtual;
+    // UpdateSkinStyle
+    procedure DoUpdateSkinStyle; virtual;
+  public
+    // Constructor
+    constructor Create(AParent: TWinControl; AContext: IAppContext); reintroduce;
+    // Destructor
+    destructor Destroy; override;
+    // UpdateSkinStyle
+    procedure UpdateSkinStyle; virtual;
+
+    property Text: string read GetText write SetText;
+    property HorzSpace: Integer read FHorzSpace write FHorzSpace;
+    property VertSpace: Integer read FVertSpace write FVertSpace;
+    property BackColor: TColor read GetBackColor write SetBackColor;
+    property FontColor: TColor read GetFontColor write SetFontColor;
+//    property FrameColorEx: TColor read GetFrameColor write SetFrameColor;
+    property FrameHotColor: TColor read GetFrameHotColor write SetFrameHotColor;
+  end;
+
   // KeyFairyUI
   TKeyFairyUI = class(TCustomBaseUI)
-    PnlEdit: TPanel;
-    PnlClient: TPanel;
-    EdtSearch: TRzEdit;
-    procedure EdtSearchKeyPress(Sender: TObject; var Key: Char);
-    procedure EdtSearchKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure EdtSearchChange(Sender: TObject);
   private
-    // SearchDelayTimer
-    FSearchDelayTimer: TTimer;
+    // KeyEditEx
+    FKeyEditEx: TKeyEditEx;
     // KeyReportUI
     FKeyReportUI: TKeyReportUI;
+    // KeySearchDelayTimer
+    FKeySearchDelayTimer: TTimer;
     // KeySearchEngine
     FKeySearchEngine: IKeySearchEngine;
-
   protected
-    // WMActivate
-//    procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
-
     // BeforeCreate
     procedure DoBeforeCreate; override;
     // NCBarInitDatas
     procedure DoNCBarInitDatas; override;
     // UpdateSkinStyle
     procedure DoUpdateSkinStyle; override;
+
+    // EditKeyChange
+    procedure DoEditKeyChange(Sender: TObject);
+    // EditKeyPress
+    procedure DoEditKeyPress(Sender: TObject; var Key: Char);
+
 
     // SearchDelayTimer
     procedure DoSearchDelayTimer(Sender: TObject);
@@ -82,33 +136,167 @@ implementation
 
 {$R *.dfm}
 
+{ TKeyEditEx }
+
+constructor TKeyEditEx.Create(AParent: TWinControl; AContext: IAppContext);
+begin
+  FAppContext := AContext;
+  inherited Create(nil);
+  Parent := AParent;
+  BevelOuter := bvNone;
+  ParentColor := False;
+  ParentBackground := False;
+  FHorzSpace := 5;
+  FVertSpace := 5;
+  FEditEx := TRzEdit.Create(nil);
+  FEditEx.Parent := Self;
+  FEditEx.Align := alNone;
+//  FEditEx.Ctl3D := False;
+  FEditEx.ParentFont := False;
+  FEditEx.ParentColor := False;
+  FEditEx.AutoSelect := False;
+  FEditEx.FrameStyle := fsFlat;
+  FEditEx.FrameVisible := False;
+  FEditEx.FrameHotTrack := False;
+  FEditEx.FrameHotStyle := fsFlatBold;
+  FEditEx.FramingPreference := fpCustomFraming;
+  FEditEx.Font.Name := 'Î¢ÈíÑÅºÚ';
+  FEditEx.Font.Charset := GB2312_CHARSET;
+  DoUpdateSkinStyle;
+end;
+
+destructor TKeyEditEx.Destroy;
+begin
+  FEditEx.Free;
+  inherited;
+  FAppContext := nil;
+end;
+
+procedure TKeyEditEx.UpdateSkinStyle;
+begin
+  DoUpdateSkinStyle;
+end;
+
+function TKeyEditEx.GetText: string;
+begin
+  Result := FEditEx.Text;
+end;
+
+procedure TKeyEditEx.SetText(AText: string);
+begin
+  FEditEx.Text := AText;
+end;
+
+function TKeyEditEx.GetBackColor: TColor;
+begin
+  Result := Self.Color;
+end;
+
+procedure TKeyEditEx.SetBackColor(AColor: TColor);
+begin
+  if Self.Color <> AColor then begin
+    Self.Color := AColor;
+    FEditEx.Color := AColor;
+  end;
+end;
+
+function TKeyEditEx.GetFontColor: TColor;
+begin
+  Result := FEditEx.Font.Color;
+end;
+
+procedure TKeyEditEx.SetFontColor(AColor: TColor);
+begin
+  if FEditEx.Font.Color <> AColor then begin
+    FEditEx.Font.Color := AColor;
+  end;
+end;
+
+function TKeyEditEx.GetFrameColor: TColor;
+begin
+  Result := FEditEx.FrameColor;
+end;
+
+procedure TKeyEditEx.SetFrameColor(AColor: TColor);
+begin
+  if FEditEx.FrameColor <> AColor then begin
+    FEditEx.FrameColor := AColor;
+  end;
+end;
+
+function TKeyEditEx.GetFrameHotColor: TColor;
+begin
+  Result := FEditEx.FrameHotColor;
+end;
+
+procedure TKeyEditEx.SetFrameHotColor(AColor: TColor);
+begin
+  if FEditEx.FrameHotColor <> AColor then begin
+    FEditEx.FrameHotColor := AColor;
+  end;
+end;
+
+procedure TKeyEditEx.Resize;
+begin
+  inherited;
+  DoResetEditEx;
+end;
+
+procedure TKeyEditEx.DoResetEditEx;
+var
+  LValue: Integer;
+begin
+  if FEditEx.Top <> FVertSpace then begin
+    FEditEx.Top := FVertSpace;
+  end;
+  if FEditEx.Left <> FHorzSpace then begin
+    FEditEx.Left := FHorzSpace;
+  end;
+  LValue :=  Self.Width - 2 * FHorzSpace;
+  if FEditEx.Width <> LValue then begin
+    FEditEx.Width := LValue;
+  end;
+//  LValue :=  Self.Height - 2 * FVertSpace;
+//  if FEditEx.Height <> LValue then begin
+//    FEditEx.Height := LValue;
+//  end;
+end;
+
+procedure TKeyEditEx.DoUpdateSkinStyle;
+begin
+  BackColor := RGB(26, 26, 26);
+  FontColor := RGB(134, 134, 134);
+//  FrameColor := RGB(26, 26, 26);
+  FrameHotColor := RGB(26, 26, 26);
+end;
+
 { TKeyFairyUI }
 
 constructor TKeyFairyUI.Create(AContext: IAppContext);
 begin
   inherited;
-
-  EdtSearch.ParentFont := False;
-  EdtSearch.ParentColor := False;
-  EdtSearch.Font.Name := 'Î¢ÈíÑÅºÚ';
-  EdtSearch.Font.Charset := GB2312_CHARSET;
-  EdtSearch.Font.Height := -14;
-
-//  FKeyReportUI := TKeyReportUI.Create(nil);
-//  FKeyReportUI.Parent := PnlClient;
-//  FKeyReportUI.Align := alClient;
-//
-//  FKeyReportUI.InitGridData;
-
-  FSearchDelayTimer := TTimer.Create(nil);
-  FSearchDelayTimer.Enabled := False;
-  FSearchDelayTimer.Interval := 100;
-  FSearchDelayTimer.OnTimer := DoSearchDelayTimer;
+  FKeySearchEngine := FAppContext.FindInterface(ASF_COMMAND_ID_KEYSEARCHENGINE) as IKeySearchEngine;
+  FKeyEditEx := TKeyEditEx.Create(Self, FAppContext);
+  FKeyEditEx.Align := alTop;
+  FKeyEditEx.Height := 36;
+  FKeyEditEx.UpdateSkinStyle;
+  FKeyEditEx.FEditEx.OnKeyPress := DoEditKeyPress;
+  FKeyReportUI := TKeyReportUI.Create(Self, FAppContext);
+  FKeyReportUI.Align := alClient;
+  FKeyReportUI.UpdateSkinStyle;
+  FKeySearchDelayTimer := TTimer.Create(nil);
+  FKeySearchDelayTimer.Enabled := False;
+  FKeySearchDelayTimer.Interval := 100;
+  FKeySearchDelayTimer.OnTimer := DoSearchDelayTimer;
 end;
 
 destructor TKeyFairyUI.Destroy;
 begin
-//  FKeyReportUI.Free;
+  FKeySearchDelayTimer.Enabled := False;
+  FKeySearchDelayTimer.Free;
+  FKeyReportUI.Free;
+  FKeyEditEx.Free;
+  FKeySearchEngine := nil;
   inherited;
 end;
 
@@ -117,7 +305,7 @@ begin
   inherited;
   FIsMaximize := False;
   FIsMinimize := False;
-//  FBorderStyleEx := bsNone;
+  FBorderStyleEx := bsNone;
 end;
 
 procedure TKeyFairyUI.DoNCBarInitDatas;
@@ -130,28 +318,32 @@ end;
 procedure TKeyFairyUI.DoUpdateSkinStyle;
 begin
   inherited;
-  if PnlEdit <> nil then begin
-    PnlEdit.Color := RGB(26, 26, 26);
-    PnlClient.Color := RGB(26, 26, 26);
-  end;
-  if EdtSearch <> nil then begin
-    EdtSearch.Color := RGB(26, 26, 26);
-    EdtSearch.Font.Color := RGB(134, 134, 134);
-    EdtSearch.FrameColor := RGB(55, 55, 55);
-    EdtSearch.FrameHotColor := RGB(79, 155, 255);
-  end;
+end;
+
+procedure TKeyFairyUI.DoEditKeyChange(Sender: TObject);
+begin
+  FKeySearchDelayTimer.Enabled := True;
+end;
+
+procedure TKeyFairyUI.DoEditKeyPress(Sender: TObject; var Key: Char);
+begin
+
 end;
 
 procedure TKeyFairyUI.SetKey(AKey: string);
 begin
-  EdtSearch.Text := AKey;
+  if FKeyEditEx <> nil then begin
+    FKeyEditEx.Text := AKey;
+  end;
 end;
 
 procedure TKeyFairyUI.DoSearchDelayTimer(Sender: TObject);
 begin
-  FSearchDelayTimer.Enabled := False;
+  FKeySearchDelayTimer.Enabled := False;
   if FKeySearchEngine <> nil then begin
-    FKeySearchEngine.FuzzySearchKey(EdtSearch.Text);
+    if FKeyEditEx <> nil then begin
+//      FKeySearchEngine.FuzzySearchKey(FKeyEditEx.Text);
+    end;
   end;
 end;
 
@@ -159,31 +351,5 @@ procedure TKeyFairyUI.DoLoadSearchResult(Sender: TObject);
 begin
 //  FKeyReportUI.LoadSearchResult(APKeyItems);
 end;
-
-procedure TKeyFairyUI.EdtSearchChange(Sender: TObject);
-begin
-  FSearchDelayTimer.Enabled := True;
-end;
-
-procedure TKeyFairyUI.EdtSearchKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-//
-end;
-
-procedure TKeyFairyUI.EdtSearchKeyPress(Sender: TObject; var Key: Char);
-begin
-//
-end;
-
-//procedure TKeyFairyUI.WMActivate(var Message: TWMActivate);
-//begin
-//  if message.Active = 0 then begin
-//    FIsActivate := False;
-//    Self.Hide;
-//    Exit;
-//  end;
-//  inherited;
-//end;
 
 end.

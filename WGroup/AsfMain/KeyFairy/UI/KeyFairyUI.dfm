@@ -13,38 +13,4 @@ object KeyFairyUI: TKeyFairyUI
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
-  object PnlEdit: TPanel
-    Left = 0
-    Top = 0
-    Width = 300
-    Height = 30
-    Align = alTop
-    BevelOuter = bvNone
-    Caption = 'PnlEdit'
-    TabOrder = 0
-    object EdtSearch: TRzEdit
-      Left = 3
-      Top = 2
-      Width = 291
-      Height = 21
-      Text = ''
-      AutoSelect = False
-      FrameHotTrack = True
-      FrameVisible = True
-      TabOrder = 0
-      OnChange = EdtSearchChange
-      OnKeyDown = EdtSearchKeyDown
-      OnKeyPress = EdtSearchKeyPress
-    end
-  end
-  object PnlClient: TPanel
-    Left = 0
-    Top = 30
-    Width = 300
-    Height = 251
-    Align = alClient
-    BevelOuter = bvNone
-    Caption = 'PnlClient'
-    TabOrder = 1
-  end
 end

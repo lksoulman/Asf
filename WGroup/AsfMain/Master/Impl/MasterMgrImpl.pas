@@ -177,8 +177,8 @@ begin
   if FMasterInfos.Count <= 1 then begin
     LPMasterInfo.FMaster.SetWindowState(wsMaximized);
   end;
-  DoLoadDefaultChildPage(LPMasterInfo);
   LPMasterInfo.FMaster.Show;
+  DoLoadDefaultChildPage(LPMasterInfo);
 end;
 
 procedure TMasterMgrImpl.DelMaster(AHandle: Integer);

@@ -83,7 +83,7 @@ begin
     Application.ShowMainForm := False;
     Application.MainFormOnTaskbar := True;
     Application.CreateForm(TVirtualMainUI, G_VirtualMainUI);
-  G_AppContext.Initialize;
+    G_AppContext.Initialize;
     try
       LoadCmds;
       if G_AppContext.Login then begin

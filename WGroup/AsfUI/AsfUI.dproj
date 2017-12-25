@@ -99,7 +99,7 @@
         <DCCReference Include="WExport\WExport.pas"/>
         <DCCReference Include="WExport\Impl\AsfUIPlugInMgrImpl.pas"/>
         <DCCReference Include="SimpleHqTest\Impl\SimpleHqTestImpl.pas"/>
-        <DCCReference Include="WCommands\SimpleHqTestCommandImpl.pas"/>
+        <DCCReference Include="WCommands\SimpleHqTestTimeCommandImpl.pas"/>
         <DCCReference Include="AQuote\Time\QuoteTime.pas"/>
         <DCCReference Include="AQuote\Time\QuoteTimeButton.pas"/>
         <DCCReference Include="AQuote\Time\QuoteTimeCross.pas"/>
@@ -129,6 +129,7 @@
         <DCCReference Include="AQuote\Common\QuoteCommMine.pas"/>
         <DCCReference Include="AQuote\Common\QuoteCommStack.pas"/>
         <DCCReference Include="AQuote\Common\SelfRightMenuComm.pas"/>
+        <DCCReference Include="WCommands\SimpleHqTestMarketCommandImpl.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -116,37 +116,37 @@ var
   LSuperTabData: PSuperTabData;
 begin
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 60000001;
+  LSuperTabData^.FCommandId := 80000001;
   LSuperTabData^.FResourceName := 'SKIN_APP_HQ';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 60000001;
+  LSuperTabData^.FCommandId := 80000002;
   LSuperTabData^.FResourceName := 'SKIN_APP_ASSET';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 60000001;
+  LSuperTabData^.FCommandId := 80000001;
   LSuperTabData^.FResourceName := 'SKIN_APP_PARAMSSETTING';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 60000001;
+  LSuperTabData^.FCommandId := 80000002;
   LSuperTabData^.FResourceName := 'SKIN_APP_MANAGEMENTVIEW';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 60000001;
+  LSuperTabData^.FCommandId := 80000001;
   LSuperTabData^.FResourceName := 'SKIN_APP_RISKMANAGEMENT';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 60000001;
+  LSuperTabData^.FCommandId := 80000002;
   LSuperTabData^.FResourceName := 'SKIN_APP_HQ';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 60000001;
+  LSuperTabData^.FCommandId := 80000001;
   LSuperTabData^.FResourceName := 'SKIN_APP_ASSET';
   FSuperTabDatas.Add(LSuperTabData);
 end;

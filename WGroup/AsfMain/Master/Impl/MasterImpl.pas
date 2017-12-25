@@ -54,6 +54,10 @@ type
   protected
     // InitMasterEvents
     procedure DoInitMasterEvents;
+    // ChildPageChangeSize
+    procedure DoChildPageChangeSize(AForm: TForm);
+    // MasterClientChangeSize
+    procedure DoMasterClientChangeSize(Sender: TObject);
     // MasterKeyPress
     procedure DoMasterKeyPress(Sender: TObject; var Key: Char);
 
@@ -124,6 +128,27 @@ end;
 procedure TMasterImpl.DoInitMasterEvents;
 begin
   FMasterUI.OnKeyPress := DoMasterKeyPress;
+  FMasterUI.OnResize := DoMasterClientChangeSize;
+end;
+
+procedure TMasterImpl.DoChildPageChangeSize(AForm: TForm);
+var
+  LWidth, LHeight: Integer;
+begin
+  LWidth := FMasterUI.ClientWidth;
+  LHeight := FMasterUI.ClientHeight;
+  if (LWidth <> AForm.Width) 
+    and (LHeight <> AForm.Height) then begin
+    SetWindowPos(AForm.Handle, 0, 0, 0, LWidth, LHeight, SWP_NOACTIVATE);
+  end;
+end;
+
+procedure TMasterImpl.DoMasterClientChangeSize(Sender: TObject);
+begin
+  if (FFrontChildPageInfo <> nil)
+    and (FFrontChildPageInfo.FChildPage <> nil) then begin
+    DoChildPageChangeSize(FFrontChildPageInfo.FChildPage.GetChildPageUI);
+  end;
 end;
 
 procedure TMasterImpl.DoMasterKeyPress(Sender: TObject; var Key: Char);
@@ -167,6 +192,7 @@ begin
       FFrontChildPageInfo.FChildPage.GoSendToBack;
     end;
     FFrontChildPageInfo := AChildPageInfo;
+    DoChildPageChangeSize(FFrontChildPageInfo.FChildPage.GetChildPageUI);
     FFrontChildPageInfo.FChildPage.GoBringToFront(AParams);
   end;
 end;
@@ -190,9 +216,6 @@ end;
 
 procedure TMasterImpl.Show;
 begin
-  if FFrontChildPageInfo <> nil then begin
-
-  end;
   FMasterUI.Show;
 end;
 
@@ -268,6 +291,7 @@ end;
 
 function TMasterImpl.AddChildPage(AChildPage: IChildPage): Boolean;
 var
+  LForm: TForm;
   LChildPageInfo: PChildPageInfo;
 begin
   Result := False;
@@ -277,9 +301,9 @@ begin
       Result := True;
       LChildPageInfo.FChildPage := AChildPage;
       FChildPageInfoDic.AddOrSetValue(AChildPage.CommandId, LChildPageInfo);
-      AChildPage.GetChildPageUI.Parent := FMasterUI;
-      AChildPage.GetChildPageUI.Align := alClient;
-      AChildPage.GetChildPageUI.Show;
+      LForm := AChildPage.GetChildPageUI;
+      LForm.ParentWindow := FMasterUI.Handle;
+      LForm.Show;
     end;
   end;
 end;
