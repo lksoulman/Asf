@@ -17,6 +17,10 @@ uses
   SysUtils,
   WNDataSetInf;
 
+const
+  UPLOADVALUE_MODIFY = 1;       // ÐÞ¸Ä
+  UPLOADVALUE_DELETE = 2;       // É¾³ý
+
 type
 
   // UserCache Interface
@@ -26,12 +30,10 @@ type
     procedure StopService;
     // UpdateTables
     procedure UpdateTables;
-    // AsyncUpdateTables
-    procedure AsyncUpdateTables;
+    // InitUpdateTables
+    procedure InitUpdateTables;
     // ReplaceCreateCacheTables
     procedure ReplaceCreateCacheTables;
-    // AsyncUpdateTable
-    procedure AsyncUpdateTable(ATable: string);
     // ExecuteSql
     procedure ExecuteSql(ATable, ASql: string);
     // SyncQuery

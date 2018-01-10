@@ -12,45 +12,49 @@ unit GFDataUpdate;
 interface
 
 uses
+  GFData,
   Windows,
   Classes,
-  SysUtils,
-  ExecutorTask;
+  SysUtils;
 
 type
 
   // Finance Data Update Interface
   IGFDataUpdate = Interface(IInterface)
     ['{503963C3-63F2-4307-9126-903E2F1D6285}']
-    // Get Is Canceled
+    // GetIsCanceled
     function GetIsCancel: Boolean; safecall;
-    // Get Error Code
+    // GetErrorCode
     function GetErrorCode: Integer; safecall;
-    // Set Key
+    // GetDataEvent
+    function GetDataEvent: TGFDataEvent; safecall;
+    // SetKey
     function SetKey(AKey: Int64): Boolean; safecall;
-    // Set Cancel
+    // SetDataEvent
+    function SetDataEvent(AEvent: TGFDataEvent): Boolean; safecall;
+    // SetCancel
     function SetCancel(ACancel: Boolean = True): Boolean; safecall;
-    // Set ErrorCode
+    // SetErrorCode
     function SetErrorCode(AErrorCode: Integer): Boolean; safecall;
-    // Set Error Info
+    // SetErrorInfo
     function SetErrorInfo(AErrorInfo: WideString): Boolean; safecall;
-    // Set Response Stream
+    // SetResponseStream
     function SetResponseStream(AResponseStream: TStream): Boolean; safecall;
-    // Set Request Size
+    // SetRequestSize
     function SetRequestSize(ASize: Cardinal): Boolean; safecall;
-    // Set Request Compress Size
+    // SetRequestCompressSize
     function SetRequestCompressSize(ASize: Cardinal): Boolean; safecall;
-    // Set Response Size
+    // SetResponseSize
     function SetResponseSize(ASize: Cardinal): Boolean; safecall;
-    // Set Response Compress Size
+    // SetResponseCompress Size
     function SetResponseCompressSize(ASize: Cardinal): Boolean; safecall;
-    // Set Queue Wait Use Time
+    // SetQueueWaitUseTime
     function SetQueueWaitUseTime(AUseTime: Cardinal): Boolean; safecall;
-    // Set Execute Post Use Time
+    // SetExecutePostUseTime
     function SetExecutePostUseTime(AUseTime: Cardinal): Boolean; safecall;
-    // Set Request Compress Use Time
+    // SetRequestCompressUseTime
     function SetRequestCompressUseTime(AUseTime: Cardinal): Boolean; safecall;
-    // Set Response Uncompress Use Time
+    // SetResponseUncompressUseTime
     function SetResponseUncompressUseTime(AUseTime: Cardinal): Boolean; safecall;
   end;
 

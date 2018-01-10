@@ -47,6 +47,8 @@ type
     function GetCfgPath: WideString;
     // GetLogPath
     function GetLogPath: WideString;
+    // GetCefPath
+    function GetCefPath: WideString;
     // GetSkinPath
     function GetSkinPath: WideString;
     // GetUserPath
@@ -59,6 +61,8 @@ type
     function GetCachePath: WideString;
     // GetHQCachePath
     function GetHQCachePath: WideString;
+    // GetCefCachePath
+    function GetCefCachePath: WideString;
     // GetBaseCachePath
     function GetBaseCachePath: WideString;
     // GetUserCachePath

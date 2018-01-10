@@ -28,15 +28,17 @@ const
 
   { AsfUI.dll (101000, 11999] }
 
-//  Msg_AsfUI_
+  Msg_AsfUI_ReLoadInfo                          = 101001;     // 加载信息
 
   { AsfMsg.dll (102000, 102999] }
 
-//  Msg_AsfMsg_
+
 
   { AsfMem.dll (103000, 103999] }
 
   Msg_AsfMem_ReUpdateSecuMain                   = 103001;      // 证券主表 SECUMAIN 内存更新
+
+  Msg_AsfMem_ReUpdateUserSector                 = 103002;      // 用户板块表 内存更新
 
   { AsfAuth.dll (104000, 104999] }
 
@@ -45,6 +47,7 @@ const
   { AsfCache.dll (105000, 105999] }
 
   Msg_AsfCache_ReUpdateBaseCache_SecuMain       = 105004;      // 基础CACHE证券主表 SECUMAIN 更新
+  Msg_AsfCache_ReUpdateUserCache_UserSector     = 105101;      // 用户CACHE板块表 UserSector 更新
 
   { AsfService.dll (106000, 106999] }
 
@@ -70,6 +73,7 @@ type
     function GetCreateTime: TDateTime; virtual; abstract;
 
     property Id: Integer read GetId;
+    property Info: string read GetInfo;
     property CreateTime: TDateTime read GetCreateTime;
   end;
 

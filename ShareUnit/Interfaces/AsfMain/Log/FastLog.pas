@@ -96,6 +96,8 @@ end;
 
 destructor TFastLog.Destroy;
 begin
+  FLogInfos.Text := '';
+  FSlowLogInfos.Text := '';
   FSlowLogInfos.Free;
   FLogInfos.Free;
   FSlowLock.Free;

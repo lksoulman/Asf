@@ -16,6 +16,8 @@ uses
   Login,
   GFData,
   GdiMgr,
+  Chrome,
+  Browser,
   EDCrypt,
   Windows,
   Classes,
@@ -39,39 +41,51 @@ type
   // AppContext Interface
   IAppContext = Interface(IInterface)
     ['{919A20C7-3242-4DBB-81F7-18EF05813380}']
+    // InitLogger
+    procedure InitLogger;
+    // UnInitLogger
+    procedure UnInitLogger;
+    // InitChrome
+    procedure InitChrome;
+    // UnInitChrome
+    procedure UnInitChrome;
     // Initialize
     procedure Initialize;
     // UnInitialize
     procedure UnInitialize;
-    // Exit App
+    // InitMsgExService
+    procedure InitMsgExService;
+    // UnInitMsgExService
+    procedure UnInitMsgExService;
+    // ExitApp
     procedure ExitApp;
-    // Get Config
+    // GetConfig
     function GetCfg: ICfg;
     // Login
     function Login: Boolean;
     // IsLogin
     function IsLogin(AServiceType: TServiceType): Boolean;
-    // GetMain
-    function GetMain: TForm;
-    // Get GdiMgr
+    // GetGdiMgr
     function GetGdiMgr: IGdiMgr;
-    // Get EDCrypt
+    // GetEDCrypt
     function GetEDCrypt: IEDCrypt;
-    // Get CommandMgr
+    // CreateBrowser
+    function CreateBrowser: IBrowser;
+    // GetCommandMgr
     function GetCommandMgr: ICommandMgr;
-    // Get Resource Cfg
+    // GetResourceCfg
     function GetResourceCfg: IResourceCfg;
-    // Get Resource Skin
+    // GetResourceSkin
     function GetResourceSkin: IResourceSkin;
-    // Load Dyn Library
+    // LoadDynLibrary
     function LoadDynLibrary(AFile: WideString): Boolean;
-    // Add Behavior
+    // AddBehavior
     function AddBehavior(ABehavior: WideString): Boolean;
-    // Get Error Info
+    // GetErrorInfo
     function GetErrorInfo(AErrorCode: Integer): WideString;
-    // Find Interface
+    // FindInterface
     function FindInterface(ACommandId: Integer): IInterface;
-    // Un Register Interface
+    // UnRegisterInterface
     function UnRegisterInterface(ACommandId: Integer): Boolean;
     // Register
     function RegisterInteface(ACommandId: Integer; AInterface: IInterface): Boolean;
@@ -79,6 +93,8 @@ type
     procedure Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
     // UnSubcriber
     procedure UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
+    // SendMsgEx
+    procedure SendMsgEx(AMsgId: Integer; AMsgInfo: string; ADelaySecs: Cardinal = 0);
     // HQLog
     procedure HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
     // WebLog

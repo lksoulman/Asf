@@ -33,9 +33,9 @@ type
   IWebCfg = Interface(IInterface)
     ['{2BEFE464-BC6A-4C8A-A2F3-610EFBD3AE4B}']
     // GetUrl
-    function GetUrl(AWebID: Integer): WideString;
+    function GetUrl(ACommandID: Integer): WideString;
     // GetWebInfo
-    function GetWebInfo(AWebID: Integer): PWebInfo;
+    function GetWebInfo(ACommandID: Integer): PWebInfo;
   end;
 
 implementation

@@ -30,19 +30,17 @@ type
     function GetCaption: string;
     // SetCaption
     procedure SetCaption(ACaption: string);
-//    // GetParent
-//    function GetParent: TWinControl;
-//    // SetParent
-//    procedure SetParent(AParent: TWinControl);
+    // GetMasterHandle
+    function GetMasterHandle: Cardinal;
     // GetCommandId
     function GetCommandId: Integer;
     // SetCommandId
     procedure SetCommandId(ACommandId: Integer);
 
 
-    // GoBack (True is Response, False Is not Response)
+    // GoBack
     function GoBack: Boolean;
-    // GoForward (True is Response, False Is not Response)
+    // GoForward
     function GoForward: Boolean;
     // GoSendToBack
     function GoSendToBack: Boolean;
@@ -51,10 +49,9 @@ type
     // GoBringToFront
     function GoBringToFront(AParams: string): Boolean;
 
-
     property Active: Boolean read GetActive;
     property Handle: Cardinal read GetHandle;
-//    property Parent: TWinControl read GetParent write SetParent;
+    property MasterHandle: Cardinal read GetMasterHandle;
     property Caption: string read GetCaption write SetCaption;
     property CommandId: Integer read GetCommandId write SetCommandId;
   end;

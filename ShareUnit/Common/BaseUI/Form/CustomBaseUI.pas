@@ -172,6 +172,9 @@ type
   private
     // Caption
     FCaption: string;
+
+    // SetCaption
+    procedure SetCaption(ACaption: string);
   protected
     // CaptionBarIcon
     FCaptionBarIcon: TCaptionBarIcon;
@@ -195,8 +198,10 @@ type
     destructor Destroy; override;
     // LButtonClickComponent
     procedure LButtonClickComponent(AComponent: TComponentUI); override;
+    // Draw
+    procedure Draw(ADC: HDC; ARect: TRect; AId: Integer = -1); override;
 
-    property Caption: string read FCaption write FCaption;
+    property Caption: string read FCaption write SetCaption;
   end;
 
   TNCCaptionBarUIClass = class of TNCCaptionBarUI;
@@ -208,6 +213,9 @@ type
     FLock: TCSLock;
     // UniqueId
     FUniqueId: Integer;
+
+    // BackColor
+    procedure SetBackColor(AColor: COLORREF);
   protected
     // IsAppWind
     FIsAppWind: Boolean;
@@ -245,6 +253,8 @@ type
     FBorderStyleEx: TFormBorderStyle;
     // BorderPen
     FBorderPen: HGDIOBJ;
+    // BackColor
+    FBackColor: COLORREF;
     // CaptionBackColor
     FCaptionBackColor: COLORREF;
     // CaptionTextColor
@@ -344,6 +354,7 @@ type
     property IsMinimize: Boolean read FIsMinimize;
     property NCMouseMoveId: Integer read FNCMouseMoveId;
     property NCMouseDownId: Integer read FNCMouseDownId;
+    property BackColor: COLORREF read FBackColor write SetBackColor;
     property CaptionBackColor: COLORREF read FCaptionBackColor write FCaptionBackColor;
     property CaptionTextColor: COLORREF read FCaptionTextColor write FCaptionTextColor;
   end;
@@ -680,6 +691,15 @@ begin
   inherited;
 end;
 
+procedure TNCCaptionBarUI.SetCaption(ACaption: string);
+begin
+  if FCaption <> ACaption then begin
+    FCaption := ACaption;
+    DoCalcComponentsRect;
+    Invalidate;
+  end;
+end;
+
 procedure TNCCaptionBarUI.DoCalcComponentsRect;
 var
   LSize: TSize;
@@ -761,8 +781,12 @@ end;
 
 procedure TNCCaptionBarUI.LButtonClickComponent(AComponent: TComponentUI);
 begin
-  inherited;
 
+end;
+
+procedure TNCCaptionBarUI.Draw(ADC: HDC; ARect: TRect; AId: Integer = -1);
+begin
+  inherited;
 end;
 
 { TCustomBaseUI }
@@ -775,6 +799,8 @@ begin
   DoNCBarInitDatas;
   DoUpdateSkinStyle;
   inherited Create(nil);
+  Color := FBackColor;
+  Position := poDesigned;
   if FNCCaptionBarUI <> nil then begin
     Caption := FNCCaptionBarUI.Caption;
   end;
@@ -801,6 +827,14 @@ begin
     Inc(FUniqueId);
   finally
     FLock.UnLock;
+  end;
+end;
+
+procedure TCustomBaseUI.SetBackColor(AColor: COLORREF);
+begin
+  if FBackColor <> AColor then begin
+    FBackColor := AColor;
+    Color := AColor;
   end;
 end;
 
@@ -848,8 +882,9 @@ end;
 procedure TCustomBaseUI.DoUpdateSkinStyle;
 begin
   FBorderPen := FAppContext.GetGdiMgr.GetBrushObjFormBorder;
-  FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionBack;
-  FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefMasterCaptionText;
+  FBackColor := FAppContext.GetGdiMgr.GetColorRefFormBack;
+  FCaptionBackColor := FAppContext.GetGdiMgr.GetColorRefFormCaptionBack;
+  FCaptionTextColor := FAppContext.GetGdiMgr.GetColorRefFormCaptionText;
 end;
 
 procedure TCustomBaseUI.DoUpdateHitTest(AHitTest: Integer);
@@ -896,7 +931,6 @@ begin
         OffsetRect(LTempRect, -LTempRect.Left, -LTempRect.Top);
         DoCalcNCCaptionBar(LDC, LTempRect);
       end;
-
     finally
       ReleaseDC(Handle, LDC);
     end;
@@ -1134,6 +1168,7 @@ end;
 
 procedure TCustomBaseUI.CreateWnd;
 begin
+  Color := FBackColor;
   BorderStyle := bsNone;
   inherited;
   if FIsAppWind then begin
@@ -1239,7 +1274,8 @@ end;
 procedure TCustomBaseUI.WMNCCalcSize(var Message: TWMNCCalcSize);
 begin
   //如果原来没有边框，则不设置非客户区域
-  if FBorderStyleEx = bsNone then begin
+  if (FCaptionHeight = 0)
+    and (FBorderWidth = 0) then begin
     inherited;
     Exit;
   end;

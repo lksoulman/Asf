@@ -16,69 +16,71 @@ uses
   Math,
   Types,
   Forms,
-  Graphics;
+  Graphics,
+  AppContext;
 
 const
 
-  CONST_Handle_Horz = 'Controls_ScrollBar_Horz';
-  CONST_Handle_Horz_Down = 'Controls_ScrollBar_Horz_Down';
-  CONST_Handle_Horz_Hot = 'Controls_ScrollBar_Horz_Hot';
-  CONST_Handle_Vertical = 'Controls_ScrollBar_Vertical';
-  CONST_Handle_Vertical_Down = 'Controls_ScrollBar_Vertical_Down';
-  CONST_Handle_Vertical_Hot = 'Controls_ScrollBar_Vertical_Hot';
+  HANDLE_HORZ = 'Controls_ScrollBar_Horz';
+  HANDLE_HORZ_DOWN = 'Controls_ScrollBar_Horz_Down';
+  HANDLE_HORZ_HOT = 'Controls_ScrollBar_Horz_Hot';
+  HANDLE_VERT = 'Controls_ScrollBar_Vertical';
+  HANDLE_VERT_DOWN = 'Controls_ScrollBar_Vertical_Down';
+  HANDLE_VERT_HOT = 'Controls_ScrollBar_Vertical_Hot';
 
-  Const_VerScroll_HandleSize = 100;
-  Con_ScrollStep = 5;
 type
 
-
-  // Gauge Bar
+  // GaugeBarEx
   TGaugeBarEx = class(TGaugeBar)
   protected
-    // Back Color
+    // BackColor
     FBackColor: TColor;
-    // Border Color
+    // BorderColor
     FBorderColor: TColor;
-    // Handle Color
+    // HandleColor
     FHandleColor: TColor;
-    // Handle Hot Color
+    // HandleHotColor
     FHandleHotColor: TColor;
-    // Handle Down Color
+    // HandleDownColor
     FHandleDownColor: TColor;
-    // Scroll Size
+    // ScrollSize
     FScrollSize: Integer;
-    // Border Value
+    // BorderValue
     FBorderValue: Integer;
-    // Resource Instance
+    // ResourceInstance
     FResourceInstance: HInst;
-    // Resource Width
+    // ResourceWidth
     FResourceWidth: Integer;
-    // Resource Height
+    // ResourceHeight
     FResourceHeight: Integer;
-    // Resource Image
+    // AppContext
+    FAppContext: IAppContext;
+    // ResourceImage
     FResourceImage: TPngImage;
-    // Resource Image Hot
+    // ResourceImageHot
     FResourceImageHot: TPngImage;
-    // Resource Image Down
+    // ResourceImageDown
     FResourceImageDown: TPngImage;
 
     // Paint
     procedure Paint; override;
-    // Draw Handle
+    // UpdateSkinStyle
+    procedure DoUpdateSkinStyle;
+    // DrawHandle
     procedure DoDrawHandle(R: TRect; Horz: Boolean; Pushed, Hot: Boolean); override;
-    // Draw Track
+    // DrawTrack
     procedure DoDrawTrack(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean); override;
   public
     // Constructor
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; AContext: IAppContext); reintroduce;
     // Destructor
     destructor Destroy; override;
-    // Get Client Rect
+    // GetClientRect
     function GetClientRect: TRect; override;
-    // Refresh Bar
+    // RefreshBar
     procedure RefreshBar;
-    // Refresh Resource
-    procedure RefreshResource;
+    // UpdateSkinStyle
+    procedure UpdateSkinStyle;
 
     property ResourceInstance: HInst read FResourceInstance write FResourceInstance;
     property BackColor: TColor read FBackColor write FBackColor;
@@ -92,32 +94,41 @@ implementation
 
 { TGaugeBarEx }
 
-constructor TGaugeBarEx.Create(AOwner: TComponent);
+constructor TGaugeBarEx.Create(AOwner: TComponent; AContext: IAppContext);
 begin
-  inherited;
+  FAppContext := AContext;
+  inherited Create(AOwner);
+  DoubleBuffered := True;
+  ShowArrows := False;
   Ctl3D := False;
   BevelOuter := bvNone;
   BorderStyle := bsNone;
-  DoubleBuffered := True;
-
   Style := rbsMac;
-  ShowArrows := False;
 
   FScrollSize := 11;
   FResourceInstance := 0;
-//  FResourceImage := TPngImage.Create;
-  RefreshResource;
+  FBorderValue := 15;
+
+  FResourceImage := TPngImage.Create;
+  FResourceImageHot := TPngImage.Create;
+  FResourceImageDown := TPngImage.Create;
 end;
 
 destructor TGaugeBarEx.Destroy;
 begin
-//  FResourceImage.Free;
+  FResourceImageDown.Free;
+  FResourceImageHot.Free;
+  FResourceImage.Free;
   inherited;
+  FAppContext := nil;
 end;
 
 function TGaugeBarEx.GetClientRect: TRect;
 begin
-  Result.Inflate(-1, -1);
+  Result.Left := 1;
+  Result.Top := 1;
+  Result.Right := Width - 1;
+  Result.Bottom := Height - 1;
 
   if (FBorderValue and 1) > 0 then begin
     Result.Top := Result.Top + 1;
@@ -140,8 +151,8 @@ procedure TGaugeBarEx.RefreshBar;
 var
   LWidth, LHeight: SHORT;
 begin
-  LWidth := 2;
-  LHeight := 2;
+  LWidth := 0;
+  LHeight := 0;
 
   if (FBorderValue and 1) > 0 then begin
     Inc(LHeight);
@@ -161,19 +172,18 @@ begin
 
   if Kind = sbHorizontal then begin
     Height := FScrollSize + LHeight;
+    FResourceWidth := 6;
+    FResourceHeight := 9;
   end else begin
     Width := FScrollSize + LWidth;
+    FResourceWidth := 9;
+    FResourceHeight := 6;
   end;
 end;
 
-procedure TGaugeBarEx.RefreshResource;
+procedure TGaugeBarEx.UpdateSkinStyle;
 begin
-  if FResourceInstance = 0 then Exit;
-
-  FBackColor := RGB(33, 33, 33);
-  FHandleColor := RGB(64, 64, 64);
-  FHandleHotColor := RGB(56, 56, 56);
-  FHandleDownColor := RGB(51, 51, 51);
+  DoUpdateSkinStyle;
 end;
 
 procedure TGaugeBarEx.Paint;
@@ -186,7 +196,7 @@ var
   LShowEnabled, LShowHandle, LHorz: Boolean;
 begin
   LClientRect := ClientRect;
-  Canvas.Brush.Color := Color;
+  Canvas.Brush.Color := FBackColor;
   Canvas.FillRect(Rect(0, 0, Width, Height));
 
   LHorz := Kind = sbHorizontal;
@@ -206,6 +216,7 @@ begin
   end else begin
     LHandleRect := Rect(0, 0, 0, 0);
   end;
+
   LShowHandle := not GR32.IsRectEmpty(LHandleRect);
   if LShowHandle then begin
     DoDrawHandle(LHandleRect, LHorz, DragZone = zHandle, HotZone = zHandle);
@@ -236,10 +247,36 @@ begin
   end;
 end;
 
+procedure TGaugeBarEx.DoUpdateSkinStyle;
+var
+  LInstance: HINST;
+  LPngImage: TPngImage;
+begin
+  LInstance := FAppContext.GetResourceSkin.GetInstance;
+
+  if (LInstance <> FResourceInstance)
+    and (LInstance <> 0) then begin
+    if Kind = sbHorizontal then begin
+      FResourceImage.LoadFromResourceName(LInstance, HANDLE_HORZ);
+      FResourceImageHot.LoadFromResourceName(LInstance, HANDLE_HORZ_HOT);
+      FResourceImageDown.LoadFromResourceName(LInstance, HANDLE_HORZ_DOWN);
+    end else begin
+      FResourceImage.LoadFromResourceName(LInstance, HANDLE_VERT);
+      FResourceImageHot.LoadFromResourceName(LInstance, HANDLE_VERT_HOT);
+      FResourceImageDown.LoadFromResourceName(LInstance, HANDLE_VERT_DOWN);
+    end;
+  end;
+//  Color := ;
+  FBackColor := RGB(33, 33, 33);
+  FHandleColor := RGB(64, 64, 64);
+  FHandleHotColor := RGB(56, 56, 56);
+  FHandleDownColor := RGB(51, 51, 51);
+end;
+
 procedure TGaugeBarEx.DoDrawTrack(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean);
 begin
   if Style = rbsMac then begin
-    Canvas.Brush.Color := Color;
+    Canvas.Brush.Color := FBackColor;
     Canvas.FillRect(R);
   end else begin
     inherited;
@@ -253,14 +290,13 @@ var
 
   procedure DrawHorzHandle(AImage: TPngImage);
   begin
-    LRect := R;
+    if AImage = nil then Exit;
 
     // Left Round
     LImageRect.Left := R.Left;
     LImageRect.Top := R.Top + (R.Height - FResourceHeight) div 2;
     LImageRect.Height := FResourceHeight;
     LImageRect.Width := FResourceWidth div 2;
-    LRect := LImageRect;
     Canvas.Draw(LImageRect.Left, LImageRect.Top, FResourceImage);
 
     // Right Round
@@ -268,22 +304,23 @@ var
     Canvas.Draw(LImageRect.Left, LImageRect.Top, FResourceImage);
 
     // Draw Handle Rectangle
+    LRect := R;
     LRect.Left := R.Left + FResourceWidth div 2;
-    LRect.Width := R.Width - FResourceWidth;
+    LRect.Width := R.Width - FResourceWidth div 2;
+
     Canvas.Brush.Color := LHandleColor;
     Canvas.FillRect(LRect);
   end;
 
-  procedure DrawVerticalHandle(AImage: TPngImage);
+  procedure DrawVertHandle(AImage: TPngImage);
   begin
-    LRect := R;
-    // Up Round
-    LImageRect.Left := R.Left + (R.Width - FResourceWidth) div 2;
-    LImageRect.Top := R.Top;
-    LImageRect.Height := FResourceHeight;
-    LImageRect.Width := FResourceWidth;
+    if AImage = nil then Exit;
 
-    LRect := LImageRect;
+    // Up Round
+    LImageRect.Left := R.Left;
+    LImageRect.Top := R.Top;
+    LImageRect.Height := FResourceHeight div 2;
+    LImageRect.Width := FResourceWidth;
     Canvas.Draw(LImageRect.Left, LImageRect.Top, AImage);
 
     // Down Round
@@ -291,9 +328,9 @@ var
     Canvas.Draw(LImageRect.Left, LImageRect.Top, AImage);
 
     // Draw Handle Rectangle
-
-    LRect.Top := R.Top + AImage.Height div 2;
-    LRect.Height := R.Height - FResourceHeight;
+    LRect := R;
+    LRect.Top := R.Top + FResourceHeight div 2;
+    LRect.Height := R.Height - FResourceHeight div 2;
 
     Canvas.Brush.Color := LHandleColor;
     Canvas.FillRect(LRect);
@@ -304,23 +341,23 @@ begin
     if Pushed then begin
       LHandleColor := HandleDownColor;
       if Horz then begin
-//        DrawHorzHandle(FResourceImageDown);
+        DrawHorzHandle(FResourceImageDown);
       end else begin
-//        DrawVerticalHandle(FResourceImageDown);
+        DrawVertHandle(FResourceImageDown);
       end;
     end else if Hot then begin
       LHandleColor := HandleHotColor;
       if Horz then begin
-//        DrawHorzHandle(FResourceImageHot);
+        DrawHorzHandle(FResourceImageHot);
       end else begin
-//        DrawVerticalHandle(FResourceImageHot);
+        DrawVertHandle(FResourceImageHot);
       end;
     end else begin
-      LHandleColor := HandleColor;
+      LHandleColor := FHandleColor;
       if Horz then begin
-//        DrawHorzHandle(FResourceImage);
+        DrawHorzHandle(FResourceImage);
       end else begin
-//        DrawVerticalHandle(FResourceImage);
+        DrawVertHandle(FResourceImage);
       end;
     end;
   end else begin

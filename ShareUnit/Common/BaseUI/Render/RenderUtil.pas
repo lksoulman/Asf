@@ -82,33 +82,39 @@ implementation
   end;
 
   procedure DrawBorder(ADC: HDC; ABorderPen : HGDIOBJ; const ARect: TRect; ABorders: integer);
+  var
+    LGDIOBJ: HGDIOBJ;
   begin
     if ABorders = 0 then Exit;
 
-    SelectObject(ADC, ABorderPen);
-    //绘制左边框
-    if (ABorders and 1) > 0 then begin
-      MoveToEx(ADC, ARect.Left, ARect.Top, nil);
-      //bottom加一是为了把结束点像素也画上
-      LineTo(ADC, ARect.Left, ARect.Bottom + 1);
-    end;
+    LGDIOBJ := SelectObject(ADC, ABorderPen);
+    try
+      //绘制左边框
+      if (ABorders and 1) > 0 then begin
+        MoveToEx(ADC, ARect.Left, ARect.Top, nil);
+        //bottom加一是为了把结束点像素也画上
+        LineTo(ADC, ARect.Left, ARect.Bottom + 1);
+      end;
 
-    //绘制右边框
-    if (ABorders and 2) > 0 then begin
-      MoveToEx(ADC, ARect.Right, ARect.Top, nil);
-      LineTo(ADC, ARect.Right, ARect.Bottom + 1);
-    end;
+      //绘制右边框
+      if (ABorders and 2) > 0 then begin
+        MoveToEx(ADC, ARect.Right, ARect.Top, nil);
+        LineTo(ADC, ARect.Right, ARect.Bottom + 1);
+      end;
 
-    //绘制上边框
-    if (ABorders and 4) > 0 then begin
-      MoveToEx(ADC, ARect.Left, ARect.Top, nil);
-      LineTo(ADC, ARect.Right + 1, ARect.Top);
-    end;
+      //绘制上边框
+      if (ABorders and 4) > 0 then begin
+        MoveToEx(ADC, ARect.Left, ARect.Top, nil);
+        LineTo(ADC, ARect.Right + 1, ARect.Top);
+      end;
 
-    //绘制下边框
-    if (ABorders and 8) > 0 then begin
-      MoveToEx(ADC, ARect.Left, ARect.Bottom, nil);
-      LineTo(ADC, ARect.Right + 1, ARect.Bottom);
+      //绘制下边框
+      if (ABorders and 8) > 0 then begin
+        MoveToEx(ADC, ARect.Left, ARect.Bottom, nil);
+        LineTo(ADC, ARect.Right + 1, ARect.Bottom);
+      end;
+    finally
+      SelectObject(ADC, LGDIOBJ);
     end;
   end;
 

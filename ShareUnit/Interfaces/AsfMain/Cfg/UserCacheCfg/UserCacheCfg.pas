@@ -21,6 +21,7 @@ type
   // CurrentAccountInfo
   TCurrentAccountInfo = packed record
     FUserName: string;
+    FUserSession: string;
   end;
 
   // CurrentAccountInfo Pointer

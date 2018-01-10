@@ -25,9 +25,9 @@ type
     ['{506AA3CE-0197-44C8-A831-CEBB36E881E6}']
     // Hide
     procedure Hide;
-    // New Master
+    // NewMaster
     procedure NewMaster;
-    // Del Master
+    // DelMaster
     procedure DelMaster(AHandle: Integer);
     // IsHasChildPage
     function IsHasChildPage(AHandle: Integer; ACommandId: Integer): Boolean;

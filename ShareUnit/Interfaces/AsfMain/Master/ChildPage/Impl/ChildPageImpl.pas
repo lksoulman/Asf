@@ -9,7 +9,6 @@ unit ChildPageImpl;
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-
 interface
 
 uses
@@ -85,6 +84,8 @@ type
     procedure DoReUpdateLanguage; virtual;
     // ReUpdateSkinStyle
     procedure DoReUpdateSkinStyle; virtual;
+    // ReLoadInfo
+    procedure DoReLoadInfo(AMsgEx: TMsgEx); virtual;
     // UpdateCommandParam
     procedure DoUpdateCommandParam(AParams: string); virtual;
   public
@@ -103,13 +104,12 @@ type
     function GetCaption: string;
     // SetCaption
     procedure SetCaption(ACaption: string);
-    // MasterHandle
+    // GetMasterHandle
     function GetMasterHandle: Cardinal;
     // GetCommandId
     function GetCommandId: Integer;
     // SetCommandId
     procedure SetCommandId(ACommandId: Integer);
-
 
     // GoBack (True is Response, False Is not Response)
     function GoBack: Boolean;
@@ -121,7 +121,6 @@ type
     function GetChildPageUI: TForm;
     // GoBringToFront
     function GoBringToFront(AParams: string): Boolean;
-
     property Active: Boolean read GetActive;
     property Handle: Cardinal read GetHandle;
     property MasterHandle: Cardinal read GetMasterHandle;
@@ -177,6 +176,7 @@ begin
   DoActivate;
   DoUpdateNoActiveNotifyMsg;
   DoUpdateCommandParam(FCommandParams);
+  FChildPageUI.Visible := True;
   FChildPageUI.BringToFront;
 end;
 
@@ -184,7 +184,7 @@ procedure TChildPageImpl.DoUpdateNoActiveNotifyMsg;
 var
   LIndex: Integer;
 begin
-  for LIndex := 0 to FNoActiveNotifyMsgs.Count -1 do begin
+  for LIndex := 0 to FNoActiveNotifyMsgs.Count - 1 do begin
     DoUpdateOperate(FNoActiveNotifyMsgs.Items[LIndex]);
   end;
   if FNoActiveNotifyMsgs.Count > 0 then begin
@@ -198,10 +198,16 @@ var
   LUpdateOperate: Integer;
 begin
   LMsgEx := TMsgEx(AObject);
-  if FActive then begin
-    DoUpdateOperate(LMsgEx.Id);
+  if LMsgEx.Id = Msg_AsfUI_ReLoadInfo then begin
+    if FActive then begin
+      DoReLoadInfo(LMsgEx);
+    end;
   end else begin
-    DoAddNoActiveNotifyMsg(LMsgEx.Id);
+    if FActive then begin
+      DoUpdateOperate(LMsgEx.Id);
+    end else begin
+      DoAddNoActiveNotifyMsg(LMsgEx.Id);
+    end;
   end;
 end;
 
@@ -341,6 +347,11 @@ begin
   end;
 end;
 
+procedure TChildPageImpl.DoReLoadInfo(AMsgEx: TMsgEx);
+begin
+
+end;
+
 procedure TChildPageImpl.DoUpdateCommandParam(AParams: string);
 begin
 
@@ -374,9 +385,9 @@ begin
   FCommandParams := AParams;
   if not FActive then begin
     DoBringToFront;
-    SetActiveWindow(FChildPageUI.Handle);
     FActive := True;
   end;
 end;
 
 end.
+

@@ -23,7 +23,9 @@ uses
   GR32,
   G32Graphic,
   GaugeBarEx,
-  CommonRefCounter;
+  GR32_RangeBars,
+  CommonRefCounter,
+  AppContext;
 
 type
 
@@ -81,6 +83,8 @@ type
   // Simple Grid
   TSimpleGrid = class(TNextGrid)
   protected
+    // AppContext
+    FAppContext: IAppContext;
     // Style Display
     FStyleDisplay: TStyleDisplayEx;
     // Paint Report After
@@ -100,19 +104,19 @@ type
     // Process Key Down
     FOnProcessKeyDown: TOnGridProcessKeyDown;
 
-    // Paint Report
+    // PaintReport
     procedure PaintReport; override;
-    // Update Horz Scroll Bar
+    // UpdateHorzScrollBar
     procedure UpdateHorzScrollBar; override;
-    // Update Vert Scroll Bar
+    // UpdateVertScrollBar
     procedure UpdateVertScrollBar; override;
-    // Recreate Style Display
+    // RecreateStyleDisplay
     procedure RecreateStyleDisplay; override;
-    // Wnd Proc
+    // WndProc
     procedure WndProc(var Message: TMessage); override;
-    //
+    // ProcessKeyDown
     procedure ProcessKeyDown(var Key: Word; Shift: TShiftState); override;
-    //
+    // WMContextMenu
     procedure WMContextMenu(var Message: TWMContextMenu); message WM_CONTEXTMENU;
     //
     function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
@@ -120,10 +124,10 @@ type
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
   public
     // Constructor
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AContext: IAppContext); reintroduce;
     // Destructor
     destructor Destroy; override;
-    // Init Style Display
+    // InitStyleDisplay
     procedure InitStyleDisplay(AG32GraphicBuffer: TG32GraphicBuffer);
 
     property StyleDisplay: TStyleDisplayEx read FStyleDisplay;
@@ -144,70 +148,72 @@ type
   TSimpleReport = class(TNxPanel)
   private
   protected
-    // Horz Bar
+    // HorzBar
     FHorzBar: TGaugeBarEx;
-    // Vert Bar
+    // VertBar
     FVertBar: TGaugeBarEx;
-    // FSimple Grid
+    // AppContext
+    FAppContext: IAppContext;
+    // FSimpleGrid
     FSimpleGrid: TSimpleGrid;
-    // Simple Grid Class
+    // SimpleGridClass
     FSimpleGridClass: TSimpleGridClass;
     // G32Graphic Buffer
     FG32GraphicBuffer: TG32GraphicBuffer;
 
-    // Before Create
+    // BeforeCreate
     procedure BeforeCreate; virtual;
-    // Init Grid Event
+    // InitGridEvent
     procedure InitGridEvent; virtual;
 
     // Resize
     procedure Resize; override;
-    // Reset Pos
+    // ResetPos
     procedure DoResetPos; virtual;
-    // Paint Report After
+    // PaintReportAfter
     procedure DoGridPaintReportAfter; virtual;
-    // Paint Report Before
+    // PaintReportBefore
     procedure DoGridPaintReportBefore; virtual;
-    // Update Vert Scroll Bar
+    // UpdateVertScrollBar
     procedure DoGridUpdateVertScrollBar; virtual;
-    // Update Horz Scroll Bar
+    // UpdateHorz ScrollBar
     procedure DoGridUpdateHorzScrollBar; virtual;
     // Resize
     procedure DoGridResize(Sender: TObject); virtual;
-    // Vert Change
+    // VertChange
     procedure DoGridVertChange(Sender: TObject); virtual;
-    // Horz Change
+    // HorzChange
     procedure DoGridHorzChange(Sender: TObject); virtual;
-    // Mouse Leave
+    // MouseLeave
     procedure DoGridMouseLeave(Sender: TObject); virtual;
-    // Mouse Enter
+    // MouseEnter
     procedure DoGridMouseEnter(Sender: TObject); virtual;
-    // Context Menu
+    // ContextMenu
     procedure DoGridContextMenu(var Message: TWMContextMenu); virtual;
-    // Vert Scroll
+    // VertScroll
     procedure DoGridVertScroll(Sender: TObject; Position: Integer); virtual;
-    // Horz Scroll
+    // HorzScroll
     procedure DoGridHorzScroll(Sender: TObject; Position: Integer); virtual;
-    // Wheel Up
+    // WheelUp
     function DoGridWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; virtual;
-    // Wheel Down
+    // WheelDown
     function DoGridWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; virtual;
-    // Process Key Down
+    // ProcessKeyDown
     function DoGridProcessKeyDown(var Key: Word; Shift: TShiftState): Boolean; virtual;
-    // Mouse Move
+    // MouseMove
     procedure DoGridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); virtual;
-    // Mouse Up
+    // MouseUp
     procedure DoGridMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); virtual;
-    // Mouse Down
+    // MouseDown
     procedure DoGirdMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); virtual;
-    // Draw Cell
+    // DrawCell
     procedure DoGridCustomDrawCell(Sender: TObject; ACol, ARow: Integer; CellRect: TRect; CellState: TCellState); virtual;
   public
     // Constructor
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AParent: TWinControl; AContext: IAppContext); reintroduce; virtual;
     // Destructor
     destructor Destroy; override;
-    // Mouse Wheel Handler
+    // MouseWheelHandler
     procedure MouseWheelHandler(var Message: TMessage); override;
   end;
 
@@ -402,9 +408,10 @@ end;
 
 { TSimpleGrid }
 
-constructor TSimpleGrid.Create(AOwner: TComponent);
+constructor TSimpleGrid.Create(AContext: IAppContext);
 begin
-  inherited;
+  inherited Create(nil);
+  FAppContext := AContext;
   FStyleDisplay := TStyleDisplayEx.Create(nil);
 end;
 
@@ -439,15 +446,17 @@ end;
 procedure TSimpleGrid.UpdateHorzScrollBar;
 begin
   inherited UpdateHorzScrollBar;
-  if Assigned(FOnUpdateHorzScrollBar) then
+  if Assigned(FOnUpdateHorzScrollBar) then begin
     FOnUpdateHorzScrollBar;
+  end;
 end;
 
 procedure TSimpleGrid.UpdateVertScrollBar;
 begin
   inherited UpdateVertScrollBar;
-  if Assigned(FOnUpdateVertScrollBar) then
+  if Assigned(FOnUpdateVertScrollBar) then begin
     FOnUpdateVertScrollBar;
+  end;
 end;
 
 procedure TSimpleGrid.RecreateStyleDisplay;
@@ -460,21 +469,26 @@ end;
 
 procedure TSimpleGrid.WndProc(var Message: TMessage);
 var
-  Style: Integer;
+  LStyle: Integer;
 begin
-  if (Message.Msg = WM_NCCALCSIZE) then
-  begin
-    Style := GetWindowLong(Handle, GWL_STYLE);
-    if (Style and (WS_HSCROLL or WS_VSCROLL)) <> 0 then
-      SetWindowLong(Handle, GWL_STYLE, Style and not(WS_HSCROLL or WS_VSCROLL));
+  if (Message.Msg = WM_NCCALCSIZE) then begin
+    LStyle := GetWindowLong(Handle, GWL_STYLE);
+    if (LStyle and (WS_HSCROLL or WS_VSCROLL)) <> 0 then begin
+      SetWindowLong(Handle, GWL_STYLE, LStyle and not(WS_HSCROLL or WS_VSCROLL));
+    end;
   end;
-  inherited;
+  if (Message.Msg = WM_SETFOCUS) then begin
+    inherited;
+  end else begin
+    inherited;
+  end;
 end;
 
 procedure TSimpleGrid.WMContextMenu(var Message: TWMContextMenu);
 begin
-  if Assigned(FOnContextMenu) then
+  if Assigned(FOnContextMenu) then begin
     FOnContextMenu(Message);
+  end;
 end;
 
 procedure TSimpleGrid.ProcessKeyDown(var Key: Word; Shift: TShiftState);
@@ -482,8 +496,7 @@ var
   tmpPt: TPoint;
 begin
   tmpPt := Mouse.CursorPos;
-  if PtInRect(GetClientRect, tmpPt) then
-  begin
+  if PtInRect(GetClientRect, tmpPt) then begin
     inherited ProcessKeyDown(Key, Shift);
     if Assigned(FOnProcessKeyDown) then
       FOnProcessKeyDown(Key, Shift);
@@ -508,11 +521,13 @@ end;
 
 { TSimpleReport }
 
-constructor TSimpleReport.Create(AOwner: TComponent);
+constructor TSimpleReport.Create(AParent: TWinControl; AContext: IAppContext);
 begin
-  inherited;
+  FAppContext := AContext;
+  inherited Create(nil);
+  Parent := AParent;
   BeforeCreate;
-  FSimpleGrid := FSimpleGridClass.Create(nil);
+  FSimpleGrid := FSimpleGridClass.Create(FAppContext);
   FSimpleGrid.Parent := Self;
   FSimpleGrid.Align := alClient;
   FG32GraphicBuffer := TG32GraphicBuffer.Create(FSimpleGrid, FSimpleGrid.Canvas);
@@ -533,12 +548,14 @@ begin
     FHorzBar := nil;
   end;
   inherited;
+  FAppContext := nil;
 end;
 
 procedure TSimpleReport.MouseWheelHandler(var Message: TMessage);
 var
   LPt: TPoint;
 begin
+  inherited;
 //  LPt := ScreenToClient(Mouse.CursorPos);
 //  if PtInRect(Self.GetClientRect, LPt) then begin
 //    Message.Result := FVertBar.Perform(CM_MOUSEWHEEL, -Message.WParam,
@@ -581,7 +598,8 @@ procedure TSimpleReport.DoResetPos;
 var
   LWidth, LHeight: Integer;
 begin
-  if (FVertBar <> nil) then begin
+  if (FVertBar <> nil)
+    and (FVertBar.Visible) then begin
     LWidth := Width - FVertBar.Width;
     FVertBar.Top := 0;
     FVertBar.Left := Width - FVertBar.Width;
@@ -589,7 +607,8 @@ begin
     LWidth := Width;
   end;
 
-  if (FHorzBar <> nil) then begin
+  if (FHorzBar <> nil)
+    and (FHorzBar.Visible) then begin
     LHeight := Height - FHorzBar.Height;
     FHorzBar.Top := LHeight - FHorzBar.Height;
     FHorzBar.Left := 0;

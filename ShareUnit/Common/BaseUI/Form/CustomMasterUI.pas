@@ -125,7 +125,6 @@ type
     function DoToNCStatusBarPt(APt: TPoint): TPoint;
     // ToNCStatusBarPt
     function DoToNCSuperTabBarPt(APt: TPoint): TPoint;
-
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -586,7 +585,10 @@ end;
 procedure TCustomMasterUI.WMNCCalcSize(var Message: TWMNCCalcSize);
 begin
   //如果原来没有边框，则不设置非客户区域
-  if FBorderStyleEx = bsNone then begin
+  if (FCaptionHeight = 0)
+    and (FBorderWidth = 0)
+    and (FSuperTabBarWidth = 0)
+    and (FStatusBarHeight = 0) then begin
     inherited;
     Exit;
   end;
