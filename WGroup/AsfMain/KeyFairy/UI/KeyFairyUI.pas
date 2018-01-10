@@ -28,6 +28,7 @@ uses
   RzEdit,
   GDIPOBJ,
   Command,
+  SecuMain,
   RenderUtil,
   AppContext,
   KeyReportUI,
@@ -105,6 +106,11 @@ type
     // KeySearchEngine
     FKeySearchEngine: IKeySearchEngine;
   protected
+    // 响应程序激活消息
+    procedure OnActivateApp(var message: TWMACTIVATEAPP); message WM_ACTIVATEAPP;
+    // 响应激活消息
+    procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
+
     // BeforeCreate
     procedure DoBeforeCreate; override;
     // NCBarInitDatas
@@ -167,6 +173,7 @@ end;
 
 destructor TKeyEditEx.Destroy;
 begin
+  FEditEx.Text := '';
   FEditEx.Free;
   inherited;
   FAppContext := nil;
@@ -185,6 +192,8 @@ end;
 procedure TKeyEditEx.SetText(AText: string);
 begin
   FEditEx.Text := AText;
+  FEditEx.SelStart := Length(FEditEx.Text);
+  FEditEx.SelLength := 0;
 end;
 
 function TKeyEditEx.GetBackColor: TColor;
@@ -275,11 +284,13 @@ end;
 constructor TKeyFairyUI.Create(AContext: IAppContext);
 begin
   inherited;
+  KeyPreview := True;
   FKeySearchEngine := FAppContext.FindInterface(ASF_COMMAND_ID_KEYSEARCHENGINE) as IKeySearchEngine;
   FKeyEditEx := TKeyEditEx.Create(Self, FAppContext);
   FKeyEditEx.Align := alTop;
   FKeyEditEx.Height := 36;
   FKeyEditEx.UpdateSkinStyle;
+  FKeyEditEx.FEditEx.OnChange := DoEditKeyChange;
   FKeyEditEx.FEditEx.OnKeyPress := DoEditKeyPress;
   FKeyReportUI := TKeyReportUI.Create(Self, FAppContext);
   FKeyReportUI.Align := alClient;
@@ -288,6 +299,7 @@ begin
   FKeySearchDelayTimer.Enabled := False;
   FKeySearchDelayTimer.Interval := 100;
   FKeySearchDelayTimer.OnTimer := DoSearchDelayTimer;
+  FKeySearchEngine.SetResultCallBack(DoLoadSearchResult);
 end;
 
 destructor TKeyFairyUI.Destroy;
@@ -297,6 +309,16 @@ begin
   FKeyReportUI.Free;
   FKeyEditEx.Free;
   FKeySearchEngine := nil;
+  inherited;
+end;
+
+procedure TKeyFairyUI.OnActivateApp(var message: TWMACTIVATEAPP);
+begin
+  inherited;
+end;
+
+procedure TKeyFairyUI.WMActivate(var Message: TWMActivate);
+begin
   inherited;
 end;
 
@@ -334,22 +356,24 @@ procedure TKeyFairyUI.SetKey(AKey: string);
 begin
   if FKeyEditEx <> nil then begin
     FKeyEditEx.Text := AKey;
+    FKeySearchDelayTimer.Enabled := True;
   end;
 end;
 
 procedure TKeyFairyUI.DoSearchDelayTimer(Sender: TObject);
 begin
   FKeySearchDelayTimer.Enabled := False;
+  FKeyReportUI.ClearGridRowDatas;
   if FKeySearchEngine <> nil then begin
     if FKeyEditEx <> nil then begin
-//      FKeySearchEngine.FuzzySearchKey(FKeyEditEx.Text);
+      FKeySearchEngine.FuzzySearchKey(FKeyEditEx.Text);
     end;
   end;
 end;
 
 procedure TKeyFairyUI.DoLoadSearchResult(Sender: TObject);
 begin
-//  FKeyReportUI.LoadSearchResult(APKeyItems);
+  FKeyReportUI.LoadSearchResult(Sender);
 end;
 
 end.

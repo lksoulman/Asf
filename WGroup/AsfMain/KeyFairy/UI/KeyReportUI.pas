@@ -27,28 +27,27 @@ uses
   NxCollection,
   NxCustomGridControl,
   G32Graphic,
-//  KeySet,
+  SecuMain,
   AppContext,
   GaugeBarEx,
+  GR32_RangeBars,
   SimpleReport,
   CommonDynArray,
   CommonRefCounter;
 
 type
 
-  // Key Row Data
+  // KeyRowData
   TKeyRowData = class(TAutoObject)
   private
-    // PKeyItem
-//    FKeyItem: PKeyItem;
+    // SecuInfo
+    FSecuInfo: PSecuInfo;
   protected
   public
     // Constructor
     constructor Create; override;
     // Destructor
     destructor Destroy; override;
-
-//    property KeyItem: PKeyItem read FKeyItem write FKeyItem;
   end;
 
   // KeyReportUI
@@ -78,6 +77,8 @@ type
     procedure DoGridVertBarNextRow;
     // GridVertBarPriorRow
     procedure DoGridVertBarPriorRow;
+    // ResetPos
+    procedure DoResetPos; override;
     // PaintReportBefore
     procedure DoGridPaintReportBefore; override;
     // UpdateVertScrollBar
@@ -107,8 +108,10 @@ type
     destructor Destroy; override;
     // UpdateSkinStyle
     procedure UpdateSkinStyle;
+    // ClearGridRowDatas
+    procedure ClearGridRowDatas;
     // LoadSearchResult
-//    procedure LoadSearchResult(AKeyItems: TDynArray<PKeyItem>);
+    procedure LoadSearchResult(AObject: TObject);
   end;
 
 
@@ -135,14 +138,15 @@ var
   LFont: TFont;
 begin
   inherited;
-  FVertBar := TGaugeBarEx.Create(nil);
-  FVertBar.Parent := Self;
-  FVertBar.Align := alCustom;
+  FVertBar := TGaugeBarEx.Create(nil, FAppContext);
   FVertBar.Kind := sbVertical;
   FVertBar.OnChange := DoGridVertChange;
-  FVertBar.Visible := False;
-  FVertBar.Enabled := True;
+  FVertBar.Parent := Self;
+  FVertBar.Align := alRight;
+  FVertBar.Visible := True;
+//  FVertBar.Enabled := True;
   FVertBar.RefreshBar;
+  FVertBar.UpdateSkinStyle;
 
   LFont := TFont.Create;
   LFont.Name := 'Î¢ÈíÑÅºÚ';
@@ -172,33 +176,46 @@ begin
   FSimpleGrid.Color := FBackColor;
 end;
 
-//procedure TKeyReportUI.LoadSearchResult(AKeyItems: TDynArray<PKeyItem>);
-//var
-//  LCell: TCell;
-//  LIndex: Integer;
-//  LPKeyItem: PKeyItem;
-//  LKeyRowData: TKeyRowData;
-//begin
-//  FSimpleGrid.BeginUpdate;
-//  try
-//    DoClearRows;
-//    for LIndex := 0 to AKeyItems.GetCount - 1 do begin
-//      LPKeyItem := AKeyItems.GetElement(LIndex);
-//      if LPKeyItem <> nil then begin
-//        FSimpleGrid.AddRow();
-//        LKeyRowData := TKeyRowData.Create;
-//        LKeyRowData.KeyItem := LPKeyItem;
-//        LCell := FSimpleGrid.Cell[FKeyInfoColumn.Tag, FSimpleGrid.RowCount - 1];
-//        LCell.ObjectReference := LKeyRowData;
-//      end;
-//    end;
-//  finally
-//    FSimpleGrid.EndUpdate;
-//  end;
+procedure TKeyReportUI.ClearGridRowDatas;
+begin
+  FSimpleGrid.BeginUpdate;
+  try
+    DoClearRows;
+  finally
+    FSimpleGrid.EndUpdate;
+  end;
+end;
+
+procedure TKeyReportUI.LoadSearchResult(AObject: TObject);
+var
+  LCell: TCell;
+  LIndex: Integer;
+  LSecuInfo: PSecuInfo;
+  LKeyRowData: TKeyRowData;
+  LSecuInfos: TDynArray<PSecuInfo>;
+begin
+  LSecuInfos := TDynArray<PSecuInfo>(AObject);
+
+  FSimpleGrid.BeginUpdate;
+  try
+    DoClearRows;
+    for LIndex := 0 to LSecuInfos.GetCount - 1 do begin
+      LSecuInfo := LSecuInfos.GetElement(LIndex);
+      if LSecuInfo <> nil then begin
+        FSimpleGrid.AddRow();
+        LKeyRowData := TKeyRowData.Create;
+        LKeyRowData.FSecuInfo := LSecuInfo;
+        LCell := FSimpleGrid.Cell[FKeyInfoColumn.Tag, FSimpleGrid.RowCount - 1];
+        LCell.ObjectReference := LKeyRowData;
+      end;
+    end;
+  finally
+    FSimpleGrid.EndUpdate;
+  end;
 //  if FSimpleGrid.RowCount > 0 then begin
 //    FSimpleGrid.SelectedRow := 0;
 //  end;
-//end;
+end;
 
 procedure TKeyReportUI.DoClearRows;
 var
@@ -221,8 +238,8 @@ procedure TKeyReportUI.DoInitGridData;
 begin
   with FSimpleGrid do begin
     Parent := Self;
-    Align := alCustom;
-    Options := [goDisableColumnMoving, goSelectFullRow];
+    Align := alClient;
+    Options := Options + [goDisableColumnMoving, goSelectFullRow];
     FixedCols := 1;
     BorderStyle := bsNone;
     HeaderSize := 0;
@@ -232,7 +249,7 @@ begin
     ReadOnly := True;
     GridStyle := gsReport;
     GridLinesStyle := lsActiveHorzOnly;
-    AppearanceOptions := [aoHideFocus];
+    AppearanceOptions := AppearanceOptions + [aoHideFocus];
     OnVerticalScroll := DoGridVertScroll;
     HideScrollBar := True;
   end;
@@ -290,6 +307,11 @@ begin
   end;
 end;
 
+procedure TKeyReportUI.DoResetPos;
+begin
+
+end;
+
 procedure TKeyReportUI.DoGridPaintReportBefore;
 begin
   FG32GraphicBuffer.G32Graphic.BackColor := FBackColor;
@@ -300,8 +322,8 @@ procedure TKeyReportUI.DoGridUpdateVertScrollBar;
 begin
   if FVertBar = nil then Exit;
 
-  FVertBar.Visible := FSimpleGrid.VertScrollBar.Max <> 0;
-  if FVertBar.Visible then begin
+  FVertBar.Enabled := FSimpleGrid.VertScrollBar.Max <> 0;
+  if FVertBar.Enabled then begin
     FVertBar.Max := FSimpleGrid.RowCount - FSimpleGrid.VertScrollBar.PageSize + 1;
     FVertBar.Min := 0;
     FVertBar.LargeChange := FSimpleGrid.VertScrollBar.LargeChange;
@@ -315,6 +337,7 @@ begin
     FVertBar.Max := 0;
     FVertBar.Min := 0;
   end;
+//  DoResetPos;
 end;
 
 procedure TKeyReportUI.DoGridVertChange(Sender: TObject);
@@ -391,33 +414,33 @@ begin
 
   if LCell <> nil then begin
     LKeyRowData := TKeyRowData(LCell.ObjectReference);
-//    if LKeyRowData.KeyItem <> nil then begin
-//      FG32GraphicBuffer.G32Graphic.EmptyPolyText('DrawText');
-//
-//      LSecuCode := LKeyRowData.KeyItem.FPSecuMainItem.FSecuCode;
-//      LSecuAbbr := LKeyRowData.KeyItem.FPSecuMainItem.FSecuAbbr;
-//      LSecuTypeName := LKeyRowData.KeyItem.FKeySet.Name;
-//      if LSecuCode <> '' then begin
-//        LCodeRect := CellRect;
-//        LCodeRect.Left := LCodeRect.Left + 5;
-//        LCodeRect.Right := LCodeRect.Left + 90;
-//        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LCodeRect, LSecuCode, gtaLeft);
-//      end;
-//      if LSecuAbbr <> '' then begin
-//        LAbbrRect := CellRect;
-//        LAbbrRect.Left := LAbbrRect.Left + 80;
-//        LAbbrRect.Right := LAbbrRect.Right - 80;
-//        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LAbbrRect, LSecuAbbr, gtaLeft);
-//      end;
-//      if LSecuTypeName <> '' then begin
-//        LNameRect := CellRect;
-//        LNameRect.Left := LNameRect.Right - 45;
-//        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LNameRect, LSecuTypeName, gtaLeft);
-//      end;
-//      FG32GraphicBuffer.G32Graphic.Ellipsis := True;
-//      FG32GraphicBuffer.G32Graphic.LineColor := LFontColor;
-//      FG32GraphicBuffer.G32Graphic.DrawPolyText('DrawText');
-//    end;
+    if LKeyRowData.FSecuInfo <> nil then begin
+      FG32GraphicBuffer.G32Graphic.EmptyPolyText('DrawText');
+
+      LSecuCode := LKeyRowData.FSecuInfo.FSecuCode;
+      LSecuAbbr := LKeyRowData.FSecuInfo.FSecuAbbr;
+      LSecuTypeName := LKeyRowData.FSecuInfo.GetSearchTypeName;
+      if LSecuCode <> '' then begin
+        LCodeRect := CellRect;
+        LCodeRect.Left := LCodeRect.Left + 5;
+        LCodeRect.Right := LCodeRect.Left + 90;
+        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LCodeRect, LSecuCode, gtaLeft);
+      end;
+      if LSecuAbbr <> '' then begin
+        LAbbrRect := CellRect;
+        LAbbrRect.Left := LAbbrRect.Left + 80;
+        LAbbrRect.Right := LAbbrRect.Right - 80;
+        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LAbbrRect, LSecuAbbr, gtaLeft);
+      end;
+      if LSecuTypeName <> '' then begin
+        LNameRect := CellRect;
+        LNameRect.Left := LNameRect.Right - 45;
+        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LNameRect, LSecuTypeName, gtaLeft);
+      end;
+      FG32GraphicBuffer.G32Graphic.Ellipsis := True;
+      FG32GraphicBuffer.G32Graphic.LineColor := LFontColor;
+      FG32GraphicBuffer.G32Graphic.DrawPolyText('DrawText');
+    end;
   end;
 end;
 

@@ -2,7 +2,7 @@ unit HttpContext;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Http Context
+// Description£º HttpContext
 // Author£º      lksoulman
 // Date£º        2017-9-13
 // Comments£º
@@ -23,7 +23,7 @@ uses
 
 type
 
-  // Http Context
+  // HttpContext
   THttpContext = class(TAutoObject)
   private
     // Lock
@@ -34,8 +34,6 @@ type
     FWaitMode: TWaitMode;
     // Wait Event
     FWaitEvent: Cardinal;
-    // Data Event
-    FDataEvent: TGFDataEvent;
     // Finance Data Update
     FGFDataUpdate: IGFDataUpdate;
   protected
@@ -52,13 +50,10 @@ type
     procedure SetWaitStart(AWaitTime: DWORD);
     // Set Wait Finish
     procedure SetWaitFinish(ASuccess: Boolean = True);
-    // Set Call Back
-    procedure SetCallBack(ACallBack: TGFDataEvent);
 
     property WaitEvent: Cardinal read FWaitEvent;
     property Indicator: string read FIndicator write FIndicator;
     property WaitMode: TWaitMode read FWaitMode write FWaitMode;
-    property DataEvent: TGFDataEvent read FDataEvent write FDataEvent;
     property GFDataUpdate: IGFDataUpdate read FGFDataUpdate write FGFDataUpdate;
   end;
 
@@ -91,8 +86,6 @@ begin
   if FGFDataUpdate <> nil then begin
     FGFDataUpdate := nil;
   end;
-
-  FDataEvent := nil;
 end;
 
 procedure THttpContext.SetWaitStart(AWaitTime: DWORD);
@@ -140,17 +133,14 @@ begin
 end;
 
 procedure THttpContext.CallBack;
+var
+  LEvent: TGFDataEvent;
 begin
-  if Assigned(FDataEvent) then begin
-    if FGFDataUpdate.GetIsCancel then Exit;
-
-    FDataEvent(FGFDataUpdate as IGFData);
+  if FGFDataUpdate.GetIsCancel then Exit;
+  LEvent := FGFDataUpdate.GetDataEvent;
+  if Assigned(LEvent) then begin
+    LEvent(FGFDataUpdate as IGFData);
   end;
-end;
-
-procedure THttpContext.SetCallBack(ACallBack: TGFDataEvent);
-begin
-  FDataEvent := ACallBack;
 end;
 
 end.

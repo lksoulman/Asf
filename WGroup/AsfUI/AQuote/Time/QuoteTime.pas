@@ -833,15 +833,15 @@ end;
 
 procedure TQuoteTime.WndProc(var Message: TMessage);
 begin
-  case Message.Msg of
-    WM_LBUTTONDOWN, WM_LBUTTONDBLCLK:
-      if not(csDesigning in ComponentState) and not Focused then
-      begin
-        Windows.SetFocus(Handle);
-        if not Focused then
-          Exit;
-      end;
-  end;
+//  case Message.Msg of
+//    WM_LBUTTONDOWN, WM_LBUTTONDBLCLK:
+//      if not(csDesigning in ComponentState) and not Focused then
+//      begin
+//        Windows.SetFocus(Handle);
+//        if not Focused then
+//          Exit;
+//      end;
+//  end;
   inherited WndProc(Message);
 end;
 

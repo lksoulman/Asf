@@ -25,7 +25,7 @@ type
   // ServerCacheInfo
   TServerCacheInfo = packed record
     FID: string;
-    FType: string;
+    FType: Integer;
     FName: string;
     FKey: string;
     FValue: string;
@@ -152,7 +152,7 @@ begin
     LValueStr := AServerCacheInfo^.FValue;
     LValueStr := FAppContext.GetEDCrypt.StringEncodeBase64(LValueStr);
     LValue := LValueStr;
-    LSql := Format('INSERT OR REPLACE INTO UserConfig VALUES (%s,%s,%s,%s,%s,1)',
+    LSql := Format('INSERT OR REPLACE INTO UserConfig VALUES (''%s'',%d,''%s'',''%s'',''%s'',''%s'',1)',
       [AServerCacheInfo^.FID,
        AServerCacheInfo^.FType,
        AServerCacheInfo^.FName,
@@ -225,7 +225,7 @@ begin
           New(LServerCacheInfo);
           if LServerCacheInfo <> nil then begin
             LServerCacheInfo^.FID := LID.AsString;
-            LServerCacheInfo^.FType := LType.AsString;
+            LServerCacheInfo^.FType := LType.AsInteger;
             LServerCacheInfo^.FName := LName.AsString;
             LServerCacheInfo^.FKey := LKey.AsString;
             LValueStr := LValue.AsString;
@@ -244,14 +244,16 @@ end;
 
 procedure TUserCacheCfgImpl.LoadCurrentAccountInfo;
 var
-  LFile: string;
   LIni: TIniFile;
+  LFile, LUserSession: string;
 begin
   LFile := FAppContext.GetCfg.GetUsersPath + 'CfgSys.dat';
   if FileExists(LFile) then begin
     LIni := TIniFile.Create(LFile);
     try
       FCurrentAccountInfo.FUserName := LIni.ReadString('UserInfo', 'UserName', '');
+      LUserSession := LIni.ReadString('UserInfo', 'UserSession', '');
+      FCurrentAccountInfo.FUserSession := LUserSession;
     finally
       LIni.Free;
     end;
@@ -260,14 +262,16 @@ end;
 
 procedure TUserCacheCfgImpl.SaveCurrentAccountInfo;
 var
-  LFile: string;
   LIni: TIniFile;
+  LFile, LUserSession: string;
 begin
   LFile := FAppContext.GetCfg.GetUsersPath + 'CfgSys.dat';
   if FileExists(LFile) then begin
     LIni := TIniFile.Create(LFile);
     try
       LIni.WriteString('UserInfo', 'UserName', FCurrentAccountInfo.FUserName);
+      LUserSession := FCurrentAccountInfo.FUserSession;
+      LIni.WriteString('UserInfo', 'UserSession', LUserSession);
     finally
       LIni.Free;
     end;
@@ -312,7 +316,7 @@ begin
     New(LServerCacheInfo);
     if LServerCacheInfo <> nil then begin
       LServerCacheInfo^.FID := '';
-      LServerCacheInfo^.FType := '2';
+      LServerCacheInfo^.FType := 2;
       LServerCacheInfo^.FName := AName;
       LServerCacheInfo^.FKey := AKey;
       LServerCacheInfo^.FValue := AValue;

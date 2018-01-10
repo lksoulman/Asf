@@ -211,7 +211,7 @@ var
 begin
   if AComponent Is TSuperTabItem then begin
     LSuperTabItem := TSuperTabItem(AComponent);
-    if LSuperTabItem.FCommandId = 80000001 then begin
+    if LSuperTabItem.FCommandId = ASF_COMMAND_ID_SIMPLEHQTIMETEST then begin
       LInnerCode := 1752;
     end else begin
       LInnerCode := 1;

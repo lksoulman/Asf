@@ -68,6 +68,7 @@ var
 begin
   if FKeySearchEngine = nil then begin
     FKeySearchEngine := TKeySearchEngineImpl.Create(FAppContext) as IKeySearchEngine;
+    FKeySearchEngine.Update;
     FAppContext.RegisterInteface(FId, FKeySearchEngine);
   end;
 

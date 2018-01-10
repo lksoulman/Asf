@@ -34,12 +34,12 @@ type
   TAbstractServiceImpl = class(TBaseInterfacedObject)
   private
   protected
-    // IsStart
-    FIsStart: Boolean;
     // Server Url
     FServerUrl: string;
     // Init Logined
     FInitLogined: Boolean;
+    // IsStopService
+    FIsStopService: Boolean;
     // Executor Count
     FExecutorCount: Integer;
     // Priority Executor Count
@@ -115,7 +115,7 @@ begin
   FExecutors.Start;
   FPriorityExecutors.Start;
   FKeepAliveHeartBeatThread.StartEx;
-  FIsStart := True;
+  FIsStopService := False;
 end;
 
 destructor TAbstractServiceImpl.Destroy;
@@ -129,11 +129,11 @@ end;
 
 procedure TAbstractServiceImpl.DoStopService;
 begin
-  if FIsStart then begin
+  if not FIsStopService then begin
     FKeepAliveHeartBeatThread.ShutDown;
     FPriorityExecutors.ShutDown;
     FExecutors.ShutDown;
-    FIsStart := False;
+    FIsStopService := True;
   end;
 end;
 
@@ -228,11 +228,11 @@ begin
   Result := DoCreateGFData;
   LContext := THttpContext(FShareMgr.GetHttpContextPool.Allocate);
   if LContext <> nil then begin
-    LContext.DataEvent := AEvent;
     LContext.WaitMode := wmNoBlocking;
     LContext.Indicator := AIndicator;
     LContext.GFDataUpdate := Result as IGFDataUpdate;
     LContext.GFDataUpdate.SetKey(AKey);
+    LContext.GFDataUpdate.SetDataEvent(AEvent);
     FExecutors.Submit(LContext);
   end;
 end;
@@ -260,11 +260,11 @@ begin
   Result := DoCreateGFData;
   LContext := THttpContext(FShareMgr.GetHttpContextPool.Allocate);
   if LContext <> nil then begin
-    LContext.DataEvent := AEvent;
     LContext.WaitMode := wmNoBlocking;
     LContext.Indicator := AIndicator;
     LContext.GFDataUpdate := Result as IGFDataUpdate;
     LContext.GFDataUpdate.SetKey(AKey);
+    LContext.GFDataUpdate.SetDataEvent(AEvent);
     FPriorityExecutors.Submit(LContext);
   end;
 end;

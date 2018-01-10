@@ -302,6 +302,7 @@ begin
       LChildPageInfo.FChildPage := AChildPage;
       FChildPageInfoDic.AddOrSetValue(AChildPage.CommandId, LChildPageInfo);
       LForm := AChildPage.GetChildPageUI;
+      LForm.OnKeyPress := DoMasterKeyPress;
       LForm.ParentWindow := FMasterUI.Handle;
       LForm.Show;
     end;

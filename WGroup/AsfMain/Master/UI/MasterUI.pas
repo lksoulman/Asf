@@ -65,7 +65,7 @@ uses
 constructor TMasterUI.Create(AContext: IAppContext);
 begin
   inherited;
-
+  KeyPreview := True;
 end;
 
 destructor TMasterUI.Destroy;

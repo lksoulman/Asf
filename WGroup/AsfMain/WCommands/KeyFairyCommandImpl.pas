@@ -63,10 +63,26 @@ begin
 end;
 
 procedure TKeyFairyCommandImpl.Execute(AParams: string);
+var
+  LFuncName: string;
 begin
-  if FKeyFairy = nil then begin
-    FKeyFairy := TKeyFairyImpl.Create(FAppContext) as IKeyFairy;
-    FAppContext.RegisterInteface(FId, FKeyFairy);
+  if AParams = '' then begin
+    if FKeyFairy = nil then begin
+      FKeyFairy := TKeyFairyImpl.Create(FAppContext) as IKeyFairy;
+      FAppContext.RegisterInteface(FId, FKeyFairy);
+    end;
+  end else begin
+    BeginSplitParams(AParams);
+    try
+      ParamsVal('FuncName', LFuncName);
+      if LFuncName <> 'Hide' then begin
+        if FKeyFairy <> nil then begin
+          FKeyFairy.Hide;
+        end;
+      end;
+    finally
+      EndSplitParams;
+    end;
   end;
 end;
 

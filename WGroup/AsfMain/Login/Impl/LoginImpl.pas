@@ -78,6 +78,20 @@ function TLoginImpl.Login: Boolean;
 begin
   if FLogin.ShowLoginMainUI = mrOk then begin
     Result := True;
+    case FAppContext.GetCfg.GetSysCfg.GetUserInfo.GetAccountType of
+      atUFX:
+        begin
+          FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserName := FAppContext.GetCfg.GetSysCfg.GetUserInfo.GetUFXAccountInfo.FUserName;
+        end;
+      atGIL:
+        begin
+          FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserName := FAppContext.GetCfg.GetSysCfg.GetUserInfo.GetGilAccountInfo.FUserName;
+        end;
+      atPBOX:
+        begin
+          FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserName := FAppContext.GetCfg.GetSysCfg.GetUserInfo.GetPBoxAccountInfo.FUserName;
+        end;
+    end;
   end else begin
     Result := False;
   end;

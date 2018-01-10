@@ -22,6 +22,8 @@ type
   // KeyFairy
   IKeyFairy = interface(IInterface)
     ['{ACA3A476-66E3-4953-8213-E1E7CEC2D062}']
+    // Hide
+    procedure Hide;
     // Display
     function Display(AMasterHandle: THandle; AKey: string; var ASecuInfo: PSecuInfo): Boolean;
     // DisplayEx

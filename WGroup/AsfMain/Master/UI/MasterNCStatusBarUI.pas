@@ -164,6 +164,9 @@ type
     FWidth: Integer;
     FTitle: string;
     FDateStr: string;
+
+    // NewsReplaceStr
+    function NewsReplaceStr(AUrl: string): string;
   end;
 
   // NewsInfo
@@ -215,6 +218,8 @@ type
     function PtInRectEx(APt: TPoint): Boolean; override;
     // Draw
     function Draw(ARenderDC: TRenderDC): Boolean; override;
+
+    property NewsInfo: PNewsInfo read FNewsInfo;
   end;
 
   // StatusTimeItem
@@ -680,6 +685,14 @@ begin
   end;
 end;
 
+{ TNewsInfo }
+
+function TNewsInfo.NewsReplaceStr(AUrl: string): string;
+begin
+  Result := StringReplace(AUrl, '!id', IntToStr(Self.FId), [rfReplaceAll]);
+  Result := StringReplace(Result, '!title', Self.FTitle, [rfReplaceAll]);
+end;
+
 { TNewsInfoPool }
 
 function TNewsInfoPool.DoCreate: Pointer;
@@ -1068,8 +1081,16 @@ begin
 end;
 
 procedure TMasterNCStatusBarUI.LButtonClickComponent(AComponent: TComponentUI);
+var
+  LUrl: string;
 begin
-
+  if AComponent is TStatusNewsItem then begin
+    if TStatusNewsItem(AComponent).NewsInfo <> nil then begin
+      LUrl := FAppContext.GetCfg.GetWebCfg.GetUrl(ASF_COMMAND_ID_WEBPOP_NEWS);
+      LUrl := TStatusNewsItem(AComponent).NewsInfo.NewsReplaceStr(LUrl);
+      FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_WEBPOP_NEWS, Format('FuncName=LoadWebUrl@Url=%s', [LUrl]));
+    end;
+  end;
 end;
 
 procedure TMasterNCStatusBarUI.DoAddTestData;

@@ -15,6 +15,7 @@ uses
   Windows,
   Classes,
   SysUtils,
+  Command,
   BaseObject,
   AppContext,
   CommonLock,
@@ -116,37 +117,37 @@ var
   LSuperTabData: PSuperTabData;
 begin
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 80000001;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQTIMETEST;
   LSuperTabData^.FResourceName := 'SKIN_APP_HQ';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 80000002;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQMARKETTEST;
   LSuperTabData^.FResourceName := 'SKIN_APP_ASSET';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 80000001;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQTIMETEST;
   LSuperTabData^.FResourceName := 'SKIN_APP_PARAMSSETTING';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 80000002;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQMARKETTEST;
   LSuperTabData^.FResourceName := 'SKIN_APP_MANAGEMENTVIEW';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 80000001;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQTIMETEST;
   LSuperTabData^.FResourceName := 'SKIN_APP_RISKMANAGEMENT';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 80000002;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQMARKETTEST;
   LSuperTabData^.FResourceName := 'SKIN_APP_HQ';
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := 80000001;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQTIMETEST;
   LSuperTabData^.FResourceName := 'SKIN_APP_ASSET';
   FSuperTabDatas.Add(LSuperTabData);
 end;

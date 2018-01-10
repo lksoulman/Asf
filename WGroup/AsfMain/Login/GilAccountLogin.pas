@@ -158,6 +158,12 @@ begin
                 FLoginMainUI.ShowLoginInfo(GetErrorInfo(FGilBasicLogin.FErrorCode));
                 Exit;
               end;
+            ErrorCode_Service_Login_License_Invalid:
+              begin
+                FCfg.GetSysCfg.GetUserInfo.GetBindInfo.FLicense := '';
+                FCfg.GetSysCfg.GetUserInfo.GetBindInfo.FOrgSign := '';
+                Continue;
+              end;
             ErrorCode_Service_Login_MacCode_CheckFailed:
               begin
                 FLoginMainUI.ShowLoginInfo(GetErrorInfo(FGilBasicLogin.FErrorCode));

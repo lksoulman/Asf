@@ -70,6 +70,8 @@ type
     function GetCfgPath: WideString;
     // GetLogPath
     function GetLogPath: WideString;
+    // GetCefPath
+    function GetCefPath: WideString;
     // GetSkinPath
     function GetSkinPath: WideString;
     // GetUserPath
@@ -82,6 +84,8 @@ type
     function GetCachePath: WideString;
     // GetHQCachePath
     function GetHQCachePath: WideString;
+    // GetCefCachePath
+    function GetCefCachePath: WideString;
     // GetBaseCachePath
     function GetBaseCachePath: WideString;
     // GetUserCachePath
@@ -167,8 +171,8 @@ begin
     ForceDirectories(GetUserCachePath);
   end;
 
-  FUserCacheCfg.SaveCurrentAccountInfo;
   FSysCfg.WriteLocalCacheCfg;
+  FUserCacheCfg.SaveCurrentAccountInfo;
 end;
 
 procedure TCfgImpl.ReadServerCacheCfg;
@@ -217,6 +221,11 @@ begin
   Result := FAppPath + 'Log\';
 end;
 
+function TCfgImpl.GetCefPath: WideString;
+begin
+  Result := FAppPath + 'Bin\AsfCef\';
+end;
+
 function TCfgImpl.GetSkinPath: WideString;
 begin
   Result := FAppPath + 'Skin\';
@@ -240,6 +249,11 @@ end;
 function TCfgImpl.GetHQCachePath: WideString;
 begin
   Result := FAppPath + 'Cache\HQ\';
+end;
+
+function TCfgImpl.GetCefCachePath: WideString;
+begin
+  Result := FAppPath + 'Cache\Cef\';
 end;
 
 function TCfgImpl.GetBaseCachePath: WideString;

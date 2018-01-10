@@ -76,13 +76,8 @@ begin
     ParamsVal('FuncName', LFuncName);
     if LFuncName = 'UpdateTables' then begin
       FUserCache.UpdateTables;
-    end else if LFuncName = 'AsyncUpdateTables' then begin
-      FUserCache.AsyncUpdateTables;
-    end else if LFuncName = 'AsyncUpdateTable' then begin
-      ParamsVal('Name', LParam);
-      if LParam <> '' then begin
-        FUserCache.AsyncUpdateTable(LParam);
-      end;
+    end else if LFuncName = 'InitUpdateTables' then begin
+      FUserCache.InitUpdateTables;
     end else if LFuncName = 'ReplaceCreateCacheTables' then begin
       FUserCache.ReplaceCreateCacheTables;
     end else if LFuncName = 'StopService' then begin

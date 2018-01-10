@@ -12,11 +12,13 @@ unit AppContextImpl;
 interface
 
 uses
-  Log,
   Cfg,
   Login,
   GFData,
   GdiMgr,
+  Chrome,
+  Logger,
+  Browser,
   EDCrypt,
   Windows,
   Classes,
@@ -49,16 +51,16 @@ type
   // AppContext Implementation
   TAppContextImpl = class(TAutoInterfacedObject, IAppContext)
   private
-    // Log
-    FLog: ILog;
     // Cfg
     FCfg: ICfg;
-    // Main
-    FMain: TForm;
     // Login
     FLogin: ILogin;
+    // Logger
+    FLogger: ILogger;
     // GdiMgr
     FGdiMgr: IGdiMgr;
+    // Chrome
+    FChrome: IChrome;
     // EDCrypt
     FEDCrypt: IEDCrypt;
     // CommandMgr
@@ -69,13 +71,15 @@ type
     FResourceCfg: IResourceCfg;
     // ResourceSkin
     FResourceSkin: IResourceSkin;
-    // Base Cache
+    // BaseCache
     FBaseCache: IBaseCache;
-    // User Cache
+    // UserCache
     FUserCache: IUserCache;
-    // Basic Service
+    // MsgExService
+    FMsgExService: IMsgExService;
+    // BasicService
     FBasicService: IBasicService;
-    // Asset Service
+    // AssetService
     FAssetService: IAssetService;
     // SecuMainQuery
     FSecuMainQuery: ISecuMainQuery;
@@ -90,39 +94,51 @@ type
 
     { IAppContext }
 
+    // InitLogger
+    procedure InitLogger;
+    // UnInitLogger
+    procedure UnInitLogger;
+    // InitChrome
+    procedure InitChrome;
+    // UnInitChrome
+    procedure UnInitChrome;
     // Initialize
     procedure Initialize;
     // UnInitialize
     procedure UnInitialize;
-    // Exit App
+    // InitMsgExService
+    procedure InitMsgExService;
+    // UnInitMsgExService
+    procedure UnInitMsgExService;
+    // ExitApp
     procedure ExitApp;
-    // Get Config
+    // GetCfg
     function GetCfg: ICfg;
     // Login
     function Login: Boolean;
     // IsLogin
     function IsLogin(AServiceType: TServiceType): Boolean;
-    // GetMain
-    function GetMain: TForm;
-    // Get GdiMgr
+    // GetGdiMgr
     function GetGdiMgr: IGdiMgr;
-    // Get EDCrypt
+    // GetEDCrypt
     function GetEDCrypt: IEDCrypt;
-    // Get CommandMgr
+    // CreateBrowser
+    function CreateBrowser: IBrowser;
+    // GetCommandMgr
     function GetCommandMgr: ICommandMgr;
-    // Get Resource Cfg
+    // GetResourceCfg
     function GetResourceCfg: IResourceCfg;
-    // Get Resource Skin
+    // GetResourceSkin
     function GetResourceSkin: IResourceSkin;
-    // Load Dyn Library
+    // LoadDynLibrary
     function LoadDynLibrary(AFile: WideString): Boolean;
-    // Add Behavior
+    // AddBehavior
     function AddBehavior(ABehavior: WideString): Boolean;
-    // Get Error Info
+    // GetErrorInfo
     function GetErrorInfo(AErrorCode: Integer): WideString;
-    // Find Interface
+    // FindInterface
     function FindInterface(ACommandId: Integer): IInterface;
-    // Un Register Interface
+    // UnRegisterInterface
     function UnRegisterInterface(ACommandId: Integer): Boolean;
     // Register
     function RegisterInteface(ACommandId: Integer; AInterface: IInterface): Boolean;
@@ -130,6 +146,8 @@ type
     procedure Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
     // UnSubcriber
     procedure UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
+    // SendMsgEx
+    procedure SendMsgEx(AMsgId: Integer; AMsgInfo: string; ADelaySecs: Cardinal = 0);
     // HQLog
     procedure HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
     // WebLog
@@ -160,10 +178,11 @@ uses
   Utils,
   HqAuth,
   ProAuth,
-  LogImpl,
   CfgImpl,
   Command,
   ErrorCode,
+  LoggerImpl,
+  ChromeImpl,
   GdiMgrImpl,
   EDCryptImpl,
   CommandMgrImpl,
@@ -177,7 +196,6 @@ uses
 constructor TAppContextImpl.Create(AMain: TForm);
 begin
   inherited Create;
-  FMain := AMain;
   FInterfaceDic := TDictionary<Integer, IUnknown>.Create;
 end;
 
@@ -187,9 +205,37 @@ begin
   inherited;
 end;
 
+procedure TAppContextImpl.InitLogger;
+begin
+  if FLogger = nil then begin
+    FLogger := TLoggerImpl.Create(Self) as ILogger;
+  end;
+end;
+
+procedure TAppContextImpl.UnInitLogger;
+begin
+  if FLogger <> nil then begin
+    FLogger := nil;
+  end;
+end;
+
+procedure TAppContextImpl.InitChrome;
+begin
+  if FChrome = nil then begin
+    FChrome := TChromeImpl.Create(Self) as IChrome;
+    FChrome.InitChrome;
+  end;
+end;
+
+procedure TAppContextImpl.UnInitChrome;
+begin
+  if FChrome <> nil then begin
+    FChrome := nil;
+  end;
+end;
+
 procedure TAppContextImpl.Initialize;
 begin
-  FLog := TLogImpl.Create(Self) as ILog;
   FEDCrypt := TEDCryptImpl.Create(Self) as IEDCrypt;
   FResourceCfg := TResourceCfgImpl.Create(Self) as IResourceCfg;
   FResourceSkin := TResourceSkinImpl.Create(Self) as IResourceSkin;
@@ -211,12 +257,22 @@ begin
   FSecuMainQuery := nil;
   FWDLLFactory := nil;
   FCommandMgr := nil;
+  FChrome := nil;
   FGdiMgr := nil;
   FCfg := nil;
   FResourceSkin := nil;
   FResourceCfg := nil;
   FEDCrypt := nil;
-  FLog := nil;
+end;
+
+procedure TAppContextImpl.InitMsgExService;
+begin
+  FMsgExService := FindInterface(ASF_COMMAND_ID_MSGEXSERVICE) as IMsgExService;
+end;
+
+procedure TAppContextImpl.UnInitMsgExService;
+begin
+  FMsgExService := nil;
 end;
 
 procedure TAppContextImpl.ExitApp;
@@ -256,11 +312,6 @@ begin
   Result := FLogin.IsLogin(AServiceType);
 end;
 
-function TAppContextImpl.GetMain: TForm;
-begin
-  Result := FMain;
-end;
-
 function TAppContextImpl.GetGdiMgr: IGdiMgr;
 begin
   Result := FGdiMgr;
@@ -269,6 +320,15 @@ end;
 function TAppContextImpl.GetEDCrypt: IEDCrypt;
 begin
   Result := FEDCrypt;
+end;
+
+function TAppContextImpl.CreateBrowser: IBrowser;
+begin
+  if FChrome <> nil then begin
+    Result := FChrome.CreateBrowser;
+  end else begin
+    Result := nil;
+  end;
 end;
 
 function TAppContextImpl.GetCommandMgr: ICommandMgr;
@@ -339,45 +399,67 @@ begin
 end;
 
 procedure TAppContextImpl.Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
-var
-  LMsgExService: IMsgExService;
 begin
-  LMsgExService := FindInterface(ASF_COMMAND_ID_MSGEXSERVICE) as IMsgExService;
-  if LMsgExService = nil then Exit;
+  if FMsgExService = nil then Exit;
 
-  LMsgExService.Subcriber(AMsgExId, ASubcriber);
-  LMsgExService := nil;
+  FMsgExService.Subcriber(AMsgExId, ASubcriber);
 end;
 
 procedure TAppContextImpl.UnSubcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
 var
   LMsgExService: IMsgExService;
 begin
-  LMsgExService := FindInterface(ASF_COMMAND_ID_MSGEXSERVICE) as IMsgExService;
-  if LMsgExService = nil then Exit;
 
-  LMsgExService.UnSubcriber(AMsgExId, ASubcriber);
-  LMsgExService := nil;
+  if FMsgExService <> nil then begin
+    FMsgExService.UnSubcriber(AMsgExId, ASubcriber);
+  end else begin
+    LMsgExService := FindInterface(ASF_COMMAND_ID_MSGEXSERVICE) as IMsgExService;
+    if LMsgExService = nil then Exit;
+    LMsgExService.UnSubcriber(AMsgExId, ASubcriber);
+    LMsgExService := nil;
+  end;
+end;
+
+procedure TAppContextImpl.SendMsgEx(AMsgId: Integer; AMsgInfo: string; ADelaySecs: Cardinal = 0);
+var
+  LParams: string;
+begin
+  if FMsgExService = nil then Exit;
+
+  if ADelaySecs > 0 then begin
+    LParams := 'FuncName=SendMessageEx@Id=' + IntToStr(AMsgId) + '@Info=' + AMsgInfo;
+    FCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE, LParams , 2);
+  end else begin
+    FMsgExService.SendMessageEx(AMsgId, AMsgInfo);
+  end;
 end;
 
 procedure TAppContextImpl.HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
-  FLog.HQLog(ALevel, ALog, AUseTime);
+  if FLogger <> nil then begin
+    FLogger.HQLog(ALevel, ALog, AUseTime);
+  end;
 end;
 
 procedure TAppContextImpl.WebLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
-  FLog.WebLog(ALevel, ALog, AUseTime);
+  if FLogger <> nil then begin
+    FLogger.WebLog(ALevel, ALog, AUseTime);
+  end;
 end;
 
 procedure TAppContextImpl.SysLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
-  FLog.SysLog(ALevel, ALog, AUseTime);
+  if FLogger <> nil then begin
+    FLogger.SysLog(ALevel, ALog, AUseTime);
+  end;
 end;
 
 procedure TAppContextImpl.IndicatorLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
-  FLog.IndicatorLog(ALevel, ALog, AUseTime);
+  if FLogger <> nil then begin
+    FLogger.IndicatorLog(ALevel, ALog, AUseTime);
+  end;
 end;
 
 function TAppContextImpl.QuerySecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo): Boolean;

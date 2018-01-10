@@ -65,6 +65,10 @@ type
     FIndicator: string;
     // 请求删除数据的指标
     FDeleteIndicator: string;
+    // 上传版本
+    FUpLoadVersion: Integer;
+    // 当前上传版本
+    FCurrUpLoadVersion: Integer;
     // 数据锁
     FLock: TCSLock;
     // 存储列明的
@@ -106,6 +110,8 @@ type
     property DeleteSql: string read FDeleteSql write FDeleteSql;
     property Indicator: string read FIndicator write FIndicator;
     property DeleteIndicator: string read FDeleteIndicator write FDeleteIndicator;
+    property UpLoadVersion: Integer read FUpLoadVersion write FUpLoadVersion;
+    property CurrUpLoadVersion: Integer read FCurrUpLoadVersion write FCurrUpLoadVersion;
     property ColFields: TStringList read FColFields;
   end;
 
@@ -126,6 +132,8 @@ begin
   FCommitSecs := MaxInt;
   FLastUpdateTime := 0;
   FLastCommitTime := 0;
+  FUpLoadVersion := 0;
+  FCurrUpLoadVersion := 0;
   FLock := TCSLock.Create;
   FColFields := TStringList.Create;
 end;

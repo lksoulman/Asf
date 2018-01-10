@@ -2,7 +2,7 @@ unit SectorMgr;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description：
+// Description： SectorMgr Interface
 // Author：      lksoulman
 // Date：        2017-8-23
 // Comments：
@@ -16,84 +16,39 @@ uses
   Windows,
   Classes,
   SysUtils,
+  BaseObject,
   AppContext,
-  CommonLock,
-  SyncAsyncImpl;
+  CommonLock;
 
 type
 
-  // 板块管理
-  TSectorMgr = class(TSyncAsyncImpl)
-  private
-  protected
-    // 用户根结点板块
-    FUserRootSector: ISector;
-    // 读写锁
-    FReadWriteLock: TMultiReadExclusiveWriteSynchronizer;
-  public
-    // Constructor
-    constructor Create; override;
-    // Destructor
-    destructor Destroy; override;
+  // SectorMgr
+  ISectorMgr = interface(IInterface)
+    ['{557AD3C5-D5D0-4F65-A024-A6FA79068F2D}']
+    // Lock
+    procedure Lock;
+    // UnLock
+    procedure UnLock;
+    // Update
+    procedure Update;
+    // GetVersion
+    function GetVersion: Integer;
+    // GetRootSector
+    function GetRootSector: ISector;
+    // GetSector
+    function GetSector(AId: Integer): ISector;
+    // GetSectorElements
+    function GetSectorElements(AId: Integer): string;
+  end;
 
-    { ISyncAsync }
-
-    // Initialize Resources(only execute once)
-    procedure Initialize(AContext: IAppContext); override;
-    // Releasing Resources(only execute once)
-    procedure UnInitialize; override;
-    // Blocking primary thread execution(only execute once)
-    procedure SyncBlockExecute; override;
-    // Non blocking primary thread execution(only execute once)
-    procedure AsyncNoBlockExecute; override;
-    // Dependency Interface
-    function Dependences: WideString; override;
+  // SectorMgrUpdate
+  ISectorMgrUpdate = interface(IInterface)
+    ['{C2086B9D-6041-4233-847B-A598F195BF84}']
+    // DeleteSector
+    procedure DeleteSector(AId: Integer);
   end;
 
 implementation
 
-uses
-  SectorImpl;
-
-{ TSectorMgr }
-
-constructor TSectorMgr.Create;
-begin
-  inherited;
-  FReadWriteLock := TMultiReadExclusiveWriteSynchronizer.Create;
-  FUserRootSector := TSectorImpl.Create as ISector;
-end;
-
-destructor TSectorMgr.Destroy;
-begin
-  FUserRootSector := nil;
-  FReadWriteLock.Free;
-  inherited;
-end;
-
-procedure TSectorMgr.Initialize(AContext: IAppContext);
-begin
-  inherited Initialize(AContext);
-end;
-
-procedure TSectorMgr.UnInitialize;
-begin
-  inherited UnInitialize;
-end;
-
-procedure TSectorMgr.SyncBlockExecute;
-begin
-
-end;
-
-procedure TSectorMgr.AsyncNoBlockExecute;
-begin
-
-end;
-
-function TSectorMgr.Dependences: WideString;
-begin
-  Result := '';
-end;
 
 end.

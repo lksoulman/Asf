@@ -1,8 +1,8 @@
-unit LogImpl;
+unit LoggerImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Log Interface Implementation
+// Description£º Logger Implementation
 // Author£º      lksoulman
 // Date£º        2017-7-1
 // Comments£º
@@ -12,7 +12,7 @@ unit LogImpl;
 interface
 
 uses
-  Log,
+  Logger,
   FastLog,
   Windows,
   Classes,
@@ -25,26 +25,26 @@ uses
 
 type
 
-  // Log Interface Implementation
-  TLogImpl = class(TAutoInterfacedObject, ILog)
+  // Logger Implementation
+  TLoggerImpl = class(TAutoInterfacedObject, ILogger)
   private
-    // Is Init
+    // IsInit
     FIsInit: Boolean;
-    // Appliaction Path
+    // AppPath
     FAppPath: string;
-    // Log Level
+    // LogLevel
     FLevel: TLogLevel;
-    // HQ Log
+    // HQLog
     FHQLog: TFastLog;
-    // Web Log
+    // WebLog
     FWebLog: TFastLog;
-    // System Log
+    // SystemLog
     FSysLog: TFastLog;
-    // Indicator Log
+    // IndicatorLog
     FIndicatorLog: TFastLog;
     // AppContext
     FAppContext: IAppContext;
-    // Log Output Thread
+    // LogOutputThread
     FLogOutputThread: TExecutorThread;
   protected
     // Init
@@ -59,7 +59,7 @@ type
     // Destructor
     destructor Destroy; override;
 
-    { ILog }
+    { ILogger }
 
     // Force Write Disk
     procedure ForceWriteDisk; safecall;
@@ -80,9 +80,9 @@ implementation
 uses
   Vcl.Forms;
 
-{ TLogImpl }
+{ TLoggerImpl }
 
-constructor TLogImpl.Create(AContext: IAppContext);
+constructor TLoggerImpl.Create(AContext: IAppContext);
 begin
   inherited Create;
   FAppContext := AContext;
@@ -103,7 +103,7 @@ begin
   DoInitialize;
 end;
 
-destructor TLogImpl.Destroy;
+destructor TLoggerImpl.Destroy;
 begin
   DoUnInitialize;
   FIndicatorLog.Free;
@@ -114,7 +114,7 @@ begin
   inherited;
 end;
 
-procedure TLogImpl.DoInitialize;
+procedure TLoggerImpl.DoInitialize;
 begin
   if not FIsInit then begin
     FHQLog.SetOutputPath(FAppPath + 'Log\HQ\');
@@ -139,7 +139,7 @@ begin
   end;
 end;
 
-procedure TLogImpl.DoUnInitialize;
+procedure TLoggerImpl.DoUnInitialize;
 begin
   if FIsInit then begin
     FLogOutputThread.ShutDown;
@@ -156,7 +156,7 @@ begin
   end;
 end;
 
-procedure TLogImpl.ForceWriteDisk;
+procedure TLoggerImpl.ForceWriteDisk;
 begin
   FHQLog.SafeOutputFile;
   FWebLog.SafeOutputFile;
@@ -164,7 +164,7 @@ begin
   FIndicatorLog.SafeOutputFile;
 end;
 
-procedure TLogImpl.SetLogLevel(ALevel: TLogLevel);
+procedure TLoggerImpl.SetLogLevel(ALevel: TLogLevel);
 begin
   FLevel := ALevel;
   FHQLog.SetLogLevel(ALevel);
@@ -173,7 +173,7 @@ begin
   FIndicatorLog.SetLogLevel(ALevel);
 end;
 
-procedure TLogImpl.HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
+procedure TLoggerImpl.HQLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
   case ALevel of
     llSLOW:
@@ -183,7 +183,7 @@ begin
   end;
 end;
 
-procedure TLogImpl.WebLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
+procedure TLoggerImpl.WebLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
   case ALevel of
     llSLOW:
@@ -193,7 +193,7 @@ begin
   end;
 end;
 
-procedure TLogImpl.SysLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
+procedure TLoggerImpl.SysLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
   case ALevel of
     llSLOW:
@@ -203,7 +203,7 @@ begin
   end;
 end;
 
-procedure TLogImpl.IndicatorLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
+procedure TLoggerImpl.IndicatorLog(ALevel: TLogLevel; ALog: WideString; AUseTime: Integer = 0);
 begin
   case ALevel of
     llSLOW:
@@ -213,7 +213,7 @@ begin
   end;
 end;
 
-procedure TLogImpl.DoOutputFileThreadExecute(AObject: TObject);
+procedure TLoggerImpl.DoOutputFileThreadExecute(AObject: TObject);
 begin
   while not FLogOutputThread.IsTerminated do begin
     Application.ProcessMessages;

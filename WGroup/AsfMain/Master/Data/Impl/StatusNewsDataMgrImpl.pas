@@ -126,6 +126,10 @@ end;
 
 destructor TStatusNewsDataMgrImpl.Destroy;
 begin
+  if FGFData <> nil then begin
+    FGFData.Cancel;
+    FGFData := nil;
+  end;
   DoClearDatas;
   FStatusNewsDatas.Free;
   FStatusNewsPool.Free;

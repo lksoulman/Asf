@@ -35,21 +35,28 @@ type
   private
     // Lock
     FLock: TCSLock;
-    // IsStart
-    FIsStart: Boolean;
+    // UpdateLock
+    FUpdateLock: TCSLock;
     // IsUpdate
-    FIsUpdate: Boolean;
+    FIsUpdating: Boolean;
+    // IsStopService
+    FIsStopService: Boolean;
     // UpdateVersion
     FUpdateVersion: Integer;
     // KeySearchObject
     FKeySearchObject: TKeySearchObject;
     // MsgExSubcriberAdapter
     FMsgExSubcriberAdapter: TMsgExSubcriberAdapter;
+
+    // GetIsUpdating
+    function GetIsUpdating: Boolean;
+    // SetIsUpdating
+    procedure SetIsUpdating(AIsUpdating: Boolean);
   protected
-    // SetIsUpdate
-    procedure SetIsUpdate(AIsUpdate: Boolean);
-    // UpdateKeySearchEngine
-    procedure DoUpdateKeySearchEngine(AObject: TObject);
+    // DoUpdate
+    procedure DoUpdate;
+    // DoUpdateKeys
+    procedure DoUpdateKeys(AObject: TObject);
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -58,10 +65,12 @@ type
 
     { IKeySearchEngine }
 
+    // Update
+    procedure Update;
     // StopService
     procedure StopService;
     // IsUpdate
-    function IsUpdate: Boolean;
+    function IsUpdating: Boolean;
     // FuzzySearchKey
     procedure FuzzySearchKey(AKey: string);
     // SetResultCallBack
@@ -78,15 +87,16 @@ uses
 constructor TKeySearchEngineImpl.Create(AContext: IAppContext);
 begin
   inherited;
-  FIsUpdate := True;
+  FIsUpdating := True;
   FUpdateVersion := -1;
   FLock := TCSLock.Create;
+  FUpdateLock := TCSLock.Create;
   FKeySearchObject := TKeySearchObject.Create;
-  FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(AContext, DoUpdateKeySearchEngine);
+  FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(AContext, DoUpdateKeys);
   FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfMem_ReUpdateSecuMain);
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
   FKeySearchObject.Start;
-  FIsStart := True;
+  FIsStopService := False;
   FMsgExSubcriberAdapter.SubcribeMsgEx;
 end;
 
@@ -96,67 +106,83 @@ begin
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
   FMsgExSubcriberAdapter.Free;
   FKeySearchObject.Free;
+  FUpdateLock.Free;
   FLock.Free;
   inherited;
 end;
 
-procedure TKeySearchEngineImpl.SetIsUpdate(AIsUpdate: Boolean);
+function TKeySearchEngineImpl.GetIsUpdating: Boolean;
 begin
-  FLock.Lock;
+  FUpdateLock.Lock;
   try
-    if AIsUpdate <> FIsUpdate then begin
-
-    end;
+    Result := FIsUpdating;
   finally
-    FLock.UnLock;
+    FUpdateLock.UnLock;
   end;
 end;
 
-procedure TKeySearchEngineImpl.DoUpdateKeySearchEngine(AObject: TObject);
-var
-{$IFDEF DEBUG}
-  LTick: Cardinal;
-{$ENDIF}
+procedure TKeySearchEngineImpl.SetIsUpdating(AIsUpdating: Boolean);
+begin
+  FUpdateLock.Lock;
+  try
+    FIsUpdating := AIsUpdating;
+  finally
+    FUpdateLock.UnLock;
+  end;
+end;
 
+procedure TKeySearchEngineImpl.DoUpdate;
+var
   LSecuMain: ISecuMain;
   LSecuInfo: PSecuInfo;
   LIsUpdating: Boolean;
   LIndex, LVersion: Integer;
+begin
+  LSecuMain := FAppContext.FindInterface(ASF_COMMAND_ID_SECUMAIN) as ISecuMain;
+  if LSecuMain = nil then Exit;
+
+  LIsUpdating := LSecuMain.IsUpdating;
+
+  if not LIsUpdating then begin
+
+    LVersion := LSecuMain.GetUpdateVersion;
+    if LVersion <> FUpdateVersion then begin
+
+      SetIsUpdating(True);
+      try
+        FKeySearchObject.ClearSecuInfos;
+        for LIndex := 0 to LSecuMain.GetItemCount - 1 do begin
+          LSecuInfo := LSecuMain.GetItem(LIndex);
+          if LSecuInfo <> nil then begin
+            FKeySearchObject.AddSecuInfo(LSecuInfo);
+          end;
+        end;
+        FUpdateVersion := LVersion;
+      finally
+        SetIsUpdating(False);
+      end;
+    end;
+  end;
+  LSecuMain := nil;
+end;
+
+procedure TKeySearchEngineImpl.DoUpdateKeys(AObject: TObject);
+{$IFDEF DEBUG}
+var
+  LTick: Cardinal;
+{$ENDIF}
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
   try
 {$ENDIF}
 
-    LSecuMain := FAppContext.FindInterface(ASF_COMMAND_ID_SECUMAIN) as ISecuMain;
-    if LSecuMain = nil then Exit;
-
-    LSecuMain.Lock;
+    FLock.Lock;
     try
-      LIsUpdating := LSecuMain.IsUpdating;
+      DoUpdate;
     finally
-      LSecuMain.UnLock;
+      FLock.UnLock;
     end;
-
-    if not LIsUpdating then begin
-      LVersion := LSecuMain.GetUpdateVersion;
-      if LVersion <> FUpdateVersion then begin
-        SetIsUpdate(True);
-        try
-          FKeySearchObject.ClearSecuInfos;
-          for LIndex := 0 to LSecuMain.GetItemCount - 1 do begin
-            LSecuInfo := LSecuMain.GetItem(LIndex);
-            if LSecuInfo <> nil then begin
-              FKeySearchObject.AddSecuInfo(LSecuInfo);
-            end;
-          end;
-          FUpdateVersion := LVersion;
-        finally
-          SetIsUpdate(False);
-        end;
-      end;
-    end;
-    LSecuMain := nil;
 
 {$IFDEF DEBUG}
   finally
@@ -166,22 +192,22 @@ begin
 {$ENDIF}
 end;
 
+procedure TKeySearchEngineImpl.Update;
+begin
+  DoUpdateKeys(nil);
+end;
+
 procedure TKeySearchEngineImpl.StopService;
 begin
-  if FIsStart then begin
+  if not FIsStopService then begin
     FKeySearchObject.ShutDown;
-    FIsStart := False;
+    FIsStopService := True;
   end;
 end;
 
-function TKeySearchEngineImpl.IsUpdate: Boolean;
+function TKeySearchEngineImpl.IsUpdating: Boolean;
 begin
-  FLock.Lock;
-  try
-    Result := FIsUpdate;
-  finally
-    FLock.UnLock;
-  end;
+  Result := GetIsUpdating;
 end;
 
 procedure TKeySearchEngineImpl.FuzzySearchKey(AKey: string);
@@ -189,6 +215,7 @@ begin
   FKeySearchObject.IsStop := False;
   FKeySearchObject.Key := AKey;
   FKeySearchObject.KeyLen := Length(AKey);
+  FKeySearchObject.StartSearch;
 end;
 
 procedure TKeySearchEngineImpl.SetResultCallBack(AOnResultCallBack: TNotifyEvent);

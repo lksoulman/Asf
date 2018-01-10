@@ -81,8 +81,10 @@ type
     function GetIsMaxLimited: Boolean;
     // GetIsTerminated
     function GetIsTerminated: Boolean;
-    // FuzzySearch
-    procedure DoFuzzyKeySearchFilteres;
+    // DoAddKeySearchFilters
+    procedure DoAddKeySearchFilters;
+    // FuzzyKeySearchFilters
+    procedure DoFuzzyKeySearchFilters;
     // SearchExecute
     procedure DoSearchExecute(AObject: TObject);
     // GetKeySearchFilter
@@ -96,7 +98,9 @@ type
     procedure Start;
     // ShutDown
     procedure ShutDown;
-    // Clear SecuInfos
+    // StartSearch
+    procedure StartSearch;
+    // ClearSecuInfos
     procedure ClearSecuInfos;
     // AddSecuInfo
     procedure AddSecuInfo(ASecuInfo: PSecuInfo);
@@ -152,10 +156,12 @@ begin
   FKeySearchFilters := TList<TKeySearchFilter>.Create;
   FSearchThread := TExecutorThread.Create;
   FSearchThread.ThreadMethod := DoSearchExecute;
+  DoAddKeySearchFilters;
 end;
 
 destructor TKeySearchObject.Destroy;
 begin
+  FOnResultCallBack := nil;
   DoClearFilters;
   FKeySearchFilters.Free;
   FResultItems.Free;
@@ -169,7 +175,13 @@ end;
 
 procedure TKeySearchObject.ShutDown;
 begin
+  FOnResultCallBack := nil;
   FSearchThread.ShutDown;
+end;
+
+procedure TKeySearchObject.StartSearch;
+begin
+  FSearchThread.ResumeEx;
 end;
 
 procedure TKeySearchObject.ClearSecuInfos;
@@ -219,11 +231,34 @@ begin
   Result := FSearchThread.IsTerminated;
 end;
 
-procedure TKeySearchObject.DoFuzzyKeySearchFilteres;
+procedure TKeySearchObject.DoAddKeySearchFilters;
+begin
+  FStockHSKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FStockHSKeySearchFilter);
+  FStockBKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FStockBKeySearchFilter);
+  FStockNewOTCKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FStockNewOTCKeySearchFilter);
+  FIndexKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FIndexKeySearchFilter);
+  FFundKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FFundKeySearchFilter);
+  FBondKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FBondKeySearchFilter);
+  FFutureKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FFutureKeySearchFilter);
+  FStockHKKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FStockHKKeySearchFilter);
+  FStockUSKeySearchFilter := TKeySearchFilter.Create(Self);
+  FKeySearchFilters.Add(FStockUSKeySearchFilter);
+end;
+
+procedure TKeySearchObject.DoFuzzyKeySearchFilters;
 var
   LIndex: Integer;
   LKeySearchFilter: TKeySearchFilter;
 begin
+  FResultItems.ClearCount;
   for LIndex := 0 to FKeySearchFilters.Count - 1 do begin
     if FIsStop
       or IsMaxLimited
@@ -247,8 +282,10 @@ begin
           if FSearchThread.IsTerminated then Exit;
 
           FIsStop := False;
-          DoFuzzyKeySearchFilteres;
+          DoFuzzyKeySearchFilters;
           if Assigned(FOnResultCallBack) then begin
+            if FSearchThread.IsTerminated then Exit;
+
             FOnResultCallBack(FResultItems);
           end;
         end;
@@ -262,111 +299,51 @@ begin
     // 沪深股票
     SEARCHTYPE_STOCK_HS:
       begin
-        if FStockHSKeySearchFilter <> nil then begin
-          Result := FStockHSKeySearchFilter;
-        end else begin
-          FStockHSKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FStockHSKeySearchFilter);
-          Result := FStockHSKeySearchFilter;
-        end;
+        Result := FStockHSKeySearchFilter;
       end;
     // B股
     SEARCHTYPE_STOCK_B:
       begin
-        if FStockBKeySearchFilter <> nil then begin
-          Result := FStockBKeySearchFilter;
-        end else begin
-          FStockBKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FStockBKeySearchFilter);
-          Result := FStockBKeySearchFilter;
-        end;
+        Result := FStockBKeySearchFilter;
       end;
     // 新三板
     SEARCHTYPE_STOCK_NEWOTC:
       begin
-        if FStockNewOTCKeySearchFilter <> nil then begin
-          Result := FStockNewOTCKeySearchFilter;
-        end else begin
-          FStockNewOTCKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FStockNewOTCKeySearchFilter);
-          Result := FStockNewOTCKeySearchFilter;
-        end;
+        Result := FStockNewOTCKeySearchFilter;
       end;
     // 基金
     SEARCHTYPE_FUND:
       begin
-        if FFundKeySearchFilter <> nil then begin
-          Result := FFundKeySearchFilter;
-        end else begin
-          FFundKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FFundKeySearchFilter);
-          Result := FFundKeySearchFilter;
-        end;
+        Result := FFundKeySearchFilter;
       end;
     // 指数
     SEARCHTYPE_INDEX:
       begin
-        if FIndexKeySearchFilter <> nil then begin
-          Result := FIndexKeySearchFilter;
-        end else begin
-          FIndexKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FIndexKeySearchFilter);
-          Result := FIndexKeySearchFilter;
-        end;
+        Result := FIndexKeySearchFilter;
       end;
     // 债券
     SEARCHTYPE_BOND:
       begin
-        if FBondKeySearchFilter <> nil then begin
-          Result := FBondKeySearchFilter;
-        end else begin
-          FBondKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FBondKeySearchFilter);
-          Result := FBondKeySearchFilter;
-        end;
+        Result := FBondKeySearchFilter;
       end;
     // 期货
     SEARCHTYPE_FUTURE:
       begin
-        if FFutureKeySearchFilter <> nil then begin
-          Result := FFutureKeySearchFilter;
-        end else begin
-          FFutureKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FFutureKeySearchFilter);
-          Result := FFutureKeySearchFilter;
-        end;
+        Result := FFutureKeySearchFilter;
       end;
     // 港股
     SEARCHTYPE_STOCK_HK:
       begin
-        if FStockHKKeySearchFilter <> nil then begin
-          Result := FStockHKKeySearchFilter;
-        end else begin
-          FStockHKKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FStockHKKeySearchFilter);
-          Result := FStockHKKeySearchFilter;
-        end;
+        Result := FStockHKKeySearchFilter;
       end;
     // 美股
     SEARCHTYPE_STOCK_US:
       begin
-        if FStockUSKeySearchFilter <> nil then begin
-          Result := FStockUSKeySearchFilter;
-        end else begin
-          FStockUSKeySearchFilter := TKeySearchFilter.Create(Self);
-          FKeySearchFilters.Add(FStockUSKeySearchFilter);
-          Result := FStockUSKeySearchFilter;
-        end;
+        Result := FStockUSKeySearchFilter;
       end;
   else
     begin
-      if FStockHSKeySearchFilter <> nil then begin
-        Result := FStockHSKeySearchFilter;
-      end else begin
-        FStockHSKeySearchFilter := TKeySearchFilter.Create(Self);
-        FKeySearchFilters.Add(FStockHSKeySearchFilter);
-        Result := FStockHSKeySearchFilter;
-      end;
+      Result := FStockHSKeySearchFilter;
     end;
   end;
 end;

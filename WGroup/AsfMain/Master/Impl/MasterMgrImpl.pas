@@ -47,6 +47,8 @@ type
     procedure DoClearMasterInfos;
     // LoadDefaultChildPage
     procedure DoLoadDefaultChildPage(AMasterInfo: PMasterInfo);
+    // ApplicationMessage
+    procedure DoApplicationMessage(var AMsg: TMsg; var AHandled: Boolean);
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -88,10 +90,12 @@ begin
   inherited;
   FMasterInfos := TList<PMasterInfo>.Create;
   FMasterInfoDic := TDictionary<Cardinal, PMasterInfo>.Create;
+  Application.OnMessage := DoApplicationMessage;
 end;
 
 destructor TMasterMgrImpl.Destroy;
 begin
+  Application.OnMessage := nil;
   DoClearMasterInfos;
   FMasterInfoDic.Free;
   FMasterInfos.Free;
@@ -115,10 +119,20 @@ end;
 
 procedure TMasterMgrImpl.DoLoadDefaultChildPage(AMasterInfo: PMasterInfo);
 begin
+//  if AMasterInfo <> nil then begin
+//    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SIMPLEHQTIMETEST,
+//      Format('MasterHandle=%d@Params=InnerCode=1752', [AMasterInfo.FMaster.Handle]));
+//  end;
+
   if AMasterInfo <> nil then begin
-    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SIMPLEHQTEST,
+    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_HOMEPAGE,
       Format('MasterHandle=%d@Params=InnerCode=1752', [AMasterInfo.FMaster.Handle]));
   end;
+end;
+
+procedure TMasterMgrImpl.DoApplicationMessage(var AMsg: TMsg; var AHandled: Boolean);
+begin
+
 end;
 
 procedure TMasterMgrImpl.ExecuteCmdAfter(ACommand: Integer; AParams: string);
@@ -132,7 +146,7 @@ var
   LMasterInfo: PMasterInfo;
   LMasterHandle, LGoFuncName: string;
 begin
-  if ACommand >= ASF_COMMAND_ID_SIMPLEHQTEST then begin
+  if ACommand >= ASF_COMMAND_ID_SIMPLEHQTIMETEST then begin
     BeginSplitParams(AParams);
     try
       ParamsVal('GoFuncName', LGoFuncName);
@@ -192,7 +206,6 @@ begin
       LPMasterInfo.FMaster := nil;
       Dispose(LPMasterInfo);
     end;
-
     if FMasterInfos.Count <= 0 then begin
       FAppContext.ExitApp;
     end;

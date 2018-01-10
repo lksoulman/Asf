@@ -42,6 +42,8 @@ type
 
     { IKeyFairy }
 
+    // Hide
+    procedure Hide;
     // Display
     function Display(AMasterHandle: THandle; AKey: string; var ASecuInfo: PSecuInfo): Boolean;
     // DisplayEx
@@ -68,9 +70,16 @@ end;
 procedure TKeyFairyImpl.DoKeyFairyDeActivate(Sender: TObject);
 begin
   if FMasterHandle <> 0 then begin
-    Self.FKeyFairyUI.Hide;
+    FKeyFairyUI.Close;
     SetActiveWindow(FMasterHandle);
     FMasterHandle := 0;
+  end;
+end;
+
+procedure TKeyFairyImpl.Hide;
+begin
+  if FKeyFairyUI.Showing then begin
+    FKeyFairyUI.Hide;
   end;
 end;
 
@@ -82,7 +91,6 @@ begin
   if AMasterHandle = 0 then Exit;
 
   FMasterHandle := AMasterHandle;
-  SetForegroundWindow(FKeyFairyUI.Handle);
   GetWindowRect(AMasterHandle, LRect);
   FKeyFairyUI.Left := LRect.Right - FKeyFairyUI.Width;
   FKeyFairyUI.Top := LRect.Bottom - FKeyFairyUI.Height - 31;

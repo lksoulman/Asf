@@ -52,6 +52,8 @@ type
     // VerifyCode
     FVerifyCode: Integer;           // 0 表示没有验证码服务  1 表示有验证码服务
   protected
+    // ReadCurrentAccountInfo
+    procedure DoReadCurrentAccountInfo;
     // IntToTAccountType
     function IntToAccountType(AValue: Integer): TAccountType;
   public
@@ -131,14 +133,33 @@ begin
   FSavePassword := 0;
   FPasswordExpire := 0;
   FPasswordExpireDays := 0;
-
-
 end;
 
 destructor TUserInfoImpl.Destroy;
 begin
 
   inherited;
+end;
+
+procedure TUserInfoImpl.DoReadCurrentAccountInfo;
+var
+  LStringList: TStringList;
+begin
+  LStringList := TStringList.Create;
+  try
+    LStringList.Delimiter := ';';
+    LStringList.DelimitedText := FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserSession;
+    if LStringList.DelimitedText <> '' then begin
+      FSavePassword := StrToIntDef(LStringList.Values['SavePassword'], 0);
+      FGilAccountInfo.FPassword := LStringList.Values['GilPassword'];
+      FUFXAccountInfo.FPassword := LStringList.Values['UFXPassword'];
+      FPBoxAccountInfo.FPassword := LStringList.Values['PBoxPassword'];
+      FBindInfo.FLicense := LStringList.Values['License'];
+      FBindInfo.FOrgSign := LStringList.Values['OrgSign'];
+    end;
+  finally
+    LStringList.Free;
+  end;
 end;
 
 function TUserInfoImpl.IntToAccountType(AValue: Integer): TAccountType;
@@ -182,27 +203,8 @@ begin
 end;
 
 procedure TUserInfoImpl.ReadLocalCacheCfg;
-var
-  LStringList: TStringList;
 begin
-  LStringList := TStringList.Create;
-  try
-    LStringList.Delimiter := ';';
-    LStringList.DelimitedText := FAppContext.GetCfg.GetUserCacheCfg.GetLocalValue('UserInfo');
-    if LStringList.DelimitedText <> '' then begin
-      FSavePassword := StrToIntDef(LStringList.Values['SavePassword'], 0);
-      FGilAccountInfo.FUserName := LStringList.Values['GilUserName'];
-      FGilAccountInfo.FPassword := LStringList.Values['GilPassword'];
-      FUFXAccountInfo.FUserName := LStringList.Values['UFXUserName'];
-      FUFXAccountInfo.FPassword := LStringList.Values['UFXPassword'];
-      FPBoxAccountInfo.FUserName := LStringList.Values['PBoxUserName'];
-      FPBoxAccountInfo.FPassword := LStringList.Values['PBoxPassword'];
-      FBindInfo.FLicense := LStringList.Values['License'];
-      FBindInfo.FOrgSign := LStringList.Values['OrgSign'];
-    end;
-  finally
-    LStringList.Free;
-  end;
+
 end;
 
 procedure TUserInfoImpl.ReadServerCacheCfg;
@@ -226,11 +228,13 @@ begin
         FPBoxAccountInfo.FUserName := FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserName;
       end;
   end;
+  DoReadCurrentAccountInfo;
 end;
 
 procedure TUserInfoImpl.WriteLocalCacheCfg;
 var
-  LValue, LGilPassword, LUFXPassword, LPBoxPassword: string;
+  LValue, LGilPassword, LUFXPassword, LPBoxPassword,
+  LGilUserName, LUFXUserName, LPBoxUserName: string;
 begin
   if GetSavePassword then begin
     LGilPassword := FGilAccountInfo.FPassword;
@@ -241,27 +245,25 @@ begin
     LUFXPassword := '';
     LPBoxPassword := '';
   end;
+
+  if True then
+
+
   LValue := Format('SavePassword=%d;'
-                 + 'GilUserName=%s;'
                  + 'GilPassword=%s;'
-                 + 'UFXUserName=%s;'
                  + 'UFXPassword=%s;'
-                 + 'PBoxUserName=%s;'
                  + 'PBoxPassword=%s;'
                  + 'License=%s;'
                  + 'OrgSign=%s;'
                  + 'PasswordExpireHintDate=%s',
                  [ FSavePassword,
-                   FGilAccountInfo.FUserName,
                    LGilPassword,
-                   FUFXAccountInfo.FUserName,
                    LUFXPassword,
-                   FPBoxAccountInfo.FUserName,
                    LPBoxPassword,
                    FBindInfo.FLicense,
                    FBindInfo.FOrgSign,
                    FPasswordExpireHintDate]);
-  FAppContext.GetCfg.GetUserCacheCfg.SaveLocal('UserInfo', LValue);
+  FAppContext.GetCfg.GetUserCacheCfg.GetCurrentAcountInfo.FUserSession := LValue;
 end;
 
 procedure TUserInfoImpl.WriteServerCacheCfg;

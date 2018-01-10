@@ -40,6 +40,12 @@ type
 implementation
 
 uses
+  HomePageCommandImpl,
+  WebPopBrowserCommandImpl,
+  WebPopNewsCommandImpl,
+  WebPopAnnouncementCommandImpl,
+  WebPopResearchReportCommandImpl,
+  WebEmbedAssetsCommandImpl,
   SimpleHqTestTimeCommandImpl,
   SimpleHqTestMarketCommandImpl;
 
@@ -59,8 +65,14 @@ end;
 
 procedure TAsfUIPlugInMgrImpl.Load;
 begin
-  DoAddCommand(TSimpleHqTestCommandImpl.Create(ASF_COMMAND_ID_SIMPLEHQTEST, 'SimpleHqTest', FAppContext));
-  DoAddCommand(TSimpleHqTestMarketCommandImpl.Create(ASF_COMMAND_ID_SIMPLEHQTEST + 1, 'SimpleHqTest', FAppContext));
+  DoAddCommand(THomePageCommandImpl.Create(ASF_COMMAND_ID_HOMEPAGE, 'HomePage', FAppContext));
+  DoAddCommand(TWebPopBrowserCommandImpl.Create(ASF_COMMAND_ID_WEBPOP_BROWSER, 'WebPopBrowser', FAppContext));
+  DoAddCommand(TWebPopNewsCommandImpl.Create(ASF_COMMAND_ID_WEBPOP_NEWS, 'WebPopNews', FAppContext));
+  DoAddCommand(TWebPopAnnouncementCommandImpl.Create(ASF_COMMAND_ID_WEBPOP_ANNOUNCEMENT, 'WebPopAnnouncement', FAppContext));
+  DoAddCommand(TWebPopResearchReportCommandImpl.Create(ASF_COMMAND_ID_WEBPOP_RESEARCHREPORT, 'WebPopResearchReport', FAppContext));
+  DoAddCommand(TWebEmbedAssetsCommandImpl.Create(ASF_COMMAND_ID_WEBEMBED_ASSETS, 'WebEmbedAssets', FAppContext));
+  DoAddCommand(TSimpleHqTestTimeCommandImpl.Create(ASF_COMMAND_ID_SIMPLEHQTIMETEST, 'SimpleHqTimeTest', FAppContext));
+  DoAddCommand(TSimpleHqTestMarketCommandImpl.Create(ASF_COMMAND_ID_SIMPLEHQMARKETTEST + 1, 'SimpleHqMarketTest', FAppContext));
 end;
 
 end.

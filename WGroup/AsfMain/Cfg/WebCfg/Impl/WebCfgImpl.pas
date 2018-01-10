@@ -43,9 +43,9 @@ type
     { IWebCfg }
 
     // GetUrl
-    function GetUrl(AWebID: Integer): WideString;
+    function GetUrl(ACommandID: Integer): WideString;
     // GetWebInfo
-    function GetWebInfo(AWebID: Integer): PWebInfo;
+    function GetWebInfo(ACommandID: Integer): PWebInfo;
   end;
 
 implementation
@@ -134,7 +134,7 @@ begin
   for LIndex := 0 to ANodeList.Count - 1 do begin
     LNode := ANodeList.Items[LIndex];
     if LNode <> nil then begin
-      LWebID := Utils.GetIntegerByChildNodeName(LNode, 'WebID', 0);
+      LWebID := Utils.GetIntegerByChildNodeName(LNode, 'CommandId', 0);
       if not FWebInfoDic.ContainsKey(LWebID) then begin
         New(LWebInfo);
         LWebInfo^.FWebID := LWebID;
@@ -147,12 +147,12 @@ begin
   end;
 end;
 
-function TWebCfgImpl.GetUrl(AWebID: Integer): WideString;
+function TWebCfgImpl.GetUrl(ACommandID: Integer): WideString;
 var
   LWebInfo: PWebInfo;
   LServerIP, LSkinStyle, LFontRatio: string;
 begin
-  if FWebInfoDic.TryGetValue(AWebID, LWebInfo)
+  if FWebInfoDic.TryGetValue(ACommandID, LWebInfo)
     and (LWebInfo <> nil) then begin
     LServerIP := FAppContext.GetCfg.GetServerCfg.GetServerUrl(LWebInfo^.FServerName);
     Result := StringReplace(LWebInfo^.FUrl, SERVERIP, LServerIP, [rfReplaceAll]);
@@ -169,9 +169,9 @@ begin
   end;
 end;
 
-function TWebCfgImpl.GetWebInfo(AWebID: Integer): PWebInfo;
+function TWebCfgImpl.GetWebInfo(ACommandID: Integer): PWebInfo;
 begin
-  if not (FWebInfoDic.TryGetValue(AWebID, Result)
+  if not (FWebInfoDic.TryGetValue(ACommandID, Result)
     and (Result <> nil)) then begin
     Result := nil;
   end;

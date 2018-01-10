@@ -28,17 +28,15 @@ uses
 type
 
   // CommandJob
-  PCommandJob = ^TCommandJob;
-
-  // CommandJob
   TCommandJob = packed record
     FId: Cardinal;
     FParams: string;
     FLast: Cardinal;
     FDelaySecs: Cardinal;
-    FPrev: PCommandJob;
-    FNext: PCommandJob;
   end;
+
+  // CommandJob
+  PCommandJob = ^TCommandJob;
 
   // CommandJobList
   TCommandJobList = class(TBaseObject)
@@ -47,10 +45,8 @@ type
     FLock: TCSLock;
     // Count
     FCount: Integer;
-    // Head
-    FHead: PCommandJob;
-    // Tail
-    FTail: PCommandJob;
+    // CommandJobs
+    FCommandJobs: TList<PCommandJob>;
   protected
     // ClearJobs
     procedure DoClearJobs;
@@ -63,10 +59,6 @@ type
     procedure Lock;
     // UnLock
     procedure UnLock;
-    // Remove
-    procedure Remove(AJob: PCommandJob);
-    // AddHeadElement
-    procedure AddHeadElement(AJob: PCommandJob);
     // AddTailElemnt
     procedure AddTailElement(AJob: PCommandJob);
     // AddElementByDelay
@@ -161,14 +153,15 @@ begin
   LCommandJob^.FParams := '';
   LCommandJob^.FLast := 0;
   LCommandJob^.FDelaySecs := 0;
-  LCommandJob^.FPrev := nil;
-  LCommandJob^.FNext := nil;
   Result := LCommandJob;
 end;
 
 procedure TCommandJobPool.DoDestroy(APointer: Pointer);
+var
+  LCommandJob: PCommandJob;
 begin
   if APointer <> nil then begin
+    LCommandJob := PCommandJob(APointer);
     Dispose(APointer);
   end;
 end;
@@ -180,8 +173,6 @@ begin
     PCommandJob(APointer)^.FParams := '';
     PCommandJob(APointer)^.FLast := 0;
     PCommandJob(APointer)^.FDelaySecs := 0;
-    PCommandJob(APointer)^.FPrev := nil;
-    PCommandJob(APointer)^.FNext := nil;
   end;
 end;
 
@@ -195,29 +186,31 @@ end;
 constructor TCommandJobList.Create(AContext: IAppContext);
 begin
   inherited;
-  FHead := nil;
-  FTail := nil;
   FCount := 0;
   FLock := TCSLock.Create;
+  FCommandJobs := TList<PCommandJob>.Create;
 end;
 
 destructor TCommandJobList.Destroy;
 begin
   DoClearJobs;
+  FCommandJobs.Free;
   FLock.Free;
   inherited;
 end;
 
 procedure TCommandJobList.DoClearJobs;
 var
-  LNextJob, LJob: PCommandJob;
+  LIndex: Integer;
+  LJob: PCommandJob;
 begin
-  LNextJob := FHead;
-  while LNextJob <> nil do begin
-    LJob := LNextJob;
-    LNextJob := LNextJob.FNext;
-    Dispose(LJob);
+  for LIndex := 0 to FCommandJobs.Count - 1 do begin
+    LJob := FCommandJobs.Items[LIndex];
+    if LJob <> nil then begin
+      Dispose(LJob);
+    end;
   end;
+  FCommandJobs.Clear;
 end;
 
 procedure TCommandJobList.Lock;
@@ -230,76 +223,15 @@ begin
   FLock.UnLock;
 end;
 
-procedure TCommandJobList.Remove(AJob: PCommandJob);
-begin
-  if AJob = nil then Exit;
-
-  if AJob = FHead then begin
-    if FHead = FTail then begin
-      FHead := nil;
-      FTail := nil;
-    end else begin
-      FHead := FHead.FNext;
-      FHead.FPrev := nil;
-      AJob^.FNext := nil;
-    end;
-    Dec(FCount);
-  end else if AJob = FTail then begin
-    if FHead = FTail then begin
-      FHead := nil;
-      FTail := nil;
-    end else begin
-      FTail := FTail.FPrev;
-      FTail.FNext := nil;
-      AJob^.FPrev := nil;
-    end;
-    Dec(FCount);
-  end else begin
-    AJob^.FPrev.FNext := AJob^.FNext;
-    AJob^.FNext.FPrev := AJob^.FPrev;
-    AJob^.FNext := nil;
-    AJob^.FPrev := nil;
-    Dec(FCount);
-  end;
-end;
-
-procedure TCommandJobList.AddHeadElement(AJob: PCommandJob);
-begin
-  if AJob = nil then Exit;
-
-  FLock.Lock;
-  try
-    if FHead = nil then begin
-      FHead := AJob;
-      FTail := AJob;
-    end else begin
-      FHead^.FPrev := AJob;
-      AJob^.FNext := FHead;
-      FHead := AJob;
-    end;
-    Inc(FCount);
-  finally
-    FLock.UnLock;
-  end;
-end;
-
 procedure TCommandJobList.AddTailElement(AJob: PCommandJob);
 begin
   if AJob = nil then Exit;
 
   FLock.Lock;
   try
-    if FHead = nil then begin
-      FHead := AJob;
-      FTail := AJob;
-    end else begin
-      if FTail <> nil then begin
-        FTail^.FNext := AJob;
-        AJob^.FPrev := FTail;
-        FTail := AJob;
-      end;
+    if FCommandJobs.IndexOf(AJob) < 0 then begin
+      FCommandJobs.Add(AJob);
     end;
-    Inc(FCount);
   finally
     FLock.UnLock;
   end;
@@ -307,39 +239,34 @@ end;
 
 procedure TCommandJobList.AddElementByDelay(AJob: PCommandJob);
 var
-  LJob, LPrevJob: PCommandJob;
+  LIndex: Integer;
+  LJob: PCommandJob;
 begin
   if AJob = nil then Exit;
 
   FLock.Lock;
   try
-    if FHead = nil then begin
-      FHead := AJob;
-      FTail := AJob;
-    end else begin
-      LPrevJob := FTail;
-      while LPrevJob <> nil do begin
-        LJob := LPrevJob;
-        if LJob^.FDelaySecs > AJob^.FDelaySecs then begin
-          LPrevJob := LPrevJob.FPrev;
-        end else begin
-          AJob^.FNext := LJob^.FNext;
-          LJob^.FNext := AJob;
-          AJob^.FPrev := LJob;
-          if LJob = FTail then begin
-            FTail := AJob;
+    if FCommandJobs.IndexOf(AJob) < 0 then begin
+      if FCommandJobs.Count > 0 then begin
+        for LIndex := FCommandJobs.Count - 1 downto 0 do begin
+          LJob := FCommandJobs.Items[LIndex];
+          if (LJob <> nil) and
+            (AJob.FDelaySecs < LJob.FDelaySecs)then begin
+            Break;
           end;
-          Break;
         end;
-      end;
 
-      if LPrevJob = nil then begin
-        AJob.FNext := FHead;
-        FHead.FPrev := AJob;
-        FHead := AJob;
+        if LIndex = FCommandJobs.Count - 1 then begin
+          FCommandJobs.Add(AJob);
+        end else if LIndex < 0 then begin
+          FCommandJobs.Insert(0, AJob);
+        end else begin
+          FCommandJobs.Insert(LIndex + 1, AJob);
+        end;
+      end else begin
+        FCommandJobs.Add(AJob);
       end;
     end;
-    Inc(FCount);
   finally
     FLock.UnLock;
   end;
@@ -380,21 +307,23 @@ end;
 
 procedure TCommandMgrImpl.DoExecuteDelayJobs;
 var
-  LNextJob, LJob: PCommandJob;
+  LIndex: Integer;
+  LJob: PCommandJob;
 begin
   FDelayCommandJobs.Lock;
   try
-    LNextJob := FDelayCommandJobs.FHead;
-    while LNextJob <> nil do begin
-      if FAsyncExecuteCmdThread.IsTerminated then Exit;
+    for LIndex := FDelayCommandJobs.FCommandJobs.Count - 1 downto 0 do begin
+      LJob := FDelayCommandJobs.FCommandJobs.Items[LIndex];
+      if LJob <> nil then begin
+        LJob.FDelaySecs := LJob.FDelaySecs - 1;
+        if LJob.FDelaySecs <= 0 then begin
 
-      LJob := LNextJob;
-      LNextJob := LNextJob.FNext;
-      LJob.FDelaySecs := LJob.FDelaySecs - 1;
-      if LJob.FDelaySecs <= 0 then begin
-        ExecuteCmd(LJob.FId, LJob.FParams);
-        FDelayCommandJobs.Remove(LJob);
-        FCommandJobPool.DeAllocate(LJob);
+          if FAsyncExecuteCmdThread.IsTerminated then Exit;
+
+          ExecuteCmd(LJob.FId, LJob.FParams);
+          FDelayCommandJobs.FCommandJobs.Delete(LIndex);
+          FCommandJobPool.DeAllocate(LJob);
+        end;
       end;
     end;
   finally
@@ -404,20 +333,22 @@ end;
 
 procedure TCommandMgrImpl.DoExecuteFixedJobs;
 var
-  LNextJob, LJob: PCommandJob;
+  LIndex: Integer;
+  LJob: PCommandJob;
 begin
   FFixedCommandJobs.Lock;
   try
-    LNextJob := FFixedCommandJobs.FHead;
-    while LNextJob <> nil do begin
-      if FAsyncExecuteCmdThread.IsTerminated then Exit;
 
-      LJob := LNextJob;
-      LNextJob := LNextJob.FNext;
-      LJob.FLast := LJob.FLast + 1;
-      if LJob.FLast >= LJob.FDelaySecs then begin
-        ExecuteCmd(LJob.FId, LJob.FParams);
-        LJob.FLast := 0;
+    for LIndex := FFixedCommandJobs.FCommandJobs.Count - 1 downto 0 do begin
+      LJob := FFixedCommandJobs.FCommandJobs.Items[LIndex];
+      if LJob <> nil then begin
+        LJob.FLast := LJob.FLast + 1;
+        if LJob.FLast >= LJob.FDelaySecs then begin
+          if FAsyncExecuteCmdThread.IsTerminated then Exit;
+
+          ExecuteCmd(LJob.FId, LJob.FParams);
+          LJob.FLast := 0;
+        end;
       end;
     end;
   finally

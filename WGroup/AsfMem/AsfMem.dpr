@@ -16,20 +16,21 @@ uses
   WExport in 'WExport\WExport.pas',
   AsfMemPlugInMgrImpl in 'WExport\Impl\AsfMemPlugInMgrImpl.pas',
   SecuMainImpl in 'WCMemTable\SecuMain\Impl\SecuMainImpl.pas',
-  SectorMain in 'WCMemTable\SectorMain\SectorMain.pas',
-  SectorMainImpl in 'WCMemTable\SectorMain\Impl\SectorMainImpl.pas',
-  UserFundMain in 'WCMemTable\UserFundMain\UserFundMain.pas',
-  UserFundMainImpl in 'WCMemTable\UserFundMain\Impl\UserFundMainImpl.pas',
-  Sector in 'Sector\Sector.pas',
-  AbstractSectorImpl in 'Sector\Impl\AbstractSectorImpl.pas',
-  SysSectorMgr in 'SysSectorMgr\SysSectorMgr.pas',
-  SysSectorMgrImpl in 'SysSectorMgr\Impl\SysSectorMgrImpl.pas',
-  UserSectorMgrImpl in 'UserSectorMgr\Impl\UserSectorMgrImpl.pas',
   SecuMainCommandImpl in 'WCommands\SecuMainCommandImpl.pas',
   KeySearchFilter in 'KeySearchEngine\KeySearchFilter.pas',
   KeySearchEngineImpl in 'KeySearchEngine\Impl\KeySearchEngineImpl.pas',
   KeySearchEngineCommandImpl in 'WCommands\KeySearchEngineCommandImpl.pas',
-  UserSectorImpl in 'UserSectorMgr\UserSectorImpl.pas';
+  UserSector in 'UserSectorMgr\UserSector.pas',
+  UserSectorImpl in 'UserSectorMgr\UserSectorImpl.pas',
+  UserSectorUpdate in 'UserSectorMgr\UserSectorUpdate.pas',
+  UserSectorMgrImpl in 'UserSectorMgr\Impl\UserSectorMgrImpl.pas',
+  UserSectorMgrCommandImpl in 'WCommands\UserSectorMgrCommandImpl.pas',
+  Sector in 'SectorMgr\Sector.pas',
+  SectorImpl in 'SectorMgr\SectorImpl.pas',
+  SectorUpdate in 'SectorMgr\SectorUpdate.pas',
+  SectorMgr in 'SectorMgr\SectorMgr.pas',
+  SectorMgrImpl in 'SectorMgr\Impl\SectorMgrImpl.pas',
+  SectorMgrUpdate in 'SectorMgr\SectorMgrUpdate.pas';
 
 {$R *.res}
 

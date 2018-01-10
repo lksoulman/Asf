@@ -2,11 +2,12 @@ program AsfMain;
 
 uses
   Vcl.Forms,
+  DcefB.Core.App,
   WExport in 'WExport\WExport.pas',
   AsfMainPlugInMgrImpl in 'WExport\Impl\AsfMainPlugInMgrImpl.pas',
   CommandMgrImpl in 'CommandMgr\Impl\CommandMgrImpl.pas',
   AppContextImpl in 'AppContext\Impl\AppContextImpl.pas',
-  LogImpl in 'Log\Impl\LogImpl.pas',
+  LoggerImpl in 'Log\Impl\LoggerImpl.pas',
   EDCryptImpl in 'EDCrypt\Impl\EDCryptImpl.pas',
   CfgImpl in 'Cfg\Impl\CfgImpl.pas',
   WebCfgImpl in 'Cfg\WebCfg\Impl\WebCfgImpl.pas',
@@ -70,34 +71,48 @@ uses
   StatusReportDataMgrCommandImpl in 'WCommands\StatusReportDataMgrCommandImpl.pas',
   StatusServerDataMgrCommandImpl in 'WCommands\StatusServerDataMgrCommandImpl.pas',
   SuperTabDataMgrCommandImpl in 'WCommands\SuperTabDataMgrCommandImpl.pas',
+  KeyFairy in 'KeyFairy\KeyFairy.pas',
   KeyFairyUI in 'KeyFairy\UI\KeyFairyUI.pas' {KeyFairyUI},
   KeyReportUI in 'KeyFairy\UI\KeyReportUI.pas',
-  KeyFairy in 'KeyFairy\KeyFairy.pas',
-  KeyFairyImpl in 'KeyFairy\Impl\KeyFairyImpl.pas';
+  KeyFairyImpl in 'KeyFairy\Impl\KeyFairyImpl.pas',
+  ChromeImpl in 'Chrome\Impl\ChromeImpl.pas',
+  BrowserImpl in 'Chrome\Impl\BrowserImpl.pas',
+  ProcessSingleton in 'ProcessSingleton\ProcessSingleton.pas';
 
 {$R *.res}
 
 begin
+  DcefBApp.CefSingleProcess := False;
+  if not DcefBApp.Init then begin
+    Exit;
+  end;
+
   Application.Initialize;
   try
-    Application.ShowMainForm := False;
-    Application.MainFormOnTaskbar := True;
-    Application.CreateForm(TVirtualMainUI, G_VirtualMainUI);
-    G_AppContext.Initialize;
-    try
-      LoadCmds;
-      if G_AppContext.Login then begin
-        LoadAuth;
-        LoadCache;
-        LoadMaster;
-        LoadCronJobs;
-        LoadDelayJobs;
-        Application.Run;
-        StopServices;
+    if not G_ProcessSingleton.CheckIsRunning(Application.Handle, Application.ExeName) then begin
+      Application.ShowMainForm := False;
+      Application.MainFormOnTaskbar := True;
+      Application.CreateForm(TVirtualMainUI, G_VirtualMainUI);
+      G_AppContext.Initialize;
+      try
+        LoadCmds;
+        G_AppContext.InitMsgExService;
+        if G_AppContext.Login then begin
+          LoadAuth;
+          LoadCache;
+          LoadMaster;
+          LoadCronJobs;
+          LoadDelayJobs;
+          Application.Run;
+          CloseShowForms;
+          StopServices;
+        end;
+      finally
+        G_AppContext.UnInitMsgExService;
+        G_AppContext.UnInitialize;
       end;
-    finally
-      UnLoadProcessEx;
-      G_AppContext.UnInitialize;
+    end else begin
+
     end;
   except
     Halt(0);

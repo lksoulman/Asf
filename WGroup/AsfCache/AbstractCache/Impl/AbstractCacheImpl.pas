@@ -52,8 +52,8 @@ type
     FCfgFile: string;
     // Version
     FVersion: Integer;
-    // IsStart
-    FIsStart: Boolean;
+    // IsStopService
+    FIsStopService: Boolean;
     // Lock
     FLock: TCSLock;
     // System Table
@@ -199,12 +199,12 @@ begin
   FProcessCacheGFQueueThread := TExecutorThread.Create;
   FProcessCacheGFQueueThread.ThreadMethod := DoProcessCacheGFQueueExecute;
   FProcessCacheGFQueueThread.StartEx;
+  FIsStopService := False;
   DoLoadCfgBefore;
   FSQLiteAdapter.ConnectDB;
   DoLoadTablesCfg;
   DoReplaceCreateSysTable;
   DoLoadCacheTableInfoFromSysTable;
-  FIsStart := True;
 end;
 
 destructor TAbstractCacheImpl.Destroy;
@@ -241,9 +241,9 @@ end;
 
 procedure TAbstractCacheImpl.DoStopService;
 begin
-  if FIsStart then begin
+  if not FIsStopService then begin
     FProcessCacheGFQueueThread.ShutDown;
-    FIsStart := False;
+    FIsStopService := True;
   end;
 end;
 
@@ -839,9 +839,10 @@ end;
 
 procedure TAbstractCacheImpl.DoUpdateNotifyCacheTable(ATable: TCacheTable; AInfo: string);
 begin
+  if FProcessCacheGFQueueThread.IsTerminated then Exit;
+
   if FUpdateNotifyCacheTableDic.ContainsKey(ATable.Name) then begin
-    FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,
-      Format('FuncName=SendMessageEx@Id=%d@Info=%',[Msg_AsfCache_ReUpdateBaseCache_SecuMain, AInfo]), 2);
+    FAppContext.SendMsgEx(Msg_AsfCache_ReUpdateBaseCache_SecuMain, AInfo, 2);
   end;
 end;
 
@@ -850,7 +851,7 @@ var
   LCacheGF: TCacheGF;
   LDateSet: IWNDataSet;
 begin
-  if not FIsStart then Exit;
+  if FProcessCacheGFQueueThread.IsTerminated then Exit;
   
   if AGFData.GetErrorCode = ERROR_SUCCESS then begin
     LDateSet := Utils.GFData2WNDataSet(AGFData);
@@ -871,7 +872,7 @@ var
   LDateSet: IWNDataSet;
   LCacheGF: TCacheGF;
 begin
-  if not FIsStart then Exit;
+  if FProcessCacheGFQueueThread.IsTerminated then Exit;
 
   if AGFData.GetErrorCode = ERROR_SUCCESS then begin
     LDateSet := Utils.GFData2WNDataSet(AGFData);
@@ -895,7 +896,7 @@ begin
   case FProcessCacheGFQueueThread.WaitForEx(INFINITE) of
     WAIT_OBJECT_0:
       begin
-        if not FIsStart then Exit;
+        if FProcessCacheGFQueueThread.IsTerminated then Exit;
 
         if not FArriveCacheGFQueue.IsEmpty then begin
           LCacheGF := FArriveCacheGFQueue.Dequeue;

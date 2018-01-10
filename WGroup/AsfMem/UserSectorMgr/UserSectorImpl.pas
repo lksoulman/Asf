@@ -4,7 +4,7 @@ unit UserSectorImpl;
 //
 // Description£º UserSector Implementation
 // Author£º      lksoulman
-// Date£º        2017-8-23
+// Date£º        2018-1-3
 // Comments£º
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -12,72 +12,79 @@ unit UserSectorImpl;
 interface
 
 uses
-  Sector,
+  Command,
   Windows,
   Classes,
   SysUtils,
+  UserCache,
+  UserSector,
+  BaseObject,
+  AppContext,
+  UserSectorUpdate,
   CommonRefCounter,
   Generics.Collections;
 
 type
 
-  // UserSectorInfo
-  TUserSectorInfo = packed record
-    FID: string;
-    FCID: Integer;
-    FName: string;
-    FOrder: Integer;
-    FInnerCodes: string;
-  end;
-
-  // UserSectorInfo Pointer
-  PUserSectorInfo = ^TUserSectorInfo;
-
   // UserSector Implementation
-  TUserSectorImpl = class(TAutoInterfacedObject, ISector)
+  TUserSectorImpl = class(TBaseInterfacedObject, IUserSector, IUserSectorUpdate)
   private
-    // ChildSectors
-    FChildSectors: TList<ISector>;
     // UserSectorInfo
-    FUserSectorInfo: TUserSectorInfo;
+    FUserSectorInfo:  TUserSectorInfo;
   protected
-    // ClearSectors
-    procedure DoClearSectors;
+    // UpdateLocalDB
+    procedure DoUpdateLocalDB(AUpLoadValue: Integer);
   public
     // Constructor
-    constructor Create; override;
+    constructor Create(AContext: IAppContext); override;
     // Destructor
     destructor Destroy; override;
 
     { ISector }
 
-    // GetDataPtr
-    function GetDataPtr: Pointer;
-    // GetSectorID
-    function GetSectorID: WideString;
-    // GetSectorName
-    function GetSectorName: WideString;
-    // GetChildSectors
-    function GetChildSectors: WideString;
-    // GetChildSectorExist
-    function GetChildSectorExist: boolean;
-    // GetChildSectorCount
-    function GetChildSectorCount: Integer;
-    // GetChildSector
-    function GetChildSector(AIndex: Integer): ISector;
-    // GetExistChildSectorName
-    function GetExistChildSectorName(AName: WideString): boolean;
-    // AddChildSectorByName
-    function AddChildSectorByName(AName: WideString): ISector;
-    // DeleteChildSectorByName
-    procedure DeleteChildSectorByName(AName: WideString);
+    // GetName
+    function GetName: string;
+    // GetOrderNo
+    function GetOrderNo: Integer;
+    // GetInnerCodes
+    function GetInnerCodes: string;
+    // SetName
+    procedure SetName(AName: string);
+    // SetOrderNo
+    procedure SetOrderNo(AOrderNo: Integer);
+    // SetInnerCodes
+    procedure SetInnerCodes(AInnerCodes: string);
+    // Add
+    procedure Add(AInnerCode: Integer);
+    // Delete
+    procedure Delete(AInnerCode: Integer);
+
+    { IUserSectorUpdate }
+
+    // GetUserSectorInfo
+    function GetUserSectorInfo: PUserSectorInfo;
+    // Compare
+    function CompareAssign(AUserSectorInfo: PUserSectorInfo): Boolean;
+
+    property Name: string read GetName write SetName;
+    property OrderNo: Integer read GetOrderNo write SetOrderNo;
+    property InnerCodes: string read GetInnerCodes write SetInnerCodes;
+    property UserSectorInfo: PUserSectorInfo read GetUserSectorInfo;
   end;
 
 implementation
 
+uses
+  UserSectorMgr;
+
+const
+
+  UPLOADVALUE_MODIFY = 1;
+  UPLOADVALUE_DELETE = 2;
+
 { TUserSectorImpl }
 
-constructor TUserSectorImpl.Create;
+constructor TUserSectorImpl.Create(AContext: IAppContext);
 begin
   inherited;
 
@@ -85,113 +92,199 @@ end;
 
 destructor TUserSectorImpl.Destroy;
 begin
-  DoClearSectors;
-  if FChildSectors <> nil then begin
-    FChildSectors.Free;
-  end;
+
   inherited;
 end;
 
-procedure TUserSectorImpl.DoClearSectors;
+procedure TUserSectorImpl.DoUpdateLocalDB(AUpLoadValue: Integer);
 var
-  LIndex: Integer;
+  LUserCache: IUserCache;
+  LSql, LTableName: string;
 begin
-  if FChildSectors = nil then Exit;
+  if FAppContext = nil then Exit;
+  LUserCache := FAppContext.FindInterface(ASF_COMMAND_ID_USERCACHE) as IUserCache;
+  if LUserCache = nil then Exit;
 
-  for LIndex := 0 to FChildSectors.Count - 1 do begin
-    FChildSectors.Items[LIndex] := nil;
-  end;
-  FChildSectors.Clear;
+  LTableName := 'UserSector';
+  LSql := Format('INSERT OR REPLACE INTO %s VALUES (''%s'',%d,''%s'',%d,''%s'',%d)',
+    [LTableName,
+     FUserSectorInfo.FID,
+     FUserSectorInfo.FCID,
+     FUserSectorInfo.FName,
+     FUserSectorInfo.FOrderNo,
+     FUserSectorInfo.FInnerCodes,
+     AUpLoadValue]);
+  LUserCache.ExecuteSql(LTableName, LSql);
 end;
 
-function TUserSectorImpl.GetDataPtr: Pointer;
-begin
-  Result := @FUserSectorInfo;
-end;
-
-function TUserSectorImpl.GetSectorID: WideString;
-begin
-  Result := FUserSectorInfo.FID;
-end;
-
-function TUserSectorImpl.GetSectorName: WideString;
+function TUserSectorImpl.GetName: string;
 begin
   Result := FUserSectorInfo.FName;
 end;
 
-function TUserSectorImpl.GetChildSectors: WideString;
+function TUserSectorImpl.GetOrderNo: Integer;
+begin
+  Result := FUserSectorInfo.FOrderNo;
+end;
+
+function TUserSectorImpl.GetInnerCodes: string;
 begin
   Result := FUserSectorInfo.FInnerCodes;
 end;
 
-function TUserSectorImpl.GetChildSectorExist: boolean;
+procedure TUserSectorImpl.SetName(AName: string);
+var
+  LUserSectorMgr: IUserSectorMgr;
 begin
-  Result := False;
-  if FChildSectors = nil then Exit;
-  Result := (FChildSectors.Count > 0);
-end;
+  if AName = '' then Exit;
 
-function TUserSectorImpl.GetChildSectorCount: Integer;
-begin
-  Result := 0;
-  if FChildSectors = nil then Exit;
-  Result := FChildSectors.Count;
-end;
-
-function TUserSectorImpl.GetChildSector(AIndex: Integer): ISector;
-begin
-  Result := nil;
-  if FChildSectors = nil then Exit;
-  if (AIndex >= 0) and (AIndex < FChildSectors.Count) then begin
-    Result := FChildSectors.Items[AIndex];
+  LUserSectorMgr := FAppContext.FindInterface(ASF_COMMAND_ID_USERSECTORMGR) as IUserSectorMgr;
+  if LUserSectorMgr <> nil then begin
+    LUserSectorMgr.Lock;
+    try
+      if FUserSectorInfo.FName <> AName then begin
+        FUserSectorInfo.FName := Copy(AName, 1, Length(AName));
+        DoUpdateLocalDB(UPLOADVALUE_MODIFY);
+      end;
+    finally
+      LUserSectorMgr.UnLock;
+    end;
+    LUserSectorMgr := nil;
   end;
 end;
 
-function TUserSectorImpl.GetExistChildSectorName(AName: WideString): boolean;
+procedure TUserSectorImpl.SetOrderNo(AOrderNo: Integer);
+var
+  LUserSectorMgr: IUserSectorMgr;
+begin
+  LUserSectorMgr := FAppContext.FindInterface(ASF_COMMAND_ID_USERSECTORMGR) as IUserSectorMgr;
+  if LUserSectorMgr <> nil then begin
+    LUserSectorMgr.Lock;
+    try
+      if FUserSectorInfo.FOrderNo <> AOrderNo then begin
+        FUserSectorInfo.FOrderNo := AOrderNo;
+        DoUpdateLocalDB(UPLOADVALUE_MODIFY);
+      end;
+    finally
+      LUserSectorMgr.UnLock;
+    end;
+    LUserSectorMgr := nil;
+  end;
+end;
+
+procedure TUserSectorImpl.SetInnerCodes(AInnerCodes: string);
+var
+  LUserSectorMgr: IUserSectorMgr;
+begin
+  LUserSectorMgr := FAppContext.FindInterface(ASF_COMMAND_ID_USERSECTORMGR) as IUserSectorMgr;
+  if LUserSectorMgr <> nil then begin
+    LUserSectorMgr.Lock;
+    try
+      if FUserSectorInfo.FInnerCodes <> AInnerCodes then begin
+        if AInnerCodes <> '' then begin
+          FUserSectorInfo.FInnerCodes := Copy(AInnerCodes, 1, Length(AInnerCodes));
+        end else begin
+          FUserSectorInfo.FInnerCodes := '';
+        end;
+        DoUpdateLocalDB(UPLOADVALUE_MODIFY);
+        (LUserSectorMgr as IUserSectorMgrUpdate).UpdateSelfStockFlagAll;
+      end;
+    finally
+      LUserSectorMgr.UnLock;
+    end;
+    LUserSectorMgr := nil;
+  end;
+end;
+
+procedure TUserSectorImpl.Add(AInnerCode: Integer);
+var
+  LInnerCodeStr: string;
+  LInnerCodes: TStringList;
+  LUserSectorMgr: IUserSectorMgr;
+begin
+  LUserSectorMgr := FAppContext.FindInterface(ASF_COMMAND_ID_USERSECTORMGR) as IUserSectorMgr;
+  if LUserSectorMgr <> nil then begin
+    LUserSectorMgr.Lock;
+    try
+      LInnerCodeStr := IntToStr(AInnerCode);
+      if FUserSectorInfo.FInnerCodes <> '' then begin
+        LInnerCodes := TStringList.Create;
+        try
+          LInnerCodes.Delimiter := ',';
+          LInnerCodes.DelimitedText := FUserSectorInfo.FInnerCodes;
+          if LInnerCodes.IndexOf(LInnerCodeStr) < 0 then begin
+            FUserSectorInfo.FInnerCodes := LInnerCodeStr + ',' + FUserSectorInfo.FInnerCodes;
+            DoUpdateLocalDB(UPLOADVALUE_MODIFY);
+            (LUserSectorMgr as IUserSectorMgrUpdate).AddSelfStockFlag(FUserSectorInfo.FIndex, AInnerCode);
+          end;
+        finally
+          LInnerCodes.Free;
+        end;
+      end else begin
+        FUserSectorInfo.FInnerCodes := LInnerCodeStr;
+        DoUpdateLocalDB(UPLOADVALUE_MODIFY);
+        (LUserSectorMgr as IUserSectorMgrUpdate).AddSelfStockFlag(FUserSectorInfo.FIndex, AInnerCode);
+      end;
+    finally
+      LUserSectorMgr.UnLock;
+    end;
+    LUserSectorMgr := nil;
+  end;
+end;
+
+procedure TUserSectorImpl.Delete(AInnerCode: Integer);
 var
   LIndex: Integer;
+  LInnerCodeStr: string;
+  LInnerCodes: TStringList;
+  LUserSectorMgr: IUserSectorMgr;
 begin
-  Result := False;
-  if FChildSectors = nil then Exit;
-  for LIndex := 0 to FChildSectors.Count - 1 do begin
-    if (FChildSectors.Items[LIndex] <> nil)
-      and (FChildSectors.Items[LIndex].GetSectorName = AName) then begin
-      Result := True;
-      Exit;
+  if FUserSectorInfo.FInnerCodes = '' then Exit;
+
+  LUserSectorMgr := FAppContext.FindInterface(ASF_COMMAND_ID_USERSECTORMGR) as IUserSectorMgr;
+  if LUserSectorMgr <> nil then begin
+    LUserSectorMgr.Lock;
+    try
+      LInnerCodeStr := IntToStr(AInnerCode);
+      LInnerCodes := TStringList.Create;
+      try
+        LInnerCodes.Delimiter := ',';
+        LInnerCodes.DelimitedText := FUserSectorInfo.FInnerCodes;
+        LIndex := LInnerCodes.IndexOf(LInnerCodeStr);
+        if LIndex >= 0 then begin
+          LInnerCodes.Delete(LIndex);
+          FUserSectorInfo.FInnerCodes := LInnerCodes.DelimitedText;
+        end;
+      finally
+        LInnerCodes.Free;
+      end;
+      if LIndex >= 0 then begin
+        DoUpdateLocalDB(UPLOADVALUE_MODIFY);
+        (LUserSectorMgr as IUserSectorMgrUpdate).DeleteSelfStockFlag(FUserSectorInfo.FIndex, AInnerCode);
+      end;
+    finally
+      LUserSectorMgr.UnLock;
     end;
+    LUserSectorMgr := nil;
   end;
 end;
 
-function TUserSectorImpl.AddChildSectorByName(AName: WideString): ISector;
-var
-  LUserSectorInfo: PUserSectorInfo;
+function TUserSectorImpl.GetUserSectorInfo: PUserSectorInfo;
 begin
-  if not GetExistChildSectorName(AName) then begin
-    Result := TUserSectorImpl.Create as ISector;
-    LUserSectorInfo := PUserSectorInfo(Result.GetDataPtr);
-    if LUserSectorInfo <> nil then begin
-      LUserSectorInfo^.FName := AName;
-    end;
-    FChildSectors.Add(Result);
-  end else begin
-    Result := nil;
-  end;
+  Result := @FUserSectorInfo;
 end;
 
-procedure TUserSectorImpl.DeleteChildSectorByName(AName: WideString);
-var
-  LIndex: Integer;
-  LSector: ISector;
+function TUserSectorImpl.CompareAssign(AUserSectorInfo: PUserSectorInfo): Boolean;
 begin
-  if FChildSectors = nil then Exit;
-  for LIndex := 0 to FChildSectors.Count - 1 do begin
-    LSector := FChildSectors.Items[LIndex];
-    if (LSector <> nil)
-      and (LSector.GetSectorName = AName) then begin
-      FChildSectors.Delete(LIndex);
-      LSector := nil;
-      break;
-    end;
+  Result := True;
+  if AUserSectorInfo = nil then Exit;
+
+  if (AUserSectorInfo.FID <> FUserSectorInfo.FID)
+    or (AUserSectorInfo.FOrderNo <> FUserSectorInfo.FOrderNo)
+    or (AUserSectorInfo.FInnerCodes <> FUserSectorInfo.FInnerCodes) then begin
+    FUserSectorInfo.FID := AUserSectorInfo.FID;
+    FUserSectorInfo.FOrderNo := AUserSectorInfo.FOrderNo;
+    FUserSectorInfo.FInnerCodes := AUserSectorInfo.FInnerCodes;
   end;
 end;
 

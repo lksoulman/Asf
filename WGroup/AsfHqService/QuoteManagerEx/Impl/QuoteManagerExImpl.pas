@@ -41,12 +41,12 @@ type
     FLock: TCSLock;
     // Active
     FActive: Boolean;
-    // IsStart
-    FIsStart: Boolean;
     // Version
     FVersion: Integer;
     // ComLib
     FTypeLib: ITypeLib;
+    // IsStopService
+    FIsStopService: Boolean;
     // QuoteManager
     FQuoteManager: IQuoteManager;
     // QuoteRealTime
@@ -181,7 +181,7 @@ begin
   DoInitTypeLib;
   DoInitQuoteManager;
   FConnectStatusMonitorThread.StartEx;
-  FIsStart := True;
+  FIsStopService := False;
   FMsgExSubcriberAdapter.SubcribeMsgEx;
 end;
 
@@ -343,11 +343,11 @@ end;
 
 procedure TQuoteManagerExImpl.StopService;
 begin
-  if FIsStart then begin
+  if not FIsStopService then begin
     FConnectStatusMonitorThread.ShutDown;
     DoDisConnectServers;
     FQuoteManager.StartService;
-    FIsStart := False;
+    FIsStopService := True;
   end;
 end;
 
@@ -455,7 +455,7 @@ end;
 function TQuoteManagerExImpl.QueryData(AQuoteType: QuoteTypeEnum; APCodeInfo: Int64): IUnknown;
 begin
   Result := nil;
-  if not FIsStart then Exit;
+  if FConnectStatusMonitorThread.IsTerminated then Exit;
 
   Result := FQuoteManager.QueryData(AQuoteType, APCodeInfo);
 end;
@@ -463,7 +463,7 @@ end;
 function TQuoteManagerExImpl.Subscribe(AQuoteType: QuoteTypeEnum; APCodeInfos: Int64; ACount: Integer; ACookie: Integer; AValue: OleVariant): WordBool;
 begin
   Result := False;
-  if not FIsStart then Exit;
+  if FConnectStatusMonitorThread.IsTerminated then Exit;
   
   Result := FQuoteManager.Subscribe(AQuoteType, APCodeInfos, ACount, ACookie, AValue);
 end;
@@ -775,8 +775,7 @@ begin
 
     LSecuMain := nil;
 
-    FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,
-      Format('FuncName=SendMessageEx@Id=%d@Info=%',[Msg_AsfHqService_ReSubcribeHq, 'HqData Update ReSubcribe']), 2);
+    FAppContext.SendMsgEx(Msg_AsfHqService_ReSubcribeHq, 'HqData Update ReSubcribe', 2);
 
 {$IFDEF DEBUG}
   finally

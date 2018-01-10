@@ -19,6 +19,7 @@ uses
   CommonLock,
   BaseObject,
   AppContext,
+  ExecutorThread,
   MsgExSubcriber,
   Generics.Collections;
 
@@ -40,7 +41,7 @@ type
     // Destructor
     destructor Destroy; override;
     // InvokeNotify
-    procedure InvokeNotify(AMsgEx: TMsgEx);
+    procedure InvokeNotify(AMsgEx: TMsgEx; AObject: TObject);
     // Subcriber
     procedure Subcriber(AMsgExId: Integer; ASubcriber: IMsgExSubcriber);
     // UnSubcriber
@@ -75,26 +76,31 @@ var
   LSubcribers: TList<IMsgExSubcriber>;
   LEnum: TDictionary<Integer, TList<IMsgExSubcriber>>.TPairEnumerator;
 begin
-  LEnum := FMsgExSubcriberDic.GetEnumerator;
+  FLock.Lock;
   try
-    while LEnum.MoveNext do begin
-      LSubcribers := LEnum.Current.Value;
-      if (LSubcribers <> nil) then begin
-        if LSubcribers.Count > 0 then begin
-          for LIndex := 0 to LSubcribers.Count - 1 do begin
-            LSubcribers.Items[LIndex] := nil;
+    LEnum := FMsgExSubcriberDic.GetEnumerator;
+    try
+      while LEnum.MoveNext do begin
+        LSubcribers := LEnum.Current.Value;
+        if (LSubcribers <> nil) then begin
+          if LSubcribers.Count > 0 then begin
+            for LIndex := 0 to LSubcribers.Count - 1 do begin
+              LSubcribers.Items[LIndex] := nil;
+            end;
           end;
+          LSubcribers.Free;
         end;
-        LSubcribers.Free;
       end;
+      FMsgExSubcriberDic.Clear;
+    finally
+      LEnum.Free;
     end;
-    FMsgExSubcriberDic.Clear;
   finally
-    LEnum.Free;
+    FLock.UnLock;
   end;
 end;
 
-procedure TMsgExSubcriberMgr.InvokeNotify(AMsgEx: TMsgEx);
+procedure TMsgExSubcriberMgr.InvokeNotify(AMsgEx: TMsgEx; AObject: TObject);
 var
   LIndex: Integer;
   LSubcribers: TList<IMsgExSubcriber>;
@@ -103,6 +109,9 @@ begin
   try
     if FMsgExSubcriberDic.TryGetValue(AMsgEx.GetId, LSubcribers) then begin
       for LIndex := 0 to LSubcribers.Count - 1 do begin
+        if (AObject <> nil)
+          and TExecutorThread(AObject).IsTerminated then Exit;
+
         if (LSubcribers.Items[LIndex] <> nil)
           and LSubcribers.Items[LIndex].GetActive then begin
           try

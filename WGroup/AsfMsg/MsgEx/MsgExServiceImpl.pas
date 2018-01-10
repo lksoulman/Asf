@@ -39,12 +39,12 @@ type
   private
     // Lock
     FLock: TCSLock;
-    // IsStart
-    FIsStart: Boolean;
     // MsgHandle
     FMsgHandle: THandle;
     // MsgExPool
     FMsgExPool: TMsgExPool;
+    // IsStopService
+    FIsStopService: Boolean;
     // MsgExQueue
     FMsgExQueue: TSafeQueue<TMsgEx>;
     // SubcriberMgr
@@ -94,7 +94,7 @@ begin
   FAsyncDispachMsgExThread := TExecutorThread.Create;
   FAsyncDispachMsgExThread.ThreadMethod := DoAsyncDispachMsgExThread;
   FAsyncDispachMsgExThread.StartEx;
-  FIsStart := True;
+  FIsStopService := False;
 end;
 
 destructor TMsgExServiceImpl.Destroy;
@@ -135,12 +135,12 @@ begin
   case message.Msg of
     WM_MSGEX_DATA:
       begin
-        if (not FIsStart)
+        if FAsyncDispachMsgExThread.IsTerminated
           or FMsgExQueue.IsEmpty then Exit;
 
         LMsgEx := FMsgExQueue.Dequeue;
         if LMsgEx <> nil then begin
-          FSubcriberMgr.InvokeNotify(LMsgEx);
+          FSubcriberMgr.InvokeNotify(LMsgEx, FAsyncDispachMsgExThread);
           FMsgExPool.DeAllocate(LMsgEx);
         end;
       end;
@@ -164,9 +164,9 @@ end;
 
 procedure TMsgExServiceImpl.StopService;
 begin
-  if FIsStart then begin
+  if not FIsStopService then begin
     FAsyncDispachMsgExThread.ShutDown;
-    FIsStart := False;
+    FIsStopService := True;
   end;
 end;
 
@@ -174,7 +174,7 @@ procedure TMsgExServiceImpl.SendMessageEx(AID: Integer; AInfo: string);
 var
   LMsgEx: TMsgEx;
 begin
-  if not FIsStart then Exit;
+  if FAsyncDispachMsgExThread.IsTerminated then Exit;
   
   FLock.Lock;
   try

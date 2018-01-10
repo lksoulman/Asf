@@ -79,7 +79,7 @@ end;
 procedure TMsgExImpl.Update(AId: Integer; AInfo: string);
 begin
   FId := AId;
-//  FInfo := AInfo;
+  FInfo := AInfo;
 end;
 
 end.

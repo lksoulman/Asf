@@ -2,7 +2,7 @@ unit GFDataImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Finance Data Interface implementation
+// Description£º FinanceData Implementation
 // Author£º      lksoulman
 // Date£º        2017-9-11
 // Comments£º
@@ -22,34 +22,36 @@ uses
 
 type
 
-  // Finance Data Interface implementation
+  // FinanceData Implementation
   TGFDataImpl = class(TAutoInterfacedObject, IGFData, IGFDataUpdate)
   private
     // Key
     FKey: Int64;
-    // Error Info
+    // ErrorInfo
     FErrorInfo: string;
-    // Error Code
+    // ErrorCode
     FErrorCode: Integer;
-    // Is Canceled
+    // IsCanceled
     FIsCanceled: Boolean;
-    // Response Stream
+    // GFDataEvent
+    FGFDataEvent: TGFDataEvent;
+    // ResponseStream
     FDataStream: TStream;
-    // Request Size
+    // RequestSize
     FRequestSize: Cardinal;
-    // Request Compress Size
+    // RequestCompressSize
     FRequestCompressSize: Cardinal;
-    // Response Size
+    // ResponseSize
     FResponseSize: Cardinal;
-    // Response Compress Size
+    // ResponseCompressSize
     FResponseCompressSize: Cardinal;
-    // Queue Wait Use Time
+    // QueueWaitUseTime
     FQueueWaitUseTime: Cardinal;
-    // Execute Post Use Time
+    // ExecutePostUseTime
     FExecutePostUseTime: Cardinal;
-    // Request Compress Use Time
+    // RequestCompressUseTime
     FRequestCompressUseTime: Cardinal;
-    // Response Uncompress Use Time
+    // ResponseUncompressUseTime
     FResponseUncompressUseTime: Cardinal;
   protected
   public
@@ -60,66 +62,70 @@ type
 
     { IGFData }
 
-    // Get Key
+    // GetKey
     function GetKey: Int64; safecall;
     // Cancel
     function Cancel: Boolean; safecall;
-    // Get Error Code
+    // GetErrorCode
     function GetErrorCode: Integer; safecall;
-    // Get Error Info
+    // GetErrorInfo
     function GetErrorInfo: WideString; safecall;
-    // Get Data Stream
+    // GetDataStream
     function GetDataStream: TStream; safecall;
-    // Get Request Size
+    // GetRequestSize
     function GetRequestSize: Cardinal; safecall;
-    // Get Request Compress Size
+    // GetRequestCompressSize
     function GetRequestCompressSize: Cardinal; safecall;
-    // Get Compress Ratio
+    // GetCompressRatio
     function GetRequestCompressRatio: Double; safecall;
-    // Get Response Size
+    // GetResponseSize
     function GetResponseSize: Cardinal; safecall;
-    // Get Response Compress Size
+    // GetResponseCompressSize
     function GetResponseCompressSize: Cardinal; safecall;
-    // Get Compress Ratio
+    // GetCompressRatio
     function GetResponseCompressRatio: Double; safecall;
-    // Get Queue Wait Use Time
+    // GetQueueWaitUseTime
     function GetQueueWaitUseTime: Cardinal; safecall;
-    // Get Execute Post Use Time
+    // GetExecutePostUseTime
     function GetExecutePostUseTime: Cardinal; safecall;
-    // Get Request Compress Use Time
+    // GetRequestCompressUseTime
     function GetRequestCompressUseTime: Cardinal; safecall;
-    // Get Response Uncompress Use Time
+    // GetResponseUncompressUseTime
     function GetResponseUncompressUseTime: Cardinal; safecall;
 
     { IGFDataUpdate }
 
-    // Get Is Canceled
+    // GetIsCanceled
     function GetIsCancel: Boolean; safecall;
-    // Set Key
+    // GetDataEvent
+    function GetDataEvent: TGFDataEvent; safecall;
+    // SetKey
     function SetKey(AKey: Int64): Boolean; safecall;
-    // Set Cancel
+    // SetDataEvent
+    function SetDataEvent(AEvent: TGFDataEvent): Boolean; safecall;
+    // SetCancel
     function SetCancel(ACancel: Boolean = True): Boolean; safecall;
-    // Set ErrorCode
+    // SetErrorCode
     function SetErrorCode(AErrorCode: Integer): Boolean; safecall;
-    // Set Error Info
+    // SetErrorInfo
     function SetErrorInfo(AErrorInfo: WideString): Boolean; safecall;
-    // Set Response Stream
+    // SetResponseStream
     function SetResponseStream(AResponseStream: TStream): Boolean; safecall;
-    // Set Request Size
+    // SetRequestSize
     function SetRequestSize(ASize: Cardinal): Boolean; safecall;
-    // Set Request Compress Size
+    // SetRequestCompressSize
     function SetRequestCompressSize(ASize: Cardinal): Boolean; safecall;
-    // Set Response Size
+    // SetResponseSize
     function SetResponseSize(ASize: Cardinal): Boolean; safecall;
-    // Set Response Compress Size
+    // SetResponseCompress Size
     function SetResponseCompressSize(ASize: Cardinal): Boolean; safecall;
-    // Set Queue Wait Use Time
+    // SetQueueWaitUseTime
     function SetQueueWaitUseTime(AUseTime: Cardinal): Boolean; safecall;
-    // Set Execute Post Use Time
+    // SetExecutePostUseTime
     function SetExecutePostUseTime(AUseTime: Cardinal): Boolean; safecall;
-    // Set Request Compress Use Time
+    // SetRequestCompressUseTime
     function SetRequestCompressUseTime(AUseTime: Cardinal): Boolean; safecall;
-    // Set Response Uncompress Use Time
+    // SetResponseUncompressUseTime
     function SetResponseUncompressUseTime(AUseTime: Cardinal): Boolean; safecall;
   end;
 
@@ -146,6 +152,7 @@ end;
 
 destructor TGFDataImpl.Destroy;
 begin
+  Cancel;
   FDataStream.Free;
   inherited;
 end;
@@ -159,6 +166,7 @@ function TGFDataImpl.Cancel: Boolean;
 begin
   Result := True;
   FIsCanceled := True;
+  FGFDataEvent := nil;
 end;
 
 function TGFDataImpl.GetErrorCode: Integer;
@@ -240,9 +248,20 @@ begin
   Result := True;
 end;
 
+function TGFDataImpl.SetDataEvent(AEvent: TGFDataEvent): Boolean;
+begin
+  Result := True;
+  FGFDataEvent := AEvent;
+end;
+
 function TGFDataImpl.GetIsCancel: Boolean;
 begin
   Result := FIsCanceled;
+end;
+
+function TGFDataImpl.GetDataEvent: TGFDataEvent;
+begin
+  Result := FGFDataEvent;
 end;
 
 function TGFDataImpl.SetKey(AKey: Int64): Boolean;

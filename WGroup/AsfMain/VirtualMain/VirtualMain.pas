@@ -5,9 +5,11 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Chrome,
   Command,
   AppContext,
-  LoadProcess;
+  LoadProcess,
+  ProcessSingleton;
 
 type
 
@@ -32,24 +34,16 @@ type
   procedure LoadDelayJobs;
   // StopServices
   procedure StopServices;
-  // Load ProcessEx
-  procedure LoadProcessEx;
-  // UnLoad ProcessEx
-  procedure UnLoadProcessEx;
-  // LoopWaitLoadEnd
-  procedure LoopWaitLoadEnd;
+  // CloseShowForms
+  procedure CloseShowForms;
 
 var
-  // 是不是加载结束
-  G_IsLoadEnd: Boolean;
   // 全局应用程序上下文
   G_AppContext: IAppContext;
-  // 全局显示加载进度
-  G_LoadProcess: ILoadProcess;
   // 全局虚拟启动窗体，不显示
   G_VirtualMainUI: TVirtualMainUI;
-
-
+  // ProcessSingleton
+  G_ProcessSingleton: TProcessSingleton;
 
 implementation
 
@@ -58,8 +52,7 @@ uses
 
 {$R *.dfm}
 
-
-  // Load Cmds
+  // LoadCmds
   procedure LoadCmds;
   begin
     G_AppContext.LoadDynLibrary('AsfMsg.dll');
@@ -86,7 +79,7 @@ uses
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_PROAUTH, 'FuncName=Update');
   end;
 
-  // Load Cache
+  // LoadCache
   procedure LoadCache;
   begin
     {基础数据}
@@ -97,12 +90,12 @@ uses
     // 执行未创建的表的脚本
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_USERCACHE, 'FuncName=ReplaceCreateCacheTables');
     // 同步用户数据
-    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_Command_ID_USERCACHE, 'FuncName=UpdateTables');
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_Command_ID_USERCACHE, 'FuncName=InitUpdateTables');
     // 读取同步的用户配置数据
     G_AppContext.GetCfg.ReadServerCacheCfg;
   end;
 
-  // Load Master
+  // LoadMaster
   procedure LoadMaster;
   begin
     // 创建主窗体
@@ -115,8 +108,11 @@ uses
     // 状态栏新闻数据获取定时任务
     G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_STATUSNEWSDATAMGR, 'FuncName=Update', 600);
 
+    G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_USERCACHE, 'FuncName=UpdateTables', 60);
+
 //    // 异步方式同步基础缓存数据定时任务
 //    G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 10);
+
   end;
 
   // LoadDelayJobs
@@ -128,14 +124,19 @@ uses
 //    // 异步方式同步基础缓存数据延时任务
 //    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 2);
 
+    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_USERSECTORMGR, 'FuncName=Update', 1);
+
     // 异步方式加载主表数据延时任务
     G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_SECUMAIN, 'FuncName=AsyncUpdate', 2);
     // 异步方式订阅行情数据延时任务
-    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSSERVERDATAMGR, 'FuncName=Subcribe', 3);
+//    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSSERVERDATAMGR, 'FuncName=Subcribe', 3);
   end;
 
+  // StopServices
   procedure StopServices;
   begin
+    // 停止Jobs
+    G_AppContext.GetCommandMgr.StopJobs;
     // 停止键盘经理服务
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_KEYSEARCHENGINE, 'FuncName=StopService');
     // 停止行情服务
@@ -144,57 +145,47 @@ uses
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASICSERVICE, 'FuncName=StopService');
     // 停止Asset服务
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_ASSETSERVICE, 'FuncName=StopService');
-    // 停止MsgEx服务
-    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE, 'FuncName=StopService');
     // 停止BaseCache服务
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=StopService');
     // 停止UserCache服务
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_USERCACHE, 'FuncName=StopService');
     // 停止SecuMain内存服务
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SECUMAIN, 'FuncName=StopService');
+    // 停止MsgEx服务
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE, 'FuncName=StopService');
   end;
 
-  // LoadProcessEx
-  procedure LoadProcessEx;
+  // CloseShowForms
+  procedure CloseShowForms;
   begin
-    G_LoadProcess := G_AppContext.FindInterface(ASF_COMMAND_ID_LOADPROCESS) as ILoadProcess;
+    // 关闭键盘精灵窗口
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_KEYFAIRY, 'FuncName=Hide');
+    // 关闭弹出式资讯窗口
+    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_WEBPOP_BROWSER, 'FuncName=Hide');
   end;
-
-  // UnLoadProcessEx
-  procedure UnLoadProcessEx;
-  begin
-    if G_LoadProcess <> nil then begin
-      G_LoadProcess := nil;
-    end;
-  end;
-
-  // LoopWaitLoadEnd
-  procedure LoopWaitLoadEnd;
-  begin
-    while not G_IsLoadEnd do begin
-      case WaitForSingleObject(G_LoadProcess.GetWaitEvent, 50) of
-        WAIT_OBJECT_0:
-          begin
-            G_IsLoadEnd := True;
-          end;
-      else
-        begin
-          Application.ProcessMessages;
-        end;
-      end;
-    end;
-  end;
-
 
 initialization
 
   if G_AppContext = nil then begin
     G_AppContext := TAppContextImpl.Create(nil) as IAppContext;
+    G_AppContext.InitLogger;
+    G_AppContext.InitChrome;
+  end;
+
+  if G_ProcessSingleton = nil then begin
+    G_ProcessSingleton := TProcessSingleton.Instance(G_AppContext);
   end;
 
 finalization
 
+  if G_ProcessSingleton <> nil then begin
+    G_ProcessSingleton.Free;
+    G_ProcessSingleton := nil;
+  end;
+
   if G_AppContext <> nil then begin
+    G_AppContext.UnInitChrome;
+    G_AppContext.UnInitLogger;
     G_AppContext := nil;
   end;
 

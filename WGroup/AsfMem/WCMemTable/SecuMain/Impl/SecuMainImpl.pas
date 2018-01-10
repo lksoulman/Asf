@@ -36,10 +36,14 @@ type
   private
     // Lock
     FLock: TCSLock;
-    // IsStart
-    FIsStart: Boolean;
+    // UpdateLock
+    FUpdatingLock: TCSLock;
     // IsUpdating
     FIsUpdating: Boolean;
+    // IsFirstLoad
+    FIsFirstLoad: Boolean;
+    // IsStopService
+    FIsStopService: Boolean;
     // ItemCapacity
     FItemCapacity: Integer;
     // UpdateVersion
@@ -55,13 +59,14 @@ type
     // InnerCodeHSCodeDic
     FInnerCodeToHSCodeDic: TDictionary<Integer, string>;
 
-
     // ToMarket
     function ToMarket(AValue: Integer): UInt8;
     // ToCategory
     function ToCategory(AValue: Integer): UInt16;
     // ToMarkInfo
     function ToMarkInfo(AMargin, AThrough: Integer): UInt8;
+    // GetIsUpdating
+    function GetIsUpdating: Boolean;
     // SetIsUpdating
     procedure SetIsUpdating(AIsUpdating: Boolean);
   protected
@@ -72,15 +77,16 @@ type
     // SecuMainCacheTableUpdate
     procedure DoSecuMainCacheTableUpdate(AObject: TObject);
 
+    // Update
+    procedure DoUpdate;
     // UpdateTable
     procedure DoUpdateTable;
-    // UpdateTable Before
+    // UpdateTableBefore
     procedure DoUpdateTableBefore;
     // LoadDataSet
-    procedure DoLoadDataSet(ADataSet: IWNDataSet);
+    procedure DoUpdateTableDataSet(ADataSet: IWNDataSet);
     // LoadSecuMaintItem
-    procedure DoLoadSecuInfo(ASecuInfo: PSecuInfo;
-//      AInnerCode,
+    procedure DoUpdateTableSecuInfo(ASecuInfo: PSecuInfo;
       ASecuMarket,
       AListedState,
       ASecuCategory,
@@ -174,10 +180,14 @@ begin
   inherited;
   FUpdateVersion := -1;
   FIsUpdating := False;
+  FIsFirstLoad := True;
   FLock := TCSLock.Create;
+  FUpdatingLock := TCSLock.Create;
   FItemCapacity := 220000;
   FAsyncUpdateThread := TExecutorThread.Create;
   FAsyncUpdateThread.ThreadMethod := DoAsyncUpdateExecute;
+  FAsyncUpdateThread.StartEx;
+  FIsStopService := False;
   FSecuInfos := TDynArray<PSecuInfo>.Create(FItemCapacity);
   FSecuInfoDic := TDictionary<Integer, PSecuInfo>.Create(FItemCapacity);
   FInnerCodeToHSCodeDic := TDictionary<Integer, string>.Create(413);
@@ -196,15 +206,16 @@ begin
   FInnerCodeToHSCodeDic.Free;
   FSecuInfoDic.Free;
   FSecuInfos.Free;
+  FUpdatingLock.Lock;
   FLock.Free;
   inherited;
 end;
 
 procedure TSecuMainImpl.StopService;
 begin
-  if FIsStart then begin
+  if not FIsStopService then begin
     FAsyncUpdateThread.ShutDown;
-    FIsStart := False;
+    FIsStopService := True;
   end;
 end;
 
@@ -220,31 +231,19 @@ end;
 
 procedure TSecuMainImpl.Update;
 begin
-  SetIsUpdating(True);
-  try
-    DoUpdateTable;
-  finally
-    SetIsUpdating(False);
-  end;
+  DoUpdate;
 end;
 
 procedure TSecuMainImpl.AsyncUpdate;
 begin
-  FLock.Lock;
-  try
-    if not FAsyncUpdateThread.IsStart then begin
-      FAsyncUpdateThread.StartEx;
-      FIsStart := True;
-    end;
-    FAsyncUpdateThread.ResumeEx;
-  finally
-    FLock.UnLock;
-  end;
+  if FAsyncUpdateThread.IsTerminated then Exit;
+  
+  FAsyncUpdateThread.ResumeEx;
 end;
 
 function TSecuMainImpl.IsUpdating: Boolean;
 begin
-  Result := FIsUpdating;
+  Result := GetIsUpdating;
 end;
 
 function TSecuMainImpl.GetUpdateVersion: Integer;
@@ -277,14 +276,9 @@ function TSecuMainImpl.GetSecuInfo(AInnerCode: Integer; var ASecuInfo: PSecuInfo
 var
   LIsUpdating: Boolean;
 begin
-  FLock.Lock;
-  try
-    LIsUpdating := FIsUpdating;
-  finally
-    FLock.UnLock;
-  end;
+  LIsUpdating := GetIsUpdating;
   if LIsUpdating then begin
-    ASecuInfo := nil;
+    ASecuInfo := DoGetItemUpdating(AInnerCode);
   end else begin
     ASecuInfo := DoGetItemNoUpdating(AInnerCode);
   end;
@@ -301,19 +295,23 @@ begin
   LTotalCount := Length(AInnerCodes);
   if LTotalCount <= 0 then Exit;
 
-  FLock.Lock;
-  try
-    LIsUpdating := FIsUpdating;
-  finally
-    FLock.UnLock;
-  end;
-  if LIsUpdating then Exit;
-  
-  for LIndex := 0 to LTotalCount - 1 do begin
-    LSecuInfo := DoGetItemNoUpdating(AInnerCodes[LIndex]);
-    if LSecuInfo <> nil then begin
-      ASecuInfos[Result] := LSecuInfo;
-      Inc(Result);
+  LIsUpdating := GetIsUpdating;
+
+  if LIsUpdating then begin
+    for LIndex := 0 to LTotalCount - 1 do begin
+      LSecuInfo := DoGetItemUpdating(AInnerCodes[LIndex]);
+      if LSecuInfo <> nil then begin
+        ASecuInfos[Result] := LSecuInfo;
+        Inc(Result);
+      end;
+    end;
+  end else begin
+    for LIndex := 0 to LTotalCount - 1 do begin
+      LSecuInfo := DoGetItemNoUpdating(AInnerCodes[LIndex]);
+      if LSecuInfo <> nil then begin
+        ASecuInfos[Result] := LSecuInfo;
+        Inc(Result);
+      end;
     end;
   end;
 end;
@@ -352,13 +350,23 @@ begin
   Result := LMargin or LThrough;
 end;
 
+function TSecuMainImpl.GetIsUpdating: Boolean;
+begin
+  FUpdatingLock.Lock;
+  try
+    Result := FIsUpdating;
+  finally
+    FUpdatingLock.UnLock;
+  end;
+end;
+
 procedure TSecuMainImpl.SetIsUpdating(AIsUpdating: Boolean);
 begin
-  FLock.Lock;
+  FUpdatingLock.Lock;
   try
     FIsUpdating := AIsUpdating;
   finally
-    FLock.UnLock;
+    FUpdatingLock.UnLock;
   end;
 end;
 
@@ -384,12 +392,7 @@ begin
     case LResult of
       WAIT_OBJECT_0:
         begin
-          SetIsUpdating(True);
-          try
-            DoUpdateTable;
-          finally
-            SetIsUpdating(False);
-          end;
+          DoUpdate;
         end;
     end;
   end;
@@ -400,43 +403,32 @@ begin
   AsyncUpdate;
 end;
 
-procedure TSecuMainImpl.DoUpdateTable;
+procedure TSecuMainImpl.DoUpdate;
 var
 {$IFDEF DEBUG}
   LTick: Cardinal;
 {$ENDIF}
-
-  LDataSet: IWNDataSet;
-  LUpdateVersion: Integer;
 begin
 {$IFDEF DEBUG}
   LTick := GetTickCount;
   try
 {$ENDIF}
-    LUpdateVersion := FUpdateVersion;
-    if FAppContext = nil then Exit;
 
-    DoUpdateTableBefore;
+    SetIsUpdating(True);
     try
-      LDataSet := FAppContext.CacheSyncQuery(ctBaseData, SQL_SECUMAIN);
 
-      // 防止线程退出了循环还没有退出
-      if FAsyncUpdateThread.IsTerminated then Exit;
+      FLock.Lock;
+      try
 
-      if (LDataSet <> nil) then begin
-        if (LDataSet.RecordCount > 0) then begin
-          DoLoadDataSet(LDataSet);
-          Inc(LUpdateVersion);
-        end;
-        LDataSet := nil;
-      end else begin
-        FAppContext.SysLog(llWARN, '[TSecuMainImpl][DoUpdateTable] Load dateset is nil.');
+        DoUpdateTable;
+
+      finally
+        FLock.UnLock;
       end;
     finally
-      if LUpdateVersion <> FUpdateVersion then begin
-        FUpdateVersion := LUpdateVersion;
-        FAppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_MSGEXSERVICE,
-          Format('FuncName=SendMessageEx@Id=%d@Info=%s',[Msg_AsfMem_ReUpdateSecuMain, 'SecuMain Memory Update']), 2);
+      SetIsUpdating(False);
+      if FIsFirstLoad then begin
+        FIsFirstLoad := False;
       end;
     end;
 
@@ -448,16 +440,70 @@ begin
 {$ENDIF}
 end;
 
-procedure TSecuMainImpl.DoUpdateTableBefore;
+procedure TSecuMainImpl.DoUpdateTable;
 var
-  LIndex: Integer;
+  LDataSet: IWNDataSet;
 begin
-  for LIndex := 0 to self.FSecuInfos.GetCount - 1 do begin
-    FSecuInfos.GetElement(LIndex).FIsUsed := False;
+  if FAppContext = nil then Exit;
+
+  if FIsFirstLoad then begin
+    FAppContext.SendMsgEx(Msg_AsfUI_ReLoadInfo, '[Init_SecuMain] Get dataset from BaseCache');
+  end;
+
+  LDataSet := FAppContext.CacheSyncQuery(ctBaseData, SQL_SECUMAIN);
+  if (LDataSet = nil)
+    or FAsyncUpdateThread.IsTerminated then Exit;
+
+  if (LDataSet.RecordCount <= 0) then begin
+    LDataSet := nil;
+    FAppContext.SysLog(llWARN, '[TSecuMainImpl][DoUpdateTable] Load dateset is nil.');
+    Exit;
+  end;
+
+  DoUpdateTableBefore;
+  if FIsFirstLoad then begin
+    FAppContext.SendMsgEx(Msg_AsfUI_ReLoadInfo, '[Init_SecuMain] Load Memory from dataset');
+  end;
+  DoUpdateTableDataSet(LDataSet);
+  LDataSet := nil;
+
+  if FIsFirstLoad then begin
+    FAppContext.SendMsgEx(Msg_AsfUI_ReLoadInfo, '[Init_SecuMain] Load Memory Finish');
+  end;
+
+  if not FAsyncUpdateThread.IsTerminated then begin
+    Inc(FUpdateVersion);
+    FAppContext.SendMsgEx(Msg_AsfMem_ReUpdateSecuMain, 'SecuMain Memory Update', 1);
   end;
 end;
 
-procedure TSecuMainImpl.DoLoadDataSet(ADataSet: IWNDataSet);
+procedure TSecuMainImpl.DoUpdateTableBefore;
+var
+{$IFDEF DEBUG}
+  LTick: Cardinal;
+{$ENDIF}
+
+  LIndex: Integer;
+begin
+{$IFDEF DEBUG}
+  LTick := GetTickCount;
+{$ENDIF}
+  try
+    for LIndex := 0 to FSecuInfos.GetCount - 1 do begin
+
+      if FAsyncUpdateThread.IsTerminated then Break;
+
+      FSecuInfos.GetElement(LIndex).FIsUsed := False;
+    end;
+  finally
+{$IFDEF DEBUG}
+    LTick := GetTickCount - LTick;
+    FAppContext.SysLog(llSLOW, Format('[TSecuMainImpl][DoUpdateTableBefore] use time is %d ms.', [LTick]), LTick);
+{$ENDIF}
+  end;
+end;
+
+procedure TSecuMainImpl.DoUpdateTableDataSet(ADataSet: IWNDataSet);
 var
 {$IFDEF DEBUG}
   LTick: Cardinal;
@@ -484,6 +530,7 @@ begin
 {$ENDIF}
 
   try
+
     ADataSet.First;
     LInnerCodeF := ADataSet.FieldByName('InnerCode');
     LSecuMarket := ADataSet.FieldByName('SecuMarket');
@@ -500,23 +547,23 @@ begin
     LCodeByAgent := ADataSet.FieldByName('CodeByAgent');
     LCompanyCode := ADataSet.FieldByName('CompanyCode');
     while not ADataSet.Eof do begin
+
       // 防止线程退出了循环还没有退出
-      if FAsyncUpdateThread.IsTerminated then Exit;
+      if FAsyncUpdateThread.IsTerminated then Break;
 
       LInnerCode := LInnerCodeF.AsInteger;
 
-      if FSecuInfoDic.TryGetValue(LInnerCode, LSecuInfo)
-        and (LSecuInfo <> nil) then begin
+      if FSecuInfoDic.TryGetValue(LInnerCode, LSecuInfo) then begin
         LSecuInfo.FIsUsed := True;
       end else begin
         New(LSecuInfo);
-        FSecuInfoDic.AddOrSetValue(LInnerCode, LSecuInfo);
         LSecuInfo.FIsUsed := True;
         LSecuInfo.FInnerCode := LInnerCode;
         FSecuInfos.Add(LSecuInfo);
+        FSecuInfoDic.AddOrSetValue(LInnerCode, LSecuInfo);
       end;
 
-      DoLoadSecuInfo(LSecuInfo,
+      DoUpdateTableSecuInfo(LSecuInfo,
         LSecuMarket,
         LListedState,
         LSecuCategory,
@@ -548,6 +595,7 @@ begin
     LSecuSuffix := nil;
     LFormerAbbr := nil;
     LFormerSpell := nil;
+
   finally
 
 {$IFDEF DEBUG}
@@ -557,8 +605,7 @@ begin
   end;
 end;
 
-procedure TSecuMainImpl.DoLoadSecuInfo(ASecuInfo: PSecuInfo;
-//  AInnerCode,
+procedure TSecuMainImpl.DoUpdateTableSecuInfo(ASecuInfo: PSecuInfo;
   ASecuMarket,
   AListedState,
   ASecuCategory,
@@ -592,8 +639,7 @@ end;
 
 function TSecuMainImpl.DoGetItemUpdating(AInnerCode: Integer): PSecuInfo;
 begin
-  if not (FSecuInfoDic.TryGetValue(AInnerCode, Result)
-    and (Result <> nil)) then begin
+  if FSecuInfoDic.TryGetValue(AInnerCode, Result) then begin
    Result := nil;
   end;
 end;
@@ -602,7 +648,7 @@ function TSecuMainImpl.DoGetItemNoUpdating(AInnerCode: Integer): PSecuInfo;
 var
   LSecuInfo: PSecuInfo;
 begin
-  if FSecuInfoDic.TryGetValue(AInnerCode, LSecuInfo) then begin
+  if FSecuInfoDic.TryGetValue(AInnerCode, LSecuInfo) and LSecuInfo.FIsUsed then begin
     Result := LSecuInfo;
   end else begin
     Result := nil;

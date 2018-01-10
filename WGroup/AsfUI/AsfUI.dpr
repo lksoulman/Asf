@@ -15,8 +15,6 @@ uses
   System.Classes,
   WExport in 'WExport\WExport.pas',
   AsfUIPlugInMgrImpl in 'WExport\Impl\AsfUIPlugInMgrImpl.pas',
-  SimpleHqTestImpl in 'SimpleHqTest\Impl\SimpleHqTestImpl.pas',
-  SimpleHqTestTimeCommandImpl in 'WCommands\SimpleHqTestTimeCommandImpl.pas',
   QuoteTime in 'AQuote\Time\QuoteTime.pas',
   QuoteTimeButton in 'AQuote\Time\QuoteTimeButton.pas',
   QuoteTimeCross in 'AQuote\Time\QuoteTimeCross.pas',
@@ -46,9 +44,23 @@ uses
   QuoteCommMine in 'AQuote\Common\QuoteCommMine.pas',
   QuoteCommStack in 'AQuote\Common\QuoteCommStack.pas',
   SelfRightMenuComm in 'AQuote\Common\SelfRightMenuComm.pas',
-  SimpleHqTestMarketCommandImpl in 'WCommands\SimpleHqTestMarketCommandImpl.pas';
+  WebPopBrowser in 'Browser\Pop\WebPopBrowser.pas',
+  WebPopBrowserImpl in 'Browser\Pop\Impl\WebPopBrowserImpl.pas',
+  WebPopBrowserCommandImpl in 'WCommands\WebPopBrowserCommandImpl.pas',
+  WebPopNewsCommandImpl in 'WCommands\WebPopNewsCommandImpl.pas',
+  WebPopAnnouncementCommandImpl in 'WCommands\WebPopAnnouncementCommandImpl.pas',
+  WebPopResearchReportCommandImpl in 'WCommands\WebPopResearchReportCommandImpl.pas',
+  SimpleHqTestImpl in 'AHqTest\Impl\SimpleHqTestImpl.pas',
+  SimpleHqTestTimeCommandImpl in 'WCommands\SimpleHqTestTimeCommandImpl.pas',
+  SimpleHqTestMarketCommandImpl in 'WCommands\SimpleHqTestMarketCommandImpl.pas',
+  WebEmbedAssetsImpl in 'Browser\Embed\WebEmbedAssetsImpl.pas',
+  WebEmbedAssetsCommandImpl in 'WCommands\WebEmbedAssetsCommandImpl.pas',
+  HomePageImpl in 'HomePage\Impl\HomePageImpl.pas',
+  HomePageUI in 'HomePage\HomePageUI.pas',
+  HomePageCommandImpl in 'WCommands\HomePageCommandImpl.pas';
 
 {$R *.res}
 
 begin
+
 end.
