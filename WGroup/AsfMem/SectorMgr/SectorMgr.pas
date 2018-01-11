@@ -31,24 +31,14 @@ type
     procedure UnLock;
     // Update
     procedure Update;
-    // GetVersion
-    function GetVersion: Integer;
     // GetRootSector
-    function GetRootSector: ISector;
+    function GetRootSector: TSector;
     // GetSector
-    function GetSector(AId: Integer): ISector;
+    function GetSector(AId: Integer): TSector;
     // GetSectorElements
     function GetSectorElements(AId: Integer): string;
   end;
 
-  // SectorMgrUpdate
-  ISectorMgrUpdate = interface(IInterface)
-    ['{C2086B9D-6041-4233-847B-A598F195BF84}']
-    // DeleteSector
-    procedure DeleteSector(AId: Integer);
-  end;
-
 implementation
-
 
 end.

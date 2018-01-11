@@ -57,8 +57,6 @@ type
 
     // StopService
     procedure DoStopService; override;
-    // AddDefaultUserSector
-    procedure DoAddDefaultUserSector;
     // DeleteNotInUserSector
     procedure DoDeleteNotInUserSector(ADataSet: IWNDataSet);
   public
@@ -98,9 +96,9 @@ uses
 constructor TUserCacheImpl.Create(AContext: IAppContext);
 begin
   inherited;
-  FUpLoadServerThread := TExecutorThread.Create;
-  FUpLoadServerThread.ThreadMethod := DoUpLoadServerThread;
-  FUpLoadServerThread.StartEx;
+//  FUpLoadServerThread := TExecutorThread.Create;
+//  FUpLoadServerThread.ThreadMethod := DoUpLoadServerThread;
+//  FUpLoadServerThread.StartEx;
 end;
 
 destructor TUserCacheImpl.Destroy;
@@ -113,23 +111,9 @@ procedure TUserCacheImpl.DoStopService;
 begin
   if not FIsStopService then begin
     FProcessCacheGFQueueThread.ShutDown;
-    FUpLoadServerThread.ShutDown;
+//    FUpLoadServerThread.ShutDown;
     FIsStopService := True;
   end;
-end;
-
-procedure TUserCacheImpl.DoAddDefaultUserSector;
-//var
-//  LSql: string;
-//  LDataSet: IWNDataSet;
-begin
-//  LDataSet := FSQLiteAdapter.QuerySql(LSql);
-//  if LDataSet <> nil
-//    and (LDataSet.RecordCount <= 0) then begin
-//    LSql := Format('INSERT OR REPLACE INTO #TableName VALUES (''%s'',%d,''%s'',%d,''%s'',1)',
-//      ['', 1, '×ÔÑ¡¹É', 0, '1,1055,1752']);
-//    FSQLiteAdapter.ExecuteSql(LSql);
-//  end;
 end;
 
 procedure TUserCacheImpl.DoDeleteNotInUserSector(ADataSet: IWNDataSet);
@@ -499,8 +483,8 @@ begin
         begin
           if FUpLoadServerThread.IsTerminated then Exit;
 
-          DoUpLoadUserSector;
-          DoUpLoadUserConfig;
+//          DoUpLoadUserSector;
+//          DoUpLoadUserConfig;
         end;
     end;
   end;

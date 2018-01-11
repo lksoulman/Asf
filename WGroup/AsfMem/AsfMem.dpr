@@ -29,8 +29,7 @@ uses
   SectorImpl in 'SectorMgr\SectorImpl.pas',
   SectorUpdate in 'SectorMgr\SectorUpdate.pas',
   SectorMgr in 'SectorMgr\SectorMgr.pas',
-  SectorMgrImpl in 'SectorMgr\Impl\SectorMgrImpl.pas',
-  SectorMgrUpdate in 'SectorMgr\SectorMgrUpdate.pas';
+  SectorMgrImpl in 'SectorMgr\Impl\SectorMgrImpl.pas';
 
 {$R *.res}
 

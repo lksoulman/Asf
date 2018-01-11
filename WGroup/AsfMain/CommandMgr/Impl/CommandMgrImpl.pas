@@ -23,61 +23,51 @@ uses
   CommonLock,
   CommonQueue,
   ExecutorThread,
+  CommonRefCounter,
   Generics.Collections;
 
 type
 
   // CommandJob
-  TCommandJob = packed record
+  TCommandJob = class(TAutoObject)
+  private
     FId: Cardinal;
     FParams: string;
     FLast: Cardinal;
     FDelaySecs: Cardinal;
+  protected
+  public
+    // Constructor
+    constructor Create; override;
+    // Destructor
+    destructor Destroy; override;
   end;
 
-  // CommandJob
-  PCommandJob = ^TCommandJob;
-
   // CommandJobList
-  TCommandJobList = class(TBaseObject)
+  TCommandJobList = class(TAutoObject)
   private
     // Lock
     FLock: TCSLock;
     // Count
     FCount: Integer;
     // CommandJobs
-    FCommandJobs: TList<PCommandJob>;
+    FCommandJobs: TList<TCommandJob>;
   protected
     // ClearJobs
     procedure DoClearJobs;
   public
     // Constructor
-    constructor Create(AContext: IAppContext); override;
+    constructor Create; override;
     // Destructor
     destructor Destroy; override;
     // Lock
     procedure Lock;
     // UnLock
     procedure UnLock;
-    // AddTailElemnt
-    procedure AddTailElement(AJob: PCommandJob);
+    // AddElement
+    procedure AddElement(AJob: TCommandJob);
     // AddElementByDelay
-    procedure AddElementByDelay(AJob: PCommandJob);
-  end;
-
-  // CommandJobPool
-  TCommandJobPool = class(TPointerPool)
-  private
-  protected
-  public
-    // Create
-    function DoCreate: Pointer; override;
-    // Destroy
-    procedure DoDestroy(APointer: Pointer); override;
-    // Allocate Before
-    procedure DoAllocateBefore(APointer: Pointer); override;
-    // DeAllocate Before
-    procedure DoDeAllocateBefore(APointer: Pointer); override;
+    procedure AddElementByDelay(AJob: TCommandJob);
   end;
 
   // CommandMgr Implementation
@@ -95,14 +85,13 @@ type
     FCommandDic: TDictionary<Cardinal, ICommand>;
     // SysCommandDic
     FSysCommandDic: TDictionary<Cardinal, ICommand>;
-    // CommandJobPool
-    FCommandJobPool: TCommandJobPool;
     // DelayCommandJob
     FDelayCommandJobs: TCommandJobList;
     // FixedCommandJob
     FFixedCommandJobs: TCommandJobList;
     // AsyncExecuteThread
     FAsyncExecuteCmdThread: TExecutorThread;
+
   protected
     // ExecuteDelayJobs
     procedure DoExecuteDelayJobs;
@@ -142,53 +131,28 @@ type
 
 implementation
 
-{ TCommandJobPool }
+{ TCommandJob }
 
-function TCommandJobPool.DoCreate: Pointer;
-var
-  LCommandJob: PCommandJob;
+constructor TCommandJob.Create;
 begin
-  New(LCommandJob);
-  LCommandJob^.FId := 0;
-  LCommandJob^.FParams := '';
-  LCommandJob^.FLast := 0;
-  LCommandJob^.FDelaySecs := 0;
-  Result := LCommandJob;
+  inherited;
+
 end;
 
-procedure TCommandJobPool.DoDestroy(APointer: Pointer);
-var
-  LCommandJob: PCommandJob;
+destructor TCommandJob.Destroy;
 begin
-  if APointer <> nil then begin
-    LCommandJob := PCommandJob(APointer);
-    Dispose(APointer);
-  end;
-end;
-
-procedure TCommandJobPool.DoAllocateBefore(APointer: Pointer);
-begin
-  if APointer <> nil then begin
-    PCommandJob(APointer)^.FId := 0;
-    PCommandJob(APointer)^.FParams := '';
-    PCommandJob(APointer)^.FLast := 0;
-    PCommandJob(APointer)^.FDelaySecs := 0;
-  end;
-end;
-
-procedure TCommandJobPool.DoDeAllocateBefore(APointer: Pointer);
-begin
-
+  FParams := '';
+  inherited;
 end;
 
 { TCommandJobList }
 
-constructor TCommandJobList.Create(AContext: IAppContext);
+constructor TCommandJobList.Create;
 begin
   inherited;
   FCount := 0;
   FLock := TCSLock.Create;
-  FCommandJobs := TList<PCommandJob>.Create;
+  FCommandJobs := TList<TCommandJob>.Create;
 end;
 
 destructor TCommandJobList.Destroy;
@@ -202,12 +166,12 @@ end;
 procedure TCommandJobList.DoClearJobs;
 var
   LIndex: Integer;
-  LJob: PCommandJob;
+  LJob: TCommandJob;
 begin
   for LIndex := 0 to FCommandJobs.Count - 1 do begin
     LJob := FCommandJobs.Items[LIndex];
     if LJob <> nil then begin
-      Dispose(LJob);
+      LJob.Free;
     end;
   end;
   FCommandJobs.Clear;
@@ -223,7 +187,7 @@ begin
   FLock.UnLock;
 end;
 
-procedure TCommandJobList.AddTailElement(AJob: PCommandJob);
+procedure TCommandJobList.AddElement(AJob: TCommandJob);
 begin
   if AJob = nil then Exit;
 
@@ -237,10 +201,10 @@ begin
   end;
 end;
 
-procedure TCommandJobList.AddElementByDelay(AJob: PCommandJob);
+procedure TCommandJobList.AddElementByDelay(AJob: TCommandJob);
 var
   LIndex: Integer;
-  LJob: PCommandJob;
+  LJob: TCommandJob;
 begin
   if AJob = nil then Exit;
 
@@ -282,9 +246,8 @@ begin
   FInterceptors := TList<ICmdInterceptor>.Create;
   FCommandDic := TDictionary<Cardinal, ICommand>.Create;
   FSysCommandDic := TDictionary<Cardinal, ICommand>.Create;
-  FCommandJobPool := TCommandJobPool.Create(10);
-  FDelayCommandJobs := TCommandJobList.Create(AContext);
-  FFixedCommandJobs := TCommandJobList.Create(AContext);
+  FDelayCommandJobs := TCommandJobList.Create;
+  FFixedCommandJobs := TCommandJobList.Create;
   FAsyncExecuteCmdThread := TExecutorThread.Create;
   FAsyncExecuteCmdThread.ThreadMethod := DoAsyncExecuteCmdThread;
   FAsyncExecuteCmdThread.StartEx;
@@ -294,9 +257,8 @@ end;
 destructor TCommandMgrImpl.Destroy;
 begin
   FAsyncExecuteCmdThread.ShutDown;
-  FFixedCommandJobs.Free;
   FDelayCommandJobs.Free;
-  FCommandJobPool.Free;
+  FFixedCommandJobs.Free;
   FSysCommandDic.Free;
   FCommandDic.Free;
   FInterceptors.Free;
@@ -308,7 +270,7 @@ end;
 procedure TCommandMgrImpl.DoExecuteDelayJobs;
 var
   LIndex: Integer;
-  LJob: PCommandJob;
+  LJob: TCommandJob;
 begin
   FDelayCommandJobs.Lock;
   try
@@ -322,7 +284,8 @@ begin
 
           ExecuteCmd(LJob.FId, LJob.FParams);
           FDelayCommandJobs.FCommandJobs.Delete(LIndex);
-          FCommandJobPool.DeAllocate(LJob);
+
+          LJob.Free;
         end;
       end;
     end;
@@ -334,7 +297,7 @@ end;
 procedure TCommandMgrImpl.DoExecuteFixedJobs;
 var
   LIndex: Integer;
-  LJob: PCommandJob;
+  LJob: TCommandJob;
 begin
   FFixedCommandJobs.Lock;
   try
@@ -473,14 +436,14 @@ end;
 
 function TCommandMgrImpl.DelayExecuteCmd(ACommandId: Cardinal; AParams: string; ADelaySecs: Cardinal): Boolean;
 var
-  LCommandJob: PCommandJob;
+  LCommandJob: TCommandJob;
 begin
-  LCommandJob := PCommandJob(FCommandJobPool.Allocate);
+  LCommandJob := TCommandJob.Create;
   if LCommandJob <> nil then begin
     Result := True;
-    LCommandJob^.FId := ACommandId;
-    LCommandJob^.FParams := AParams;
-    LCommandJob^.FDelaySecs := ADelaySecs;
+    LCommandJob.FId := ACommandId;
+    LCommandJob.FParams := AParams;
+    LCommandJob.FDelaySecs := ADelaySecs;
     FDelayCommandJobs.AddElementByDelay(LCommandJob);
   end else begin
     Result := False;
@@ -489,15 +452,15 @@ end;
 
 function TCommandMgrImpl.FixedExecuteCmd(ACommandId: Cardinal; AParams: string; AFixedSecs: Cardinal): Boolean;
 var
-  LCommandJob: PCommandJob;
+  LCommandJob: TCommandJob;
 begin
-  LCommandJob := PCommandJob(FCommandJobPool.Allocate);
+  LCommandJob := TCommandJob.Create;
   if LCommandJob <> nil then begin
     Result := True;
-    LCommandJob^.FId := ACommandId;
-    LCommandJob^.FParams := AParams;
-    LCommandJob^.FDelaySecs := AFixedSecs;
-    FFixedCommandJobs.AddTailElement(LCommandJob);
+    LCommandJob.FId := ACommandId;
+    LCommandJob.FParams := AParams;
+    LCommandJob.FDelaySecs := AFixedSecs;
+    FFixedCommandJobs.AddElement(LCommandJob);
   end else begin
     Result := False;
   end;

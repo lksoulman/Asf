@@ -2,7 +2,7 @@ unit UserSectorImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º UserSector Implementation
+// Description£º UserSectorImpl
 // Author£º      lksoulman
 // Date£º        2018-1-3
 // Comments£º
@@ -20,20 +20,25 @@ uses
   UserSector,
   BaseObject,
   AppContext,
-  UserSectorUpdate,
   CommonRefCounter,
   Generics.Collections;
 
 type
 
-  // UserSector Implementation
-  TUserSectorImpl = class(TBaseInterfacedObject, IUserSector, IUserSectorUpdate)
+  // UserSectorImpl
+  TUserSectorImpl = class(TUserSector)
   private
-    // UserSectorInfo
-    FUserSectorInfo:  TUserSectorInfo;
   protected
     // UpdateLocalDB
     procedure DoUpdateLocalDB(AUpLoadValue: Integer);
+  public
+    FID: string;
+    FCID: Integer;
+    FName: string;
+    FOrderNo: Integer;
+    FInnerCodes: string;
+    FIsUsed: Boolean;
+    FOrderIndex: Integer;
   public
     // Constructor
     constructor Create(AContext: IAppContext); override;
@@ -43,33 +48,21 @@ type
     { ISector }
 
     // GetName
-    function GetName: string;
+    function GetName: string; override;
     // GetOrderNo
-    function GetOrderNo: Integer;
+    function GetOrderNo: Integer; override;
     // GetInnerCodes
-    function GetInnerCodes: string;
+    function GetInnerCodes: string; override;
     // SetName
-    procedure SetName(AName: string);
+    procedure SetName(AName: string); override;
     // SetOrderNo
-    procedure SetOrderNo(AOrderNo: Integer);
+    procedure SetOrderNo(AOrderNo: Integer); override;
     // SetInnerCodes
-    procedure SetInnerCodes(AInnerCodes: string);
+    procedure SetInnerCodes(AInnerCodes: string); override;
     // Add
-    procedure Add(AInnerCode: Integer);
+    procedure Add(AInnerCode: Integer); override;
     // Delete
-    procedure Delete(AInnerCode: Integer);
-
-    { IUserSectorUpdate }
-
-    // GetUserSectorInfo
-    function GetUserSectorInfo: PUserSectorInfo;
-    // Compare
-    function CompareAssign(AUserSectorInfo: PUserSectorInfo): Boolean;
-
-    property Name: string read GetName write SetName;
-    property OrderNo: Integer read GetOrderNo write SetOrderNo;
-    property InnerCodes: string read GetInnerCodes write SetInnerCodes;
-    property UserSectorInfo: PUserSectorInfo read GetUserSectorInfo;
+    procedure Delete(AInnerCode: Integer); override;
   end;
 
 implementation
@@ -108,28 +101,28 @@ begin
   LTableName := 'UserSector';
   LSql := Format('INSERT OR REPLACE INTO %s VALUES (''%s'',%d,''%s'',%d,''%s'',%d)',
     [LTableName,
-     FUserSectorInfo.FID,
-     FUserSectorInfo.FCID,
-     FUserSectorInfo.FName,
-     FUserSectorInfo.FOrderNo,
-     FUserSectorInfo.FInnerCodes,
+      FID,
+      FCID,
+      FName,
+      FOrderNo,
+      FInnerCodes,
      AUpLoadValue]);
   LUserCache.ExecuteSql(LTableName, LSql);
 end;
 
 function TUserSectorImpl.GetName: string;
 begin
-  Result := FUserSectorInfo.FName;
+  Result := FName;
 end;
 
 function TUserSectorImpl.GetOrderNo: Integer;
 begin
-  Result := FUserSectorInfo.FOrderNo;
+  Result := FOrderNo;
 end;
 
 function TUserSectorImpl.GetInnerCodes: string;
 begin
-  Result := FUserSectorInfo.FInnerCodes;
+  Result := FInnerCodes;
 end;
 
 procedure TUserSectorImpl.SetName(AName: string);
@@ -142,8 +135,10 @@ begin
   if LUserSectorMgr <> nil then begin
     LUserSectorMgr.Lock;
     try
-      if FUserSectorInfo.FName <> AName then begin
-        FUserSectorInfo.FName := Copy(AName, 1, Length(AName));
+      if FName <> AName then begin
+        (LUserSectorMgr as IUserSectorMgrUpdate).RemoveDic(FName);
+        FName := Copy(AName, 1, Length(AName));
+        (LUserSectorMgr as IUserSectorMgrUpdate).AddDicUserSector(Self);
         DoUpdateLocalDB(UPLOADVALUE_MODIFY);
       end;
     finally
@@ -161,8 +156,8 @@ begin
   if LUserSectorMgr <> nil then begin
     LUserSectorMgr.Lock;
     try
-      if FUserSectorInfo.FOrderNo <> AOrderNo then begin
-        FUserSectorInfo.FOrderNo := AOrderNo;
+      if FOrderNo <> AOrderNo then begin
+        FOrderNo := AOrderNo;
         DoUpdateLocalDB(UPLOADVALUE_MODIFY);
       end;
     finally
@@ -180,11 +175,11 @@ begin
   if LUserSectorMgr <> nil then begin
     LUserSectorMgr.Lock;
     try
-      if FUserSectorInfo.FInnerCodes <> AInnerCodes then begin
+      if FInnerCodes <> AInnerCodes then begin
         if AInnerCodes <> '' then begin
-          FUserSectorInfo.FInnerCodes := Copy(AInnerCodes, 1, Length(AInnerCodes));
+          FInnerCodes := Copy(AInnerCodes, 1, Length(AInnerCodes));
         end else begin
-          FUserSectorInfo.FInnerCodes := '';
+          FInnerCodes := '';
         end;
         DoUpdateLocalDB(UPLOADVALUE_MODIFY);
         (LUserSectorMgr as IUserSectorMgrUpdate).UpdateSelfStockFlagAll;
@@ -207,23 +202,23 @@ begin
     LUserSectorMgr.Lock;
     try
       LInnerCodeStr := IntToStr(AInnerCode);
-      if FUserSectorInfo.FInnerCodes <> '' then begin
+      if FInnerCodes <> '' then begin
         LInnerCodes := TStringList.Create;
         try
           LInnerCodes.Delimiter := ',';
-          LInnerCodes.DelimitedText := FUserSectorInfo.FInnerCodes;
+          LInnerCodes.DelimitedText := FInnerCodes;
           if LInnerCodes.IndexOf(LInnerCodeStr) < 0 then begin
-            FUserSectorInfo.FInnerCodes := LInnerCodeStr + ',' + FUserSectorInfo.FInnerCodes;
+            FInnerCodes := LInnerCodeStr + ',' + FInnerCodes;
             DoUpdateLocalDB(UPLOADVALUE_MODIFY);
-            (LUserSectorMgr as IUserSectorMgrUpdate).AddSelfStockFlag(FUserSectorInfo.FIndex, AInnerCode);
+            (LUserSectorMgr as IUserSectorMgrUpdate).AddSelfStockFlag(FOrderIndex, AInnerCode);
           end;
         finally
           LInnerCodes.Free;
         end;
       end else begin
-        FUserSectorInfo.FInnerCodes := LInnerCodeStr;
+        FInnerCodes := LInnerCodeStr;
         DoUpdateLocalDB(UPLOADVALUE_MODIFY);
-        (LUserSectorMgr as IUserSectorMgrUpdate).AddSelfStockFlag(FUserSectorInfo.FIndex, AInnerCode);
+        (LUserSectorMgr as IUserSectorMgrUpdate).AddSelfStockFlag(FOrderIndex, AInnerCode);
       end;
     finally
       LUserSectorMgr.UnLock;
@@ -239,7 +234,7 @@ var
   LInnerCodes: TStringList;
   LUserSectorMgr: IUserSectorMgr;
 begin
-  if FUserSectorInfo.FInnerCodes = '' then Exit;
+  if FInnerCodes = '' then Exit;
 
   LUserSectorMgr := FAppContext.FindInterface(ASF_COMMAND_ID_USERSECTORMGR) as IUserSectorMgr;
   if LUserSectorMgr <> nil then begin
@@ -249,42 +244,23 @@ begin
       LInnerCodes := TStringList.Create;
       try
         LInnerCodes.Delimiter := ',';
-        LInnerCodes.DelimitedText := FUserSectorInfo.FInnerCodes;
+        LInnerCodes.DelimitedText := FInnerCodes;
         LIndex := LInnerCodes.IndexOf(LInnerCodeStr);
         if LIndex >= 0 then begin
           LInnerCodes.Delete(LIndex);
-          FUserSectorInfo.FInnerCodes := LInnerCodes.DelimitedText;
+          FInnerCodes := LInnerCodes.DelimitedText;
         end;
       finally
         LInnerCodes.Free;
       end;
       if LIndex >= 0 then begin
         DoUpdateLocalDB(UPLOADVALUE_MODIFY);
-        (LUserSectorMgr as IUserSectorMgrUpdate).DeleteSelfStockFlag(FUserSectorInfo.FIndex, AInnerCode);
+        (LUserSectorMgr as IUserSectorMgrUpdate).DeleteSelfStockFlag(FOrderIndex, AInnerCode);
       end;
     finally
       LUserSectorMgr.UnLock;
     end;
     LUserSectorMgr := nil;
-  end;
-end;
-
-function TUserSectorImpl.GetUserSectorInfo: PUserSectorInfo;
-begin
-  Result := @FUserSectorInfo;
-end;
-
-function TUserSectorImpl.CompareAssign(AUserSectorInfo: PUserSectorInfo): Boolean;
-begin
-  Result := True;
-  if AUserSectorInfo = nil then Exit;
-
-  if (AUserSectorInfo.FID <> FUserSectorInfo.FID)
-    or (AUserSectorInfo.FOrderNo <> FUserSectorInfo.FOrderNo)
-    or (AUserSectorInfo.FInnerCodes <> FUserSectorInfo.FInnerCodes) then begin
-    FUserSectorInfo.FID := AUserSectorInfo.FID;
-    FUserSectorInfo.FOrderNo := AUserSectorInfo.FOrderNo;
-    FUserSectorInfo.FInnerCodes := AUserSectorInfo.FInnerCodes;
   end;
 end;
 

@@ -4,7 +4,7 @@ unit UserSectorMgrImpl;
 //
 // Description： UserSectorMgr Implementation
 // Author：      lksoulman
-// Date：        2017-12-04
+// Date：        2018-1-4
 // Comments：
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,6 @@ uses
   UserSector,
   WNDataSetInf,
   UserSectorMgr,
-  UserSectorUpdate,
   Generics.Collections,
   MsgExSubcriberAdapter;
 
@@ -39,9 +38,9 @@ type
     // OrderNo
     FOrderNo: Integer;
     // UserSectors
-    FUserSectors: TList<IUserSector>;
+    FUserSectors: TList<TUserSector>;
     // UserSectorDic
-    FUserSectorDic: TDictionary<string, IUserSector>;
+    FUserSectorDic: TDictionary<string, TUserSector>;
     // MsgExSubcriberAdapter
     FMsgExSubcriberAdapter: TMsgExSubcriberAdapter;
     // SelfStockFlagDic
@@ -92,20 +91,22 @@ type
     // GetCount
     function GetCount: Integer;
     // GetSector
-    function GetSector(AIndex: Integer): IUserSector;
+    function GetSector(AIndex: Integer): TUserSector;
     // IsExistUserSector
     function IsExistUserSector(AName: string): Boolean;
     // AddUserSector
-    function AddUserSector(AName: string): IUserSector;
+    function AddUserSector(AName: string): TUserSector;
     // GetSelfStockFlag
     function GetSelfStockFlag(AInnerCode: Integer): Integer;
 
     { IUserSectorMgrUpdate }
 
-    // ClearUserSectors
-    procedure ClearUserSectors;
     // UpdateAllSelfStockFlag
     procedure UpdateSelfStockFlagAll;
+    // RemoveDic
+    procedure RemoveDic(AName: string);
+    // AddDicUserSector
+    procedure AddDicUserSector(AUserSector: TUserSector);
     // UpdateSelfStockFlag
     procedure AddSelfStockFlag(AIndex, AInnerCode: Integer);
     // DeleteSelfStockFlag
@@ -128,8 +129,8 @@ begin
   FOrderNo := 0;
   FLock := TCSLock.Create;
   FSelfStockFlagDic := TDictionary<Integer, Integer>.Create(200);
-  FUserSectors := TList<IUserSector>.Create;
-  FUserSectorDic := TDictionary<string, IUserSector>.Create;
+  FUserSectors := TList<TUserSector>.Create;
+  FUserSectorDic := TDictionary<string, TUserSector>.Create;
   FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(FAppContext, DoUpdateMsgEx);
   FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfCache_ReUpdateUserCache_UserSector);
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
@@ -138,6 +139,7 @@ end;
 
 destructor TUserSectorMgrImpl.Destroy;
 begin
+  DoClearUserSectors;
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(False);
   FMsgExSubcriberAdapter.Free;
   FUserSectorDic.Free;
@@ -162,10 +164,9 @@ end;
 procedure TUserSectorMgrImpl.DoUpdate;
 var
   LSql: string;
-  LDataSet: IWNDataSet;
-  LUserSector: IUserSector;
   LIsUpdate: Boolean;
-  LUserSectorInfo: TUserSectorInfo;
+  LDataSet: IWNDataSet;
+  LUserSector: TUserSector;
   LID, LCID, LName, LOrderNo, LInnerCodes: IWNField;
 begin
   LIsUpdate := False;
@@ -190,25 +191,22 @@ begin
           LDataSet.First;
           while not LDataSet.Eof do begin
             if FUserSectorDic.TryGetValue(LName.AsString, LUserSector) then begin
-              LUserSectorInfo.FID := LID.AsString;
-              LUserSectorInfo.FCID := LCID.AsInteger;
-              LUserSectorInfo.FName := LName.AsString;
-              LUserSectorInfo.FOrderNo := LOrderNo.AsInteger;
-              LUserSectorInfo.FInnerCodes := LInnerCodes.AsString;
-              if (LUserSector as IUserSectorUpdate).CompareAssign(@LUserSectorInfo) then begin
-                if not LIsUpdate then begin
-                  LIsUpdate := True;
-                end;
+              if (TUserSectorImpl(LUserSector).FID <> LID.AsString)
+                or (TUserSectorImpl(LUserSector).FOrderNo <> LOrderNo.AsInteger)
+                or (TUserSectorImpl(LUserSector).FInnerCodes <> LInnerCodes.AsString) then begin
+                TUserSectorImpl(LUserSector).FID := LID.AsString;
+                TUserSectorImpl(LUserSector).FOrderNo := LOrderNo.AsInteger;
+                TUserSectorImpl(LUserSector).FInnerCodes := LInnerCodes.AsString;
               end;
             end else begin
               LUserSector := TUserSectorImpl.Create(FAppContext);
-              (LUserSector as IUserSectorUpdate).UserSectorInfo.FID := LID.AsString;
-              (LUserSector as IUserSectorUpdate).UserSectorInfo.FCID := LCID.AsInteger;
-              (LUserSector as IUserSectorUpdate).UserSectorInfo.FName := LName.AsString;
-              (LUserSector as IUserSectorUpdate).UserSectorInfo.FOrderNo := LOrderNo.AsInteger;
-              (LUserSector as IUserSectorUpdate).UserSectorInfo.FInnerCodes := LInnerCodes.AsString;
-              (LUserSector as IUserSectorUpdate).UserSectorInfo.FIsUsed := True;
-              (LUserSector as IUserSectorUpdate).UserSectorInfo.FIndex := FUserSectors.Add(LUserSector);
+              TUserSectorImpl(LUserSector).FID := LID.AsString;
+              TUserSectorImpl(LUserSector).FCID := LCID.AsInteger;
+              TUserSectorImpl(LUserSector).FName := LName.AsString;
+              TUserSectorImpl(LUserSector).FOrderNo := LOrderNo.AsInteger;
+              TUserSectorImpl(LUserSector).FInnerCodes := LInnerCodes.AsString;
+              TUserSectorImpl(LUserSector).FIsUsed := True;
+              TUserSectorImpl(LUserSector).FOrderIndex := FUserSectors.Add(LUserSector);
               FUserSectorDic.AddOrSetValue(LUserSector.Name, LUserSector);
               if not LIsUpdate then begin
                 LIsUpdate := True;
@@ -236,13 +234,13 @@ begin
     end else begin
       if FUserSectors.Count <= 0 then begin
         LUserSector := TUserSectorImpl.Create(FAppContext);
-        (LUserSector as IUserSectorUpdate).UserSectorInfo.FID := LID.AsString;
-        (LUserSector as IUserSectorUpdate).UserSectorInfo.FCID := GetNewCID;
-        (LUserSector as IUserSectorUpdate).UserSectorInfo.FName := '自选股';
-        (LUserSector as IUserSectorUpdate).UserSectorInfo.FOrderNo := FOrderNo;
-        (LUserSector as IUserSectorUpdate).UserSectorInfo.FInnerCodes := '1,1055,1752';
-        (LUserSector as IUserSectorUpdate).UserSectorInfo.FIsUsed := True;
-        (LUserSector as IUserSectorUpdate).UserSectorInfo.FIndex := FUserSectors.Add(LUserSector);
+        TUserSectorImpl(LUserSector).FID := LID.AsString;
+        TUserSectorImpl(LUserSector).FCID := GetNewCID;
+        TUserSectorImpl(LUserSector).FName := '自选股';
+        TUserSectorImpl(LUserSector).FOrderNo := FOrderNo;
+        TUserSectorImpl(LUserSector).FInnerCodes := '1,1055,1752';
+        TUserSectorImpl(LUserSector).FIsUsed := True;
+        TUserSectorImpl(LUserSector).FOrderIndex := FUserSectors.Add(LUserSector);
         FUserSectorDic.AddOrSetValue(LUserSector.Name, LUserSector);
       end;
     end;
@@ -258,11 +256,12 @@ end;
 procedure TUserSectorMgrImpl.DoClearUserSectors;
 var
   LIndex: Integer;
+  LUserSector: TUserSector;
 begin
-  for LIndex := 0 to FUserSectors.Count - 1 do begin
-    if FUserSectors.Items[LIndex] <> nil then begin
-      FUserSectorDic.Remove(FUserSectors.Items[LIndex].Name);
-      FUserSectors.Items[LIndex] := nil;
+  for LIndex := FUserSectors.Count - 1 downto 0 do begin
+    LUserSector := FUserSectors.Items[LIndex];
+    if LUserSector <> nil then begin
+      LUserSector.Free;
     end;
   end;
   FUserSectors.Clear;
@@ -306,7 +305,7 @@ var
 begin
   for LIndex := 0 to FUserSectors.Count - 1 do begin
     if FUserSectors.Items[LIndex] <> nil then begin
-      (FUserSectors.Items[LIndex] as IUserSectorUpdate).UserSectorInfo.FIndex := LIndex;
+      TUserSectorImpl(FUserSectors.Items[LIndex]).FOrderIndex := LIndex;
     end;
   end;
 end;
@@ -314,7 +313,7 @@ end;
 procedure TUserSectorMgrImpl.DoUserSectorsSortByOrderNo;
 var
   I, J, K: Integer;
-  LUserSector: IUserSector;
+  LUserSector: TUserSector;
 begin
   for I := 0 to FUserSectors.Count - 2 do begin
     K := I;
@@ -335,10 +334,12 @@ end;
 procedure TUserSectorMgrImpl.DoUpdateUserSectorsIsUsedFalse;
 var
   LIndex: Integer;
+  LUserSector: TUserSector;
 begin
   for LIndex := 0 to FUserSectors.Count - 1 do begin
-    if FUserSectors.Items[LIndex] <> nil then begin
-      (FUserSectors.Items[LIndex] as IUserSectorUpdate).UserSectorInfo.FIsUsed := False;
+    LUserSector := FUserSectors.Items[LIndex];
+    if LUserSector <> nil then begin
+      TUserSectorImpl(LUserSector).FIsUsed := False;
     end;
   end;
 end;
@@ -346,17 +347,17 @@ end;
 function TUserSectorMgrImpl.DoUpdateUserSectorsIsUsedTrue: Boolean;
 var
   LIndex: Integer;
-  LUserSector: IUserSector;
+  LUserSector: TUserSector;
 begin
   Result := False;
   for LIndex := FUserSectors.Count - 1 downto 0 do begin
     LUserSector := FUserSectors.Items[LIndex];
     if LUserSector <> nil then begin
-      if not (LUserSector as IUserSectorUpdate).UserSectorInfo.FIsUsed then begin
+      if not TUserSectorImpl(LUserSector).FIsUsed then begin
         Result := True;
         FUserSectorDic.Remove(LUserSector.Name);
-        FUserSectors.Remove(LUserSector);
-        LUserSector := nil;
+        FUserSectors.Delete(LIndex);
+        LUserSector.Free;
       end;
     end;
   end;
@@ -433,7 +434,7 @@ end;
 
 procedure TUserSectorMgrImpl.DeleteUserSector(AName: string);
 var
-  LUserSector: IUserSector;
+  LUserSector: TUserSector;
 begin
   FLock.Lock;
   try
@@ -443,7 +444,7 @@ begin
       DoUserSectorsSortByOrderNo;
       DoUpdateUserSectorsIndex;
       DoUpdateSelfStockFlags;
-      LUserSector := nil;
+      LUserSector.Free;
     end;
   finally
     FLock.UnLock;
@@ -455,7 +456,7 @@ begin
   Result := FUserSectors.Count;
 end;
 
-function TUserSectorMgrImpl.GetSector(AIndex: Integer): IUserSector;
+function TUserSectorMgrImpl.GetSector(AIndex: Integer): TUserSector;
 begin
   if (AIndex >= 0) and (AIndex < FUserSectors.Count) then begin
     Result := FUserSectors.Items[AIndex];
@@ -466,7 +467,7 @@ end;
 
 function TUserSectorMgrImpl.IsExistUserSector(AName: string): Boolean;
 var
-  LUserSector: IUserSector;
+  LUserSector: TUserSector;
 begin
   FLock.Lock;
   try
@@ -480,15 +481,15 @@ begin
   end;
 end;
 
-function TUserSectorMgrImpl.AddUserSector(AName: string): IUserSector;
+function TUserSectorMgrImpl.AddUserSector(AName: string): TUserSector;
 begin
   FLock.Lock;
   try
     if not FUserSectorDic.TryGetValue(AName, Result) then begin
       Result := TUserSectorImpl.Create(FAppContext);
-      (Result as IUserSectorUpdate).UserSectorInfo.FCID := GetNewCID;
-      (Result as IUserSectorUpdate).UserSectorInfo.FOrderNo := GetNewOrderNo;
-      (Result as IUserSectorUpdate).UserSectorInfo.FIndex := FUserSectors.Add(Result);
+      TUserSectorImpl(Result).FCID := GetNewCID;
+      TUserSectorImpl(Result).FOrderNo := GetNewOrderNo;
+      TUserSectorImpl(Result).FOrderIndex := FUserSectors.Add(Result);
       FUserSectorDic.AddOrSetValue(AName, Result);
       Result.Name := AName;
     end;
@@ -509,14 +510,19 @@ begin
   end;
 end;
 
-procedure TUserSectorMgrImpl.ClearUserSectors;
-begin
-  DoClearUserSectors;
-end;
-
 procedure TUserSectorMgrImpl.UpdateSelfStockFlagAll;
 begin
   DoUpdateSelfStockFlags;
+end;
+
+procedure TUserSectorMgrImpl.RemoveDic(AName: string);
+begin
+  FUserSectorDic.Remove(AName);
+end;
+
+procedure TUserSectorMgrImpl.AddDicUserSector(AUserSector: TUserSector);
+begin
+  FUserSectorDic.AddOrSetValue(AUserSector.Name, AUserSector);
 end;
 
 procedure TUserSectorMgrImpl.AddSelfStockFlag(AIndex, AInnerCode: Integer);

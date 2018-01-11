@@ -19,26 +19,31 @@ uses
   BaseObject,
   AppContext,
   WNDataSetInf,
+  CommonRefCounter,
   Generics.Collections;
 
 type
 
+  // Authority
+  TAuthority = class(TAutoObject)
+  private
+    FFuncNo: Integer;       // FunctionNo
+    FFuncName: string;      // FunctionName
+    FEndDate: TDateTime;    // StartDate
+    FStartDate: TDateTime;  // EndDate
+  protected
+  public
+    // Constructor
+    constructor Create; override;
+    // Destructor
+    destructor Destroy; override;
+  end;
+
   // ProdAuth Implementation
   TProAuthImpl = class(TBaseInterfacedObject, IProAuth)
   private
-    type
-      // Authority
-      TAuthority = packed record
-        FFuncNo: Integer;       // Function No
-        FFuncName: string;      // Function Name
-        FEndDate: TDateTime;    // Start Date
-        FStartDate: TDateTime;  // End Date
-      end;
-      // Authority Pointer
-      PAuthority = ^TAuthority;
-  private
     // Product Authority Dictionary
-    FAuthorityDic: TDictionary<Integer, PAuthority>;
+    FAuthorityDic: TDictionary<Integer, TAuthority>;
   protected
     // Get Authority
     procedure DoGetAuthority;
@@ -67,12 +72,26 @@ uses
   LogLevel,
   ServiceType;
 
+{ TAuthority }
+
+constructor TAuthority.Create;
+begin
+  inherited;
+
+end;
+
+destructor TAuthority.Destroy;
+begin
+
+  inherited;
+end;
+
 { TProAuthImpl }
 
 constructor TProAuthImpl.Create(AContext: IAppContext);
 begin
   inherited;
-  FAuthorityDic := TDictionary<Integer, PAuthority>.Create;
+  FAuthorityDic := TDictionary<Integer, TAuthority>.Create;
 end;
 
 destructor TProAuthImpl.Destroy;
@@ -148,15 +167,15 @@ end;
 
 procedure TProAuthImpl.DoClearAuthorityDic;
 var
-  LPAuthority: PAuthority;
-  LEnum: TDictionary<Integer, PAuthority>.TPairEnumerator;
+  LAuthority: TAuthority;
+  LEnum: TDictionary<Integer, TAuthority>.TPairEnumerator;
 begin
   LEnum := FAuthorityDic.GetEnumerator;
   try
     while LEnum.MoveNext do begin
-      LPAuthority := LEnum.Current.Value;
-      if (LPAuthority <> nil) then begin
-        Dispose(LPAuthority);
+      LAuthority := LEnum.Current.Value;
+      if (LAuthority <> nil) then begin
+        LAuthority.Free;
       end;
     end;
   finally
@@ -168,23 +187,23 @@ end;
 procedure TProAuthImpl.DoLoadData(ADataSet: IWNDataSet; ANoField, ANameField, ASDateField, AEDateField: IWNField);
 var
   LFuncNo: Integer;
-  LPAuthority: PAuthority;
+  LAuthority: TAuthority;
 begin
   ADataSet.First;
   try
     while not ADataSet.Eof do begin
       LFuncNo := ANoField.AsInteger;
-      if FAuthorityDic.TryGetValue(LFuncNo, LPAuthority)
-        and (LPAuthority <> nil) then begin
+      if FAuthorityDic.TryGetValue(LFuncNo, LAuthority)
+        and (LAuthority <> nil) then begin
         FAppContext.IndicatorLog(llERROR, Format('[TProAuthImpl][DoLoadData] [Indicator][USER_QX] return dataset FuncNo(%d) is repeated.', [LFuncNo]));
       end else begin
-        New(LPAuthority);
-        FAuthorityDic.AddOrSetValue(LFuncNo, LPAuthority);
+        LAuthority := TAuthority.Create;
+        FAuthorityDic.AddOrSetValue(LFuncNo, LAuthority);
       end;
-      LPAuthority^.FFuncNo := LFuncNo;
-      LPAuthority^.FFuncName := ANameField.AsString;
-      LPAuthority^.FEndDate := AEDateField.AsDateTime;
-      LPAuthority^.FStartDate := ASDateField.AsDateTime;
+      LAuthority.FFuncNo := LFuncNo;
+      LAuthority.FFuncName := ANameField.AsString;
+      LAuthority.FEndDate := AEDateField.AsDateTime;
+      LAuthority.FStartDate := ASDateField.AsDateTime;
       ADataSet.Next;
     end;
   except
@@ -193,5 +212,7 @@ begin
     end;
   end;
 end;
+
+
 
 end.

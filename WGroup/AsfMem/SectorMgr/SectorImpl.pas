@@ -2,7 +2,7 @@ unit SectorImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º Sector Implementation
+// Description£º SectorImpl
 // Author£º      lksoulman
 // Date£º        2018-1-9
 // Comments£º
@@ -20,82 +20,67 @@ uses
   SectorMgr,
   BaseObject,
   AppContext,
-  SectorUpdate,
-  SectorMgrUpdate,
   Generics.Collections;
 
 type
 
-  // Sector Implementation
-  TSectorImpl = class(TBaseInterfacedObject, ISector, ISectorUpdate)
+  // SectorImpl
+  TSectorImpl = class(TSector)
   private
   protected
     // Parent
-    FParent: ISector;
-    // SectorInfo
-    FSectorInfo: TSectorInfo;
+    FParent: TSector;
     // Childs
-    FChilds: TList<ISector>;
-    // ChildDic
-    FChildDic: TDictionary<Integer, ISector>;
+    FChilds: TList<TSector>;
 
     // DoClearChilds
     procedure DoClearChilds;
   public
+    // Id
+    FId: Integer;
+    // Name
+    FName: string;
+    // Elements
+    FElements: string;
+  public
     // Constructor
-    constructor Create(AContext: IAppContext; AParent: ISector); reintroduce;
+    constructor Create(AContext: IAppContext; AParent: TSector); reintroduce;
     // Destructor
     destructor Destroy; override;
-
-    // GetId
-    function GetId: Integer;
-    // GetName
-    function GetName: string;
-    // GetElements
-    function GetElements: string;
-    // GetParent
-    function GetParent: ISector;
-    // GetChildCount
-    function GetChildCount: Integer;
-    // GetChildByIndex
-    function GetChildByIndex(const AIndex: Integer): ISector;
-
-    { ISectorUpdate }
-
     // ClearChilds
-    function ClearChilds: Boolean;
-    // CheckChildVersion
-    function CheckChildVersion: Boolean;
-    // GetSectorInfo
-    function GetSectorInfo: PSectorInfo;
+    procedure ClearChilds;
+    // GetId
+    function GetId: Integer; override;
+    // GetName
+    function GetName: string; override;
+    // GetElements
+    function GetElements: string; override;
+    // GetParent
+    function GetParent: TSector; override;
+    // GetChildCount
+    function GetChildCount: Integer; override;
+    // GetChildByIndex
+    function GetChildByIndex(const AIndex: Integer): TSector; override;
     // AddChild
-    function AddChild(AId: Integer): ISector;
-
-    property Id: Integer read GetId;
-    property Name: string read GetName;
-    property Elements: string read GetElements;
-    property Parent: ISector read GetParent;
-    property ChildCount: Integer read GetChildCount;
-    property Childs[const AIndex : Integer] : ISector read GetChildByIndex;
+    function AddChild(AId: Integer): TSector;
   end;
 
 implementation
 
 { TSectorImpl }
 
-constructor TSectorImpl.Create(AContext: IAppContext; AParent: ISector);
+constructor TSectorImpl.Create(AContext: IAppContext; AParent: TSector);
 begin
   inherited Create(AContext);
   FParent := AParent;
-  FChilds := TList<ISector>.Create;
-  FChildDic := TDictionary<Integer, ISector>.Create(50);
-  ZeroMemory(@FSectorInfo, SizeOf(TSectorInfo));
+  FChilds := TList<TSector>.Create;
 end;
 
 destructor TSectorImpl.Destroy;
 begin
+  FName := '';
+  FElements := '';
   DoClearChilds;
-  FChildDic.Free;
   FChilds.Free;
   FParent := nil;
   inherited;
@@ -104,33 +89,40 @@ end;
 procedure TSectorImpl.DoClearChilds;
 var
   LIndex: Integer;
+  LSector: TSector;
 begin
   for LIndex := 0 to FChilds.Count - 1 do begin
-    if FChilds.Items[LIndex] <> nil then begin
-      FChilds.Items[LIndex] := nil;
+    LSector := FChilds.Items[LIndex];
+    if LSector <> nil then begin
+      LSector.Free;
     end;
   end;
   FChilds.Clear;
 end;
 
+procedure TSectorImpl.ClearChilds;
+begin
+  DoClearChilds;
+end;
+
 function TSectorImpl.GetId: Integer;
 begin
-  Result := FSectorInfo.FId;
+  Result := FId;
 end;
 
 function TSectorImpl.GetName: string;
 begin
-  Result := FSectorInfo.FName;
+  Result := FName;
 end;
 
 function TSectorImpl.GetElements: string;
 begin
-  Result := FSectorInfo.FElements;
+  Result := FElements;
 end;
 
-function TSectorImpl.GetParent: ISector;
+function TSectorImpl.GetParent: TSector;
 begin
-  Result := FParent as ISector;
+  Result := FParent;
 end;
 
 function TSectorImpl.GetChildCount: Integer;
@@ -138,7 +130,7 @@ begin
   Result := FChilds.Count;
 end;
 
-function TSectorImpl.GetChildByIndex(const AIndex: Integer): ISector;
+function TSectorImpl.GetChildByIndex(const AIndex: Integer): TSector;
 begin
   if (AIndex >= 0) and (AIndex < FChilds.Count) then begin
     Result := FChilds.Items[AIndex];
@@ -147,47 +139,10 @@ begin
   end;
 end;
 
-function TSectorImpl.GetSectorInfo: PSectorInfo;
+function TSectorImpl.AddChild(AId: Integer): TSector;
 begin
-  Result := @FSectorInfo;
-end;
-
-function TSectorImpl.CheckChildVersion: Boolean;
-var
-  LIndex: Integer;
-  LSectorMgr: ISectorMgr;
-begin
-  Result := False;
-  LSectorMgr := FAppContext.FindInterface(ASF_COMMAND_ID_SECTORMGR) as ISectorMgr;
-  if LSectorMgr <> nil then begin
-    for LIndex := FChilds.Count - 1 downto 0 do begin
-      if FChilds.Items[LIndex] <> nil then begin
-        if (FChilds.Items[LIndex] as ISectorUpdate).GetSectorInfo.FVersion
-          < LSectorMgr.GetVersion then begin
-          (LSectorMgr as ISectorMgrUpdate).DeleteSector((FChilds.Items[LIndex] as ISectorUpdate).GetSectorInfo.FId);
-          FChildDic.Remove((FChilds.Items[LIndex] as ISectorUpdate).GetSectorInfo.FId);
-          FChilds.Items[LIndex] := nil;
-          FChilds.Delete(LIndex);
-        end;
-      end;
-    end;
-    Result := True;
-    LSectorMgr := nil;
-  end;
-end;
-
-function TSectorImpl.ClearChilds: Boolean;
-begin
-  Result := True;
-  DoClearChilds;
-  FParent := nil;
-end;
-
-function TSectorImpl.AddChild(AId: Integer): ISector;
-begin
-  if not FChildDic.TryGetValue(AId, Result) then begin
-    Result := TSectorImpl.Create(FAppContext, Self);
-  end;
+  Result := TSectorImpl.Create(FAppContext, Self);
+  FChilds.Add(Result);
 end;
 
 end.

@@ -1,8 +1,8 @@
-unit UserSectorMgrCommandImpl;
+unit SectorMgrCommandImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º UserSectorMgrCommand Implementation
+// Description£º SectorMgrCommand Implementation
 // Author£º      lksoulman
 // Date£º        2018-1-9
 // Comments£º
@@ -18,15 +18,15 @@ uses
   Command,
   AppContext,
   CommandImpl,
-  UserSectorMgr;
+  SectorMgr;
 
 type
 
-  // UserSectorMgrCommand Implementation
-  TUserSectorMgrCommandImpl = class(TCommandImpl)
+  // SectorMgrCommand Implementation
+  TSectorMgrCommandImpl = class(TCommandImpl)
   private
-    // UserSectorMgr
-    FUserSectorMgr: IUserSectorMgr;
+    // SectorMgr
+    FSectorMgr: ISectorMgr;
   protected
   public
     // Constructor
@@ -43,42 +43,42 @@ type
 implementation
 
 uses
-  UserSectorMgrImpl;
+  SectorMgrImpl;
 
-{ TUserSectorMgrCommandImpl }
+{ TSectorMgrCommandImpl }
 
-constructor TUserSectorMgrCommandImpl.Create(AId: Cardinal; ACaption: string; AContext: IAppContext);
+constructor TSectorMgrCommandImpl.Create(AId: Cardinal; ACaption: string; AContext: IAppContext);
 begin
   inherited;
 
 end;
 
-destructor TUserSectorMgrCommandImpl.Destroy;
+destructor TSectorMgrCommandImpl.Destroy;
 begin
-  if FUserSectorMgr <> nil then begin
+  if FSectorMgr <> nil then begin
     FAppContext.UnRegisterInterface(FId);
-    FUserSectorMgr := nil;
+    FSectorMgr := nil;
   end;
   inherited;
 end;
 
-procedure TUserSectorMgrCommandImpl.Execute(AParams: string);
+procedure TSectorMgrCommandImpl.Execute(AParams: string);
 var
   LFuncName: string;
 begin
-  if FUserSectorMgr = nil then begin
-    FUserSectorMgr := TUserSectorMgrImpl.Create(FAppContext) as IUserSectorMgr;
-    FAppContext.RegisterInteface(FId, FUserSectorMgr);
+  if FSectorMgr = nil then begin
+    FSectorMgr := TSectorMgrImpl.Create(FAppContext) as ISectorMgr;
+    FAppContext.RegisterInteface(FId, FSectorMgr);
   end;
 
   if (AParams = '')
-    or (FUserSectorMgr = nil) then Exit;
+    or (FSectorMgr = nil) then Exit;
 
   BeginSplitParams(AParams);
   try
     ParamsVal('FuncName', LFuncName);
     if LFuncName = 'Update' then begin
-      FUserSectorMgr.Update;
+      FSectorMgr.Update;
     end;
   finally
     EndSplitParams;

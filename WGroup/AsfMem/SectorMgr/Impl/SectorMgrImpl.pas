@@ -17,6 +17,7 @@ uses
   SysUtils,
   Sector,
   Command,
+  LogLevel,
   CacheType,
   SectorMgr,
   BaseCache,
@@ -24,27 +25,23 @@ uses
   AppContext,
   CommonLock,
   WNDataSetInf,
-  SectorUpdate,
-  SectorMgrUpdate,
   Generics.Collections,
   MsgExSubcriberAdapter;
 
 type
 
   // SectorMgr Implementation
-  TSectorMgrImpl = class(TBaseInterfacedObject, ISectorMgr, ISectorMgrUpdate)
+  TSectorMgrImpl = class(TBaseInterfacedObject, ISectorMgr)
   private
   protected
     // Lock
     FLock: TCSLock;
     // Root
-    FRoot: ISector;
+    FRoot: TSector;
     // IsLoad
     FIsLoad: Boolean;
     // SectorDic
-    FSectorDic: TDictionary<Integer, ISector>;
-    // ParentDic
-    FParentDic: TDictionary<Integer, ISector>;
+    FSectorDic: TDictionary<Integer, TSector>;
     // MsgExSubcriberAdapter
     FMsgExSubcriberAdapter: TMsgExSubcriberAdapter;
 
@@ -66,19 +63,12 @@ type
     procedure UnLock;
     // Update
     procedure Update;
-    // GetVersion
-    function GetVersion: Integer;
     // GetRootSector
-    function GetRootSector: ISector;
+    function GetRootSector: TSector;
     // GetSector
-    function GetSector(AId: Integer): ISector;
+    function GetSector(AId: Integer): TSector;
     // GetSectorElements
     function GetSectorElements(AId: Integer): string;
-
-    { ISectorMgrUpdate }
-
-    // DeleteSector
-    procedure DeleteSector(AId: Integer);
   end;
 
 implementation
@@ -93,12 +83,10 @@ begin
   inherited;
   FIsLoad := False;
   FLock := TCSLock.Create;
-  FSectorDic := TDictionary<Integer, ISector>.Create;
-  FParentDic := TDictionary<Integer, ISector>.Create;
-  FRoot := TSectorImpl.Create(FAppContext, nil) as ISector;
-  (FRoot as ISectorUpdate).GetSectorInfo.FId := -1;
-  (FRoot as ISectorUpdate).GetSectorInfo.FName := 'Root';
-  (FRoot as ISectorUpdate).GetSectorInfo.FVersion := 0;
+  FSectorDic := TDictionary<Integer, TSector>.Create;
+  FRoot := TSectorImpl.Create(FAppContext, nil);
+  TSectorImpl(FRoot).FId := -1;
+  TSectorImpl(FRoot).FName := 'Root';
   FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(FAppContext, DoUpdateMsgEx);
 //  FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfCache_ReUpdateUserCache_UserSector);
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
@@ -109,8 +97,7 @@ destructor TSectorMgrImpl.Destroy;
 begin
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(False);
   FMsgExSubcriberAdapter.Free;
-  FRoot := nil;
-  FParentDic.Free;
+  FRoot.Free;
   FSectorDic.Free;
   FLock.Free;
   inherited;
@@ -120,12 +107,16 @@ procedure TSectorMgrImpl.DoUpdate;
 var
   LSql: string;
   LDataSet: IWNDataSet;
-  LSector, LChildSector: ISector;
+  LParentId, LId: Integer;
+  LParentSector, LSector: TSector;
   LPlateCode, LParentPlateCode, LPlateName, LInnerCodes: IWNField;
 begin
+  FSectorDic.Clear;
+  FSectorDic.AddOrSetValue(FRoot.Id, FRoot);
+  TSectorImpl(FRoot).ClearChilds;
+
   LSql := 'SELECT PlateCode,ParentPlateCode,PlateName,OrderNumber,PlateLevel ' +
    'FROM DW_PlateInfo WHERE Flag = 1 ORDER BY PlateLevel, OrderNumber';
-
   LDataSet := FAppContext.CacheSyncQuery(ctBaseData, LSql);
   if (LDataSet <> nil) then begin
     if LDataSet.RecordCount >= 0 then begin
@@ -134,16 +125,22 @@ begin
       LPlateName := LDataSet.FieldByName('PlateName');
 
       LDataSet.First;
-      while LDataSet.Eof do begin
-        if FParentDic.TryGetValue(LParentPlateCode.AsInteger, LSector) then begin
-          LChildSector := (LSector as ISectorUpdate).AddChild(LPlateCode.AsInteger);
+      while not LDataSet.Eof do begin
+        if LParentPlateCode.IsNull then begin
+          LParentId := -1;
         end else begin
-          LChildSector := (FRoot as ISectorUpdate).AddChild(LPlateCode.AsInteger);
+          LParentId := LParentPlateCode.AsInteger;
         end;
-        (LChildSector as ISectorUpdate).GetSectorInfo.FId := LPlateCode.AsInteger;
-        (LChildSector as ISectorUpdate).GetSectorInfo.FName := LPlateName.AsString;
-        (LChildSector as ISectorUpdate).GetSectorInfo.FElements := '';
-        FSectorDic.AddOrSetValue(LChildSector.Id, LChildSector);
+        if FSectorDic.TryGetValue(LParentId, LParentSector) then begin
+          LId := LPlateCode.AsInteger;
+          if not FSectorDic.ContainsKey(LId) then begin
+            LSector := TSectorImpl(LParentSector).AddChild(LId);
+            TSectorImpl(LSector).FId := LId;
+            TSectorImpl(LSector).FName := LPlateName.AsString;
+            TSectorImpl(LSector).FElements := '';
+            FSectorDic.AddOrSetValue(LSector.Id, LSector);
+          end;
+        end;
         LDataSet.Next;
       end;
     end;
@@ -167,29 +164,37 @@ begin
 end;
 
 procedure TSectorMgrImpl.Update;
+{$IFDEF DEBUG}
+var
+  LTick: Cardinal;
+{$ENDIF}
 begin
-  FLock.Lock;
+{$IFDEF DEBUG}
+  LTick := GetTickCount;
   try
-    if not FIsLoad then begin
+{$ENDIF}
+
+    FLock.Lock;
+    try
       DoUpdate;
-      FIsLoad := True;
+    finally
+      FLock.UnLock;
     end;
+
+{$IFDEF DEBUG}
   finally
-    FLock.UnLock;
+    LTick := GetTickCount - LTick;
+    FAppContext.SysLog(llSLOW, Format('[TSectorMgrImpl][Update] Update use time is %d ms.', [LTick]), LTick);
   end;
+{$ENDIF}
 end;
 
-function TSectorMgrImpl.GetVersion: Integer;
-begin
-  Result := (FRoot as ISectorUpdate).GetSectorInfo.FVersion;
-end;
-
-function TSectorMgrImpl.GetRootSector: ISector;
+function TSectorMgrImpl.GetRootSector: TSector;
 begin
   Result := FRoot;
 end;
 
-function TSectorMgrImpl.GetSector(AId: Integer): ISector;
+function TSectorMgrImpl.GetSector(AId: Integer): TSector;
 begin
   if not FSectorDic.TryGetValue(AId, Result) then begin
     Result := nil;
@@ -197,13 +202,14 @@ begin
 end;
 
 function TSectorMgrImpl.GetSectorElements(AId: Integer): string;
+var
+  LSector: TSector;
 begin
-
-end;
-
-procedure TSectorMgrImpl.DeleteSector(AId: Integer);
-begin
-  FSectorDic.Remove(AId);
+  if FSectorDic.TryGetValue(AId, LSector) then begin
+    Result := LSector.Elements;
+  end else begin
+    Result := '';
+  end;
 end;
 
 end.

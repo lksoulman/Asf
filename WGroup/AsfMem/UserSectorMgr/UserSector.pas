@@ -2,9 +2,9 @@ unit UserSector;
 
 /// /////////////////////////////////////////////////////////////////////////////
 //
-// Description£∫ UserSector Interface
+// Description£∫ UserSector
 // Author£∫      lksoulman
-// Date£∫        2017-8-23
+// Date£∫        2018-1-8
 // Comments£∫
 //
 /// /////////////////////////////////////////////////////////////////////////////
@@ -14,34 +14,33 @@ interface
 uses
   Windows,
   Classes,
-  SysUtils;
-
-const
-
-  // ≈≈–Ú
-  UPDATEOPERATE_SORT_BYORDERNO = 1;
+  SysUtils,
+  BaseObject,
+  AppContext;
 
 type
 
   // UserSector
-  IUserSector = Interface(IInterface)
-    ['{1CD531FC-3B3F-49BC-B5D3-CD0AE1F59F71}']
+  TUserSector = class(TBaseObject)
+  private
+  protected
+  public
     // GetName
-    function GetName: string;
+    function GetName: string; virtual; abstract;
     // GetOrderNo
-    function GetOrderNo: Integer;
+    function GetOrderNo: Integer; virtual; abstract;
     // GetInnerCodes
-    function GetInnerCodes: string;
+    function GetInnerCodes: string; virtual; abstract;
     // SetName
-    procedure SetName(AName: string);
+    procedure SetName(AName: string); virtual; abstract;
     // SetOrderNo
-    procedure SetOrderNo(AOrderNo: Integer);
+    procedure SetOrderNo(AOrderNo: Integer); virtual; abstract;
     // SetInnerCodes
-    procedure SetInnerCodes(AInnerCodes: string);
+    procedure SetInnerCodes(AInnerCodes: string); virtual; abstract;
     // Add
-    procedure Add(AInnerCode: Integer);
+    procedure Add(AInnerCode: Integer); virtual; abstract;
     // Delete
-    procedure Delete(AInnerCode: Integer);
+    procedure Delete(AInnerCode: Integer); virtual; abstract;
 
     property Name: string read GetName write SetName;
     property OrderNo: Integer read GetOrderNo write SetOrderNo;

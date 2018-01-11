@@ -2,7 +2,7 @@ program AsfMain;
 
 uses
   Vcl.Forms,
-  DcefB.Core.App,
+//  DcefB.Core.App,
   WExport in 'WExport\WExport.pas',
   AsfMainPlugInMgrImpl in 'WExport\Impl\AsfMainPlugInMgrImpl.pas',
   CommandMgrImpl in 'CommandMgr\Impl\CommandMgrImpl.pas',
@@ -82,10 +82,10 @@ uses
 {$R *.res}
 
 begin
-  DcefBApp.CefSingleProcess := False;
-  if not DcefBApp.Init then begin
-    Exit;
-  end;
+//  DcefBApp.CefSingleProcess := False;
+//  if not DcefBApp.Init then begin
+//    Exit;
+//  end;
 
   Application.Initialize;
   try
@@ -101,7 +101,7 @@ begin
           LoadAuth;
           LoadCache;
           LoadMaster;
-          LoadCronJobs;
+//          LoadCronJobs;
           LoadDelayJobs;
           Application.Run;
           CloseShowForms;

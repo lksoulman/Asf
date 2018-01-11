@@ -48,17 +48,15 @@ type
   protected
     // CacheName
     FName: string;
-    // Cfg File
+    // CfgFile
     FCfgFile: string;
-    // Version
-    FVersion: Integer;
     // IsStopService
     FIsStopService: Boolean;
     // Lock
     FLock: TCSLock;
     // System Table
     FSysTable: TCacheTable;
-    // Service Type
+    // ServiceType
     FServiceType: TServiceType;
     // CacheTables
     FCacheTables: TList<TCacheTable>;
@@ -186,7 +184,6 @@ const
 constructor TAbstractCacheImpl.Create(AContext: IAppContext);
 begin
   inherited;
-  FVersion := -1;
   FServiceType := stBasic;
   FLock := TCSLock.Create;
   FCacheTables := TList<TCacheTable>.Create;
@@ -768,11 +765,7 @@ begin
       if LTable <> nil then begin
         LTable.Lock;
         try
-          LSecs := SecondsBetween(Now, LTable.LastUpdateTime);
-//          if LSecs > LTable.UpdateSecs then begin
-            DoAsyncUpdateCacheTable(LTable);
-//            LTable.LastUpdateTime := Now;
-//          end;
+          DoAsyncUpdateCacheTable(LTable);
         finally
           LTable.UnLock;
         end;

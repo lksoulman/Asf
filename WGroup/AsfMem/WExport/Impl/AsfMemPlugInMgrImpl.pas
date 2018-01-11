@@ -41,6 +41,7 @@ implementation
 
 uses
   SecuMainCommandImpl,
+  SectorMgrCommandImpl,
   UserSectorMgrCommandImpl,
   KeySearchEngineCommandImpl;
 
@@ -61,6 +62,7 @@ end;
 procedure TAsfMemPlugInMgrImpl.Load;
 begin
   DoAddCommand(TSecuMainCommandImpl.Create(ASF_COMMAND_ID_SECUMAIN, 'SecuMain', FAppContext) as ICommand);
+  DoAddCommand(TSectorMgrCommandImpl.Create(ASF_COMMAND_ID_SECTORMGR, 'SectorMgr', FAppContext) as ICommand);
   DoAddCommand(TUserSectorMgrCommandImpl.Create(ASF_COMMAND_ID_USERSECTORMGR, 'UserSectorMgr', FAppContext) as ICommand);
   DoAddCommand(TKeySearchEngineCommandImpl.Create(ASF_COMMAND_ID_KEYSEARCHENGINE, 'KeySearchEngine', FAppContext) as ICommand);
 end;

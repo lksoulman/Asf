@@ -92,7 +92,7 @@ uses
     // 同步用户数据
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_Command_ID_USERCACHE, 'FuncName=InitUpdateTables');
     // 读取同步的用户配置数据
-    G_AppContext.GetCfg.ReadServerCacheCfg;
+//    G_AppContext.GetCfg.ReadServerCacheCfg;
   end;
 
   // LoadMaster
@@ -121,15 +121,17 @@ uses
     // 异步方式状态栏新闻数据获取延时任务
     G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSNEWSDATAMGR, 'FuncName=Update', 1);
 
-//    // 异步方式同步基础缓存数据延时任务
-//    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 2);
+    // 加载用户板块数据
+    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_USERSECTORMGR, 'FuncName=Update', 2);
 
-    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_USERSECTORMGR, 'FuncName=Update', 1);
+    // 加载系统板块数据
+    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_SECTORMGR, 'FuncName=Update', 3);
 
     // 异步方式加载主表数据延时任务
     G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_SECUMAIN, 'FuncName=AsyncUpdate', 2);
-    // 异步方式订阅行情数据延时任务
-//    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_STATUSSERVERDATAMGR, 'FuncName=Subcribe', 3);
+
+    // 异步方式同步基础缓存数据延时任务
+//    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 60);
   end;
 
   // StopServices
@@ -169,7 +171,7 @@ initialization
   if G_AppContext = nil then begin
     G_AppContext := TAppContextImpl.Create(nil) as IAppContext;
     G_AppContext.InitLogger;
-    G_AppContext.InitChrome;
+//    G_AppContext.InitChrome;
   end;
 
   if G_ProcessSingleton = nil then begin
@@ -184,7 +186,7 @@ finalization
   end;
 
   if G_AppContext <> nil then begin
-    G_AppContext.UnInitChrome;
+//    G_AppContext.UnInitChrome;
     G_AppContext.UnInitLogger;
     G_AppContext := nil;
   end;

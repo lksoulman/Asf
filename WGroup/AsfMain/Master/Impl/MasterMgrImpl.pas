@@ -28,25 +28,29 @@ uses
 type
 
   // MasterInfo
-  TMasterInfo = packed record
+  TMasterInfo = class(TBaseObject)
+  private
     FMaster: IMaster;
+  protected
+  public
+    // Constructor
+    constructor Create(AContext: IAppContext); override;
+    // Destructor
+    destructor Destroy; override;
   end;
-
-  // MasterInfo Pointer
-  PMasterInfo = ^TMasterInfo;
 
   // MasterMgr Implementation
   TMasterMgrImpl = class(TBaseSplitStrInterfacedObject, IMasterMgr)
   private
     // MasterInfos
-    FMasterInfos: TList<PMasterInfo>;
+    FMasterInfos: TList<TMasterInfo>;
     // MasterInfoDic
-    FMasterInfoDic: TDictionary<Cardinal, PMasterInfo>;
+    FMasterInfoDic: TDictionary<Cardinal, TMasterInfo>;
   protected
     // ClearMasterInfos
     procedure DoClearMasterInfos;
     // LoadDefaultChildPage
-    procedure DoLoadDefaultChildPage(AMasterInfo: PMasterInfo);
+    procedure DoLoadDefaultChildPage(AMasterInfo: TMasterInfo);
     // ApplicationMessage
     procedure DoApplicationMessage(var AMsg: TMsg; var AHandled: Boolean);
   public
@@ -83,13 +87,27 @@ implementation
 uses
   MasterImpl;
 
+{ TMasterInfo }
+
+constructor TMasterInfo.Create(AContext: IAppContext);
+begin
+  inherited;
+
+end;
+
+destructor TMasterInfo.Destroy;
+begin
+  FMaster := nil;
+  inherited;
+end;
+
 { TMasterMgrImpl }
 
 constructor TMasterMgrImpl.Create(AContext: IAppContext);
 begin
   inherited;
-  FMasterInfos := TList<PMasterInfo>.Create;
-  FMasterInfoDic := TDictionary<Cardinal, PMasterInfo>.Create;
+  FMasterInfos := TList<TMasterInfo>.Create;
+  FMasterInfoDic := TDictionary<Cardinal, TMasterInfo>.Create;
   Application.OnMessage := DoApplicationMessage;
 end;
 
@@ -105,29 +123,27 @@ end;
 procedure TMasterMgrImpl.DoClearMasterInfos;
 var
   LIndex: Integer;
-  LPMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
 begin
   for LIndex := 0 to FMasterInfos.Count - 1 do begin
-    LPMasterInfo := FMasterInfos.Items[LIndex];
-    if LPMasterInfo <> nil then begin
-      if LPMasterInfo^.FMaster <> nil then begin
-        LPMasterInfo^.FMaster := nil;
-      end;
+    LMasterInfo := FMasterInfos.Items[LIndex];
+    if LMasterInfo <> nil then begin
+      LMasterInfo.Free;
     end;
   end;
 end;
 
-procedure TMasterMgrImpl.DoLoadDefaultChildPage(AMasterInfo: PMasterInfo);
+procedure TMasterMgrImpl.DoLoadDefaultChildPage(AMasterInfo: TMasterInfo);
 begin
 //  if AMasterInfo <> nil then begin
 //    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SIMPLEHQTIMETEST,
 //      Format('MasterHandle=%d@Params=InnerCode=1752', [AMasterInfo.FMaster.Handle]));
 //  end;
 
-  if AMasterInfo <> nil then begin
-    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_HOMEPAGE,
-      Format('MasterHandle=%d@Params=InnerCode=1752', [AMasterInfo.FMaster.Handle]));
-  end;
+//  if AMasterInfo <> nil then begin
+//    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_HOMEPAGE,
+//      Format('MasterHandle=%d@Params=InnerCode=1752', [AMasterInfo.FMaster.Handle]));
+//  end;
 end;
 
 procedure TMasterMgrImpl.DoApplicationMessage(var AMsg: TMsg; var AHandled: Boolean);
@@ -143,7 +159,7 @@ end;
 procedure TMasterMgrImpl.ExecuteCmdBefore(ACommand: Integer; AParams: string);
 var
   LHandle: Integer;
-  LMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
   LMasterHandle, LGoFuncName: string;
 begin
   if ACommand >= ASF_COMMAND_ID_SIMPLEHQTIMETEST then begin
@@ -168,13 +184,13 @@ end;
 procedure TMasterMgrImpl.Hide;
 var
   LIndex: Integer;
-  LPMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
 begin
   for LIndex := 0 to FMasterInfos.Count - 1 do begin
-    LPMasterInfo := FMasterInfos.Items[LIndex];
-    if LPMasterInfo <> nil then begin
-      if LPMasterInfo^.FMaster <> nil then begin
-        LPMasterInfo^.FMaster.Hide;
+    LMasterInfo := FMasterInfos.Items[LIndex];
+    if LMasterInfo <> nil then begin
+      if LMasterInfo.FMaster <> nil then begin
+        LMasterInfo.FMaster.Hide;
       end;
     end;
   end;
@@ -182,29 +198,28 @@ end;
 
 procedure TMasterMgrImpl.NewMaster;
 var
-  LPMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
 begin
-  New(LPMasterInfo);
-  LPMasterInfo.FMaster := TMasterImpl.Create(FAppContext) as IMaster;
-  FMasterInfos.Add(LPMasterInfo);
-  FMasterInfoDic.AddOrSetValue(LPMasterInfo.FMaster.GetHandle, LPMasterInfo);
+  LMasterInfo := TMasterInfo.Create(FAppContext);
+  LMasterInfo.FMaster := TMasterImpl.Create(FAppContext) as IMaster;
+  FMasterInfos.Add(LMasterInfo);
+  FMasterInfoDic.AddOrSetValue(LMasterInfo.FMaster.GetHandle, LMasterInfo);
   if FMasterInfos.Count <= 1 then begin
-    LPMasterInfo.FMaster.SetWindowState(wsMaximized);
+    LMasterInfo.FMaster.SetWindowState(wsMaximized);
   end;
-  LPMasterInfo.FMaster.Show;
-  DoLoadDefaultChildPage(LPMasterInfo);
+  LMasterInfo.FMaster.Show;
+  DoLoadDefaultChildPage(LMasterInfo);
 end;
 
 procedure TMasterMgrImpl.DelMaster(AHandle: Integer);
 var
-  LPMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
 begin
-  if FMasterInfoDic.TryGetValue(AHandle, LPMasterInfo) then begin
-    FMasterInfos.Remove(LPMasterInfo);
+  if FMasterInfoDic.TryGetValue(AHandle, LMasterInfo) then begin
+    FMasterInfos.Remove(LMasterInfo);
     FMasterInfoDic.Remove(AHandle);
-    if LPMasterInfo.FMaster <> nil then begin
-      LPMasterInfo.FMaster := nil;
-      Dispose(LPMasterInfo);
+    if LMasterInfo <> nil then begin
+      LMasterInfo.Free;
     end;
     if FMasterInfos.Count <= 0 then begin
       FAppContext.ExitApp;
@@ -214,38 +229,38 @@ end;
 
 function TMasterMgrImpl.IsHasChildPage(AHandle: Integer; ACommandId: Integer): Boolean;
 var
-  LPMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
 begin
   Result := False;
-  if FMasterInfoDic.TryGetValue(AHandle, LPMasterInfo) then begin
-    if LPMasterInfo.FMaster <> nil then begin
-      Result := LPMasterInfo^.FMaster.IsHasChildPage(ACommandId);
+  if FMasterInfoDic.TryGetValue(AHandle, LMasterInfo) then begin
+    if LMasterInfo.FMaster <> nil then begin
+      Result := LMasterInfo.FMaster.IsHasChildPage(ACommandId);
     end;
   end;
 end;
 
 function TMasterMgrImpl.AddChildPage(AHandle: Integer; AChildPage: IChildPage): Boolean;
 var
-  LPMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
 begin
   Result := False;
   if AChildPage = nil then Exit;
 
-  if FMasterInfoDic.TryGetValue(AHandle, LPMasterInfo) then begin
-    if LPMasterInfo^.FMaster <> nil then begin
-      Result := LPMasterInfo^.FMaster.AddChildPage(AChildPage);
+  if FMasterInfoDic.TryGetValue(AHandle, LMasterInfo) then begin
+    if LMasterInfo.FMaster <> nil then begin
+      Result := LMasterInfo.FMaster.AddChildPage(AChildPage);
     end;
   end;
 end;
 
 function TMasterMgrImpl.BringToFrontChildPage(AHandle, ACommandId: Integer; AParams: string): Boolean;
 var
-  LPMasterInfo: PMasterInfo;
+  LMasterInfo: TMasterInfo;
 begin
   Result := False;
-  if FMasterInfoDic.TryGetValue(AHandle, LPMasterInfo) then begin
-    if LPMasterInfo^.FMaster <> nil then begin
-      Result := LPMasterInfo^.FMaster.BringToFrontChildPage(ACommandId, AParams);
+  if FMasterInfoDic.TryGetValue(AHandle, LMasterInfo) then begin
+    if LMasterInfo.FMaster <> nil then begin
+      Result := LMasterInfo.FMaster.BringToFrontChildPage(ACommandId, AParams);
     end;
   end;
 end;

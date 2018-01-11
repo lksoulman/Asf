@@ -59,8 +59,8 @@ end;
 
 procedure TAsfCachePlugInMgrImpl.Load;
 begin
-  DoAddCommand(TBaseCacheCommandImpl.Create(ASF_COMMAND_ID_BASECACHE, 'Base Cache', FAppContext) as ICommand);
-  DoAddCommand(TUserCacheCommandImpl.Create(ASF_COMMAND_ID_USERCACHE, 'User Cache', FAppContext) as ICommand);
+  DoAddCommand(TBaseCacheCommandImpl.Create(ASF_COMMAND_ID_BASECACHE, 'BaseCache', FAppContext) as ICommand);
+  DoAddCommand(TUserCacheCommandImpl.Create(ASF_COMMAND_ID_USERCACHE, 'UserCache', FAppContext) as ICommand);
 end;
 
 end.

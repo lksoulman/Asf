@@ -113,7 +113,6 @@
         <DCCReference Include="SectorMgr\SectorUpdate.pas"/>
         <DCCReference Include="SectorMgr\SectorMgr.pas"/>
         <DCCReference Include="SectorMgr\Impl\SectorMgrImpl.pas"/>
-        <DCCReference Include="SectorMgr\SectorMgrUpdate.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
