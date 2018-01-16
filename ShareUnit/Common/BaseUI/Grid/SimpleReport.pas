@@ -22,10 +22,17 @@ uses
   System.StrUtils,
   GR32,
   G32Graphic,
-  GaugeBarEx,
+  G32GaugeBar,
   GR32_RangeBars,
   CommonRefCounter,
   AppContext;
+
+const
+
+  BORDER_LEFT    = $1;
+  BORDER_RIGHT   = $2;
+  BORDER_TOP     = $4;
+  BORDER_BOTTOM  = $8;
 
 type
 
@@ -147,11 +154,15 @@ type
   // Simple Report
   TSimpleReport = class(TNxPanel)
   private
+    // SetBorderColor
+    procedure SetBorderColor(AColor: TColor);
+    // SetBorderValues
+    procedure SetBorderValues(ABorderValues: Integer);
   protected
     // HorzBar
-    FHorzBar: TGaugeBarEx;
+    FHorzBar: TG32GaugeBar;
     // VertBar
-    FVertBar: TGaugeBarEx;
+    FVertBar: TG32GaugeBar;
     // AppContext
     FAppContext: IAppContext;
     // FSimpleGrid
@@ -160,6 +171,10 @@ type
     FSimpleGridClass: TSimpleGridClass;
     // G32Graphic Buffer
     FG32GraphicBuffer: TG32GraphicBuffer;
+    // BorderColor
+    FBorderColor: TColor;
+    // BorderValues
+    FBorderValues: Integer;
 
     // BeforeCreate
     procedure BeforeCreate; virtual;
@@ -208,6 +223,8 @@ type
     procedure DoGirdMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); virtual;
     // DrawCell
     procedure DoGridCustomDrawCell(Sender: TObject; ACol, ARow: Integer; CellRect: TRect; CellState: TCellState); virtual;
+    // DoGridDrawCellBackground
+    procedure DoGridDrawCellBackground(Sender: TObject; ACol, ARow: Integer; CellRect: TRect; CellState: TCellState; var DefaultDrawing: Boolean); virtual;
   public
     // Constructor
     constructor Create(AParent: TWinControl; AContext: IAppContext); reintroduce; virtual;
@@ -215,6 +232,9 @@ type
     destructor Destroy; override;
     // MouseWheelHandler
     procedure MouseWheelHandler(var Message: TMessage); override;
+
+    property BorderColor: TColor read FBorderColor write SetBorderColor;
+    property BorderValues: Integer read FBorderValues write SetBorderValues;
   end;
 
 implementation
@@ -526,6 +546,8 @@ begin
   FAppContext := AContext;
   inherited Create(nil);
   Parent := AParent;
+  AdaptiveColors := False;
+//  ParentBackground := False;
   BeforeCreate;
   FSimpleGrid := FSimpleGridClass.Create(FAppContext);
   FSimpleGrid.Parent := Self;
@@ -551,16 +573,56 @@ begin
   FAppContext := nil;
 end;
 
+procedure TSimpleReport.SetBorderColor(AColor: TColor);
+begin
+  if Self.BorderPen.Color <> AColor then begin
+    FBorderColor := AColor;
+    Self.BorderPen.Color := FBorderColor;
+  end;
+end;
+
+procedure TSimpleReport.SetBorderValues(ABorderValues: Integer);
+begin
+  if FBorderValues <> ABorderValues then begin
+    FBorderValues := ABorderValues;
+    if (FBorderValues and BORDER_LEFT) > 0 then begin
+      Self.InnerMargins.Left := 1;
+    end else begin
+      Self.InnerMargins.Left := 0;
+    end;
+
+    if (FBorderValues and BORDER_RIGHT) > 0 then begin
+      Self.InnerMargins.Right := 1;
+    end else begin
+      Self.InnerMargins.Right := 0;
+    end;
+
+    if (FBorderValues and BORDER_TOP) > 0 then begin
+      Self.InnerMargins.Top := 1;
+    end else begin
+      Self.InnerMargins.Top := 0;
+    end;
+
+    if (FBorderValues and BORDER_BOTTOM) > 0 then begin
+      Self.InnerMargins.Bottom := 1;
+    end else begin
+      Self.InnerMargins.Bottom := 0;
+    end;
+
+    Self.BorderPen.Color := FBorderColor;
+  end;
+end;
+
 procedure TSimpleReport.MouseWheelHandler(var Message: TMessage);
 var
   LPt: TPoint;
 begin
   inherited;
-//  LPt := ScreenToClient(Mouse.CursorPos);
-//  if PtInRect(Self.GetClientRect, LPt) then begin
-//    Message.Result := FVertBar.Perform(CM_MOUSEWHEEL, -Message.WParam,
-//      Message.LParam);
-//  end;
+  LPt := ScreenToClient(Mouse.CursorPos);
+  if PtInRect(Self.GetClientRect, LPt) then begin
+    Message.Result := FVertBar.Perform(CM_MOUSEWHEEL, -Message.WParam,
+      Message.LParam);
+  end;
 end;
 
 procedure TSimpleReport.BeforeCreate;
@@ -580,6 +642,7 @@ begin
   FSimpleGrid.OnMouseWheelDown := DoGridWheelDown;
   FSimpleGrid.OnContextMenu := DoGridContextMenu;
   FSimpleGrid.OnCustomDrawCell := DoGridCustomDrawCell;
+  FSimpleGrid.OnDrawCellBackground := DoGridDrawCellBackground;
   FSimpleGrid.OnProcessKeyDown := DoGridProcessKeyDown;
   FSimpleGrid.OnPaintReportAfter := DoGridPaintReportAfter;
   FSimpleGrid.OnPaintReportBefore := DoGridPaintReportBefore;
@@ -595,41 +658,49 @@ begin
 end;
 
 procedure TSimpleReport.DoResetPos;
-var
-  LWidth, LHeight: Integer;
+//var
+//  LWidth, LHeight: Integer;
 begin
-  if (FVertBar <> nil)
-    and (FVertBar.Visible) then begin
-    LWidth := Width - FVertBar.Width;
-    FVertBar.Top := 0;
-    FVertBar.Left := Width - FVertBar.Width;
-  end else begin
-    LWidth := Width;
-  end;
-
-  if (FHorzBar <> nil)
-    and (FHorzBar.Visible) then begin
-    LHeight := Height - FHorzBar.Height;
-    FHorzBar.Top := LHeight - FHorzBar.Height;
-    FHorzBar.Left := 0;
-  end else begin
-    LHeight := Height;
-  end;
-
-  FSimpleGrid.Width := LWidth;
-  FSimpleGrid.Height := LHeight;
+//  if (FVertBar <> nil)
+//    and (FVertBar.Visible) then begin
+//    LWidth := Width - FVertBar.Width;
+//    FVertBar.Top := 0;
+//    FVertBar.Left := Width - FVertBar.Width;
+//    if FHorzBar <> nil then begin
+//      FVertBar.Height := Height - FVertBar.ScrollSize;
+//    end;
+//  end else begin
+//    LWidth := Width;
+//  end;
+//
+//  if (FHorzBar <> nil)
+//    and (FHorzBar.Visible) then begin
+//    LHeight := Height - FHorzBar.Height;
+//    FHorzBar.Top := LHeight - FHorzBar.Height;
+//    FHorzBar.Left := 0;
+//    if FVertBar <> nil then begin
+//      FHorzBar.Width := Width -FHorzBar.ScrollSize;
+//    end;
+//  end else begin
+//    LHeight := Height;
+//  end;
+//  FSimpleGrid.Top := 0;
+//  FSimpleGrid.Left := 0;
+//  FSimpleGrid.Width := LWidth;
+//  FSimpleGrid.Height := LHeight;
 end;
 
 procedure TSimpleReport.DoGridPaintReportAfter;
 var
-  tmpRect: TRect;
+  LSrcRect, LDesRect: TRect;
 begin
-  tmpRect := Rect(0, FSimpleGrid.HeaderSize, FSimpleGrid.Width, FSimpleGrid.Height);
+  LDesRect := Rect(0, FSimpleGrid.HeaderSize, FSimpleGrid.Width, FSimpleGrid.Height);
   if (FSimpleGrid.HandleAllocated)
     and (FG32GraphicBuffer.Buffer <> nil) then begin
     FSimpleGrid.Canvas.Lock;
     try
-      DrawCopyRect(FSimpleGrid.Canvas.Handle, tmpRect, FG32GraphicBuffer.Buffer.Handle, tmpRect);
+      LSrcRect := LDesRect;
+      DrawCopyRect(FSimpleGrid.Canvas.Handle, LDesRect, FG32GraphicBuffer.Buffer.Handle, LSrcRect);
     finally
       FSimpleGrid.Canvas.UnLock;
     end;
@@ -671,12 +742,16 @@ end;
 
 procedure TSimpleReport.DoGridVertChange(Sender: TObject);
 begin
+  if FVertBar = nil then Exit;
 
+  FSimpleGrid.VertScrollBar.Position := FVertBar.Position;
 end;
 
 procedure TSimpleReport.DoGridHorzChange(Sender: TObject);
 begin
+  if FHorzBar = nil then Exit;
 
+  FSimpleGrid.HorzScrollBar.Position := FHorzBar.Position;
 end;
 
 procedure TSimpleReport.DoGridMouseEnter(Sender: TObject);
@@ -696,12 +771,26 @@ end;
 
 procedure TSimpleReport.DoGridHorzScroll(Sender: TObject; Position: Integer);
 begin
+  if FHorzBar = nil then Exit;
 
+//  FHorzBar.Tag := 1;
+//  try
+//    FHorzBar.Position := Position;
+//  finally
+//    FHorzBar.Tag := 0;
+//  end;
 end;
 
 procedure TSimpleReport.DoGridVertScroll(Sender: TObject; Position: Integer);
 begin
+  if FVertBar = nil then Exit;
 
+//  FVertBar.Tag := 1;
+//  try
+//    FVertBar.Position := Position;
+//  finally
+//    FVertBar.Tag := 0;
+//  end;
 end;
 
 function TSimpleReport.DoGridWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean;
@@ -735,6 +824,11 @@ begin
 end;
 
 procedure TSimpleReport.DoGridCustomDrawCell(Sender: TObject; ACol, ARow: Integer; CellRect: TRect; CellState: TCellState);
+begin
+
+end;
+
+procedure TSimpleReport.DoGridDrawCellBackground(Sender: TObject; ACol, ARow: Integer; CellRect: TRect; CellState: TCellState; var DefaultDrawing: Boolean);
 begin
 
 end;

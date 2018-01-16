@@ -349,6 +349,8 @@ type
     procedure UpdateSkinStyle;
     // GetUniqueId
     function GetUniqueId: Integer;
+    // SetScreenCenter
+    procedure SetScreenCenter;
 
     property IsMaximize: Boolean read FIsMaximize;
     property IsMinimize: Boolean read FIsMinimize;
@@ -813,10 +815,23 @@ begin
   FAppContext := nil;
 end;
 
+procedure TCustomBaseUI.SetScreenCenter;
+var
+  LRect: TRect;
+  LMonitor: TMonitor;
+begin
+  LMonitor := Screen.MonitorFromPoint(Mouse.CursorPos);
+  if LMonitor = nil then begin
+    LMonitor := Self.Monitor;
+  end;
+  LRect := LMonitor.WorkareaRect;
+  Top := (LRect.Top + LRect.Bottom - Height) div 2;
+  Left := (LRect.Left + LRect.Right - Width) div 2;
+end;
+
 procedure TCustomBaseUI.UpdateSkinStyle;
 begin
   DoUpdateSkinStyle;
-
 end;
 
 function TCustomBaseUI.GetUniqueId: Integer;

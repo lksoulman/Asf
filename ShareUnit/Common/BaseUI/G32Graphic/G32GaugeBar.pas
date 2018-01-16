@@ -1,4 +1,4 @@
-unit GaugeBarEx;
+unit G32GaugeBar;
 
 interface
 
@@ -30,8 +30,8 @@ const
 
 type
 
-  // GaugeBarEx
-  TGaugeBarEx = class(TGaugeBar)
+  // G32GaugeBar
+  TG32GaugeBar = class(TGaugeBar)
   protected
     // BackColor
     FBackColor: TColor;
@@ -82,7 +82,7 @@ type
     // UpdateSkinStyle
     procedure UpdateSkinStyle;
 
-    property ResourceInstance: HInst read FResourceInstance write FResourceInstance;
+    property ScrollSize: Integer read FScrollSize;
     property BackColor: TColor read FBackColor write FBackColor;
     property BorderColor: TColor read FBorderColor write FBorderColor;
 //    property HandleColor: TColor read FHandleColor write FHandleColor;
@@ -92,9 +92,9 @@ type
 
 implementation
 
-{ TGaugeBarEx }
+{ TG32GaugeBar }
 
-constructor TGaugeBarEx.Create(AOwner: TComponent; AContext: IAppContext);
+constructor TG32GaugeBar.Create(AOwner: TComponent; AContext: IAppContext);
 begin
   FAppContext := AContext;
   inherited Create(AOwner);
@@ -114,7 +114,7 @@ begin
   FResourceImageDown := TPngImage.Create;
 end;
 
-destructor TGaugeBarEx.Destroy;
+destructor TG32GaugeBar.Destroy;
 begin
   FResourceImageDown.Free;
   FResourceImageHot.Free;
@@ -123,7 +123,7 @@ begin
   FAppContext := nil;
 end;
 
-function TGaugeBarEx.GetClientRect: TRect;
+function TG32GaugeBar.GetClientRect: TRect;
 begin
   Result.Left := 1;
   Result.Top := 1;
@@ -147,7 +147,7 @@ begin
   end;
 end;
 
-procedure TGaugeBarEx.RefreshBar;
+procedure TG32GaugeBar.RefreshBar;
 var
   LWidth, LHeight: SHORT;
 begin
@@ -181,12 +181,12 @@ begin
   end;
 end;
 
-procedure TGaugeBarEx.UpdateSkinStyle;
+procedure TG32GaugeBar.UpdateSkinStyle;
 begin
   DoUpdateSkinStyle;
 end;
 
-procedure TGaugeBarEx.Paint;
+procedure TG32GaugeBar.Paint;
 const
   CPrevDirs: array[Boolean] of TRBDirection = (drUp, drLeft);
   CNextDirs: array[Boolean] of TRBDirection = (drDown, drRight);
@@ -247,7 +247,7 @@ begin
   end;
 end;
 
-procedure TGaugeBarEx.DoUpdateSkinStyle;
+procedure TG32GaugeBar.DoUpdateSkinStyle;
 var
   LInstance: HINST;
   LPngImage: TPngImage;
@@ -265,15 +265,15 @@ begin
       FResourceImageHot.LoadFromResourceName(LInstance, HANDLE_VERT_HOT);
       FResourceImageDown.LoadFromResourceName(LInstance, HANDLE_VERT_DOWN);
     end;
+    FResourceInstance := LInstance;
   end;
-//  Color := ;
   FBackColor := RGB(33, 33, 33);
   FHandleColor := RGB(64, 64, 64);
   FHandleHotColor := RGB(56, 56, 56);
   FHandleDownColor := RGB(51, 51, 51);
 end;
 
-procedure TGaugeBarEx.DoDrawTrack(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean);
+procedure TG32GaugeBar.DoDrawTrack(R: TRect; Direction: TRBDirection; Pushed, Enabled, Hot: Boolean);
 begin
   if Style = rbsMac then begin
     Canvas.Brush.Color := FBackColor;
@@ -283,7 +283,7 @@ begin
   end;
 end;
 
-procedure TGaugeBarEx.DoDrawHandle(R: TRect; Horz, Pushed, Hot: Boolean);
+procedure TG32GaugeBar.DoDrawHandle(R: TRect; Horz, Pushed, Hot: Boolean);
 var
   LHandleColor: TColor;
   LRect, LImageRect: TRect;
@@ -296,7 +296,7 @@ var
     LImageRect.Left := R.Left;
     LImageRect.Top := R.Top + (R.Height - FResourceHeight) div 2;
     LImageRect.Height := FResourceHeight;
-    LImageRect.Width := FResourceWidth div 2;
+    LImageRect.Width := FResourceWidth;
     Canvas.Draw(LImageRect.Left, LImageRect.Top, FResourceImage);
 
     // Right Round
@@ -306,7 +306,7 @@ var
     // Draw Handle Rectangle
     LRect := R;
     LRect.Left := R.Left + FResourceWidth div 2;
-    LRect.Width := R.Width - FResourceWidth div 2;
+    LRect.Right := R.Right - FResourceWidth div 2;
 
     Canvas.Brush.Color := LHandleColor;
     Canvas.FillRect(LRect);
