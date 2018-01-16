@@ -57,7 +57,13 @@ uses
   WebEmbedAssetsCommandImpl in 'WCommands\WebEmbedAssetsCommandImpl.pas',
   HomePageImpl in 'HomePage\Impl\HomePageImpl.pas',
   HomePageUI in 'HomePage\HomePageUI.pas',
-  HomePageCommandImpl in 'WCommands\HomePageCommandImpl.pas';
+  HomePageCommandImpl in 'WCommands\HomePageCommandImpl.pas',
+  CustomFrameUI in 'Custom\CustomFrameUI.pas',
+  SectorTreeImpl in 'SectorTree\Impl\SectorTreeImpl.pas',
+  SectorTree in 'SectorTree\SectorTree.pas',
+  SectorTreeUI in 'SectorTree\SectorTreeUI.pas' {SectorTreeUI},
+  SectorTreeCommandImpl in 'WCommands\SectorTreeCommandImpl.pas',
+  ButtonUI in 'Custom\ButtonUI.pas';
 
 {$R *.res}
 

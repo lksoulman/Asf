@@ -1090,6 +1090,8 @@ begin
       LUrl := TStatusNewsItem(AComponent).NewsInfo.NewsReplaceStr(LUrl);
       FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_WEBPOP_NEWS, Format('FuncName=LoadWebUrl@Url=%s', [LUrl]));
     end;
+  end else if AComponent is TStatusNetworkItem then begin
+    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SECTORTREE, 'FuncName=Show');
   end;
 end;
 

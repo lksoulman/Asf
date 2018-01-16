@@ -91,8 +91,9 @@ uses
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_USERCACHE, 'FuncName=ReplaceCreateCacheTables');
     // 同步用户数据
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_Command_ID_USERCACHE, 'FuncName=InitUpdateTables');
+
     // 读取同步的用户配置数据
-//    G_AppContext.GetCfg.ReadServerCacheCfg;
+    G_AppContext.GetCfg.ReadServerCacheCfg;
   end;
 
   // LoadMaster

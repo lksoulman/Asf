@@ -26,10 +26,10 @@ uses
   NxColumnClasses,
   NxCollection,
   NxCustomGridControl,
-  G32Graphic,
   SecuMain,
   AppContext,
-  GaugeBarEx,
+  G32Graphic,
+  G32GaugeBar,
   GR32_RangeBars,
   SimpleReport,
   CommonDynArray,
@@ -114,7 +114,6 @@ type
     procedure LoadSearchResult(AObject: TObject);
   end;
 
-
 implementation
 
 { TKeyRowData }
@@ -138,7 +137,7 @@ var
   LFont: TFont;
 begin
   inherited;
-  FVertBar := TGaugeBarEx.Create(nil, FAppContext);
+  FVertBar := TG32GaugeBar.Create(nil, FAppContext);
   FVertBar.Kind := sbVertical;
   FVertBar.OnChange := DoGridVertChange;
   FVertBar.Parent := Self;

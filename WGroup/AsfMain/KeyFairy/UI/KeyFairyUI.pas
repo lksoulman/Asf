@@ -106,8 +106,6 @@ type
     // KeySearchEngine
     FKeySearchEngine: IKeySearchEngine;
   protected
-    // 响应程序激活消息
-    procedure OnActivateApp(var message: TWMACTIVATEAPP); message WM_ACTIVATEAPP;
     // 响应激活消息
     procedure WMActivate(var Message: TWMActivate); message WM_ACTIVATE;
 
@@ -309,11 +307,6 @@ begin
   FKeyReportUI.Free;
   FKeyEditEx.Free;
   FKeySearchEngine := nil;
-  inherited;
-end;
-
-procedure TKeyFairyUI.OnActivateApp(var message: TWMACTIVATEAPP);
-begin
   inherited;
 end;
 

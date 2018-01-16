@@ -1,8 +1,8 @@
-unit WebPopBrowserCommandImpl;
+unit SectorTreeCommandImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Description£º WebPopBrowserCommand Implementation
+// Description£º SectorTreeCommand Implementation
 // Author£º      lksoulman
 // Date£º        2017-11-20
 // Comments£º
@@ -16,17 +16,17 @@ uses
   Classes,
   Command,
   SysUtils,
+  SectorTree,
   AppContext,
-  CommandImpl,
-  WebPopBrowser;
+  CommandImpl;
 
 type
 
-  // WebPopBrowserCommand Implementation
-  TWebPopBrowserCommandImpl = class(TCommandImpl)
+  // SectorTreeCommand Implementation
+  TSectorTreeCommandImpl = class(TCommandImpl)
   private
-    // WebPopBrowser
-    FWebPopBrowser: IWebPopBrowser;
+    // SectorTree
+    FSectorTree: ISectorTree;
   protected
   public
     // Constructor
@@ -43,26 +43,26 @@ type
 implementation
 
 uses
-  WebPopBrowserImpl;
+  SectorTreeImpl;
 
-{ TWebPopBrowserCommandImpl }
+{ TSectorTreeCommandImpl }
 
-constructor TWebPopBrowserCommandImpl.Create(AId: Cardinal; ACaption: string; AContext: IAppContext);
+constructor TSectorTreeCommandImpl.Create(AId: Cardinal; ACaption: string; AContext: IAppContext);
 begin
   inherited;
 
 end;
 
-destructor TWebPopBrowserCommandImpl.Destroy;
+destructor TSectorTreeCommandImpl.Destroy;
 begin
-  if FWebPopBrowser <> nil then begin
+  if FSectorTree <> nil then begin
     FAppContext.UnRegisterInterface(FId);
-    FWebPopBrowser := nil;
+    FSectorTree := nil;
   end;
   inherited;
 end;
 
-procedure TWebPopBrowserCommandImpl.Execute(AParams: string);
+procedure TSectorTreeCommandImpl.Execute(AParams: string);
 var
   LFuncName: string;
 begin
@@ -70,13 +70,18 @@ begin
   try
     ParamsVal('FuncName', LFuncName);
     if LFuncName = 'Hide' then begin
-      if FWebPopBrowser <> nil then begin
-        FWebPopBrowser.Hide;
+      if FSectorTree <> nil then begin
+        FSectorTree.Hide;
       end;
     end else begin
-      if FWebPopBrowser = nil then begin
-        FWebPopBrowser := TWebPopBrowserImpl.Create(FAppContext) as IWebPopBrowser;
-        FAppContext.RegisterInteface(FId, FWebPopBrowser);
+      if FSectorTree = nil then begin
+        FSectorTree := TSectorTreeImpl.Create(FAppContext) as ISectorTree;
+        FAppContext.RegisterInteface(FId, FSectorTree);
+      end;
+      if FSectorTree <> nil then begin
+        if LFuncName = 'Show' then begin
+          FSectorTree.Show;
+        end;
       end;
     end;
   finally

@@ -43,7 +43,8 @@ uses
   SecuMainCommandImpl,
   SectorMgrCommandImpl,
   UserSectorMgrCommandImpl,
-  KeySearchEngineCommandImpl;
+  KeySearchEngineCommandImpl,
+  UserAttentionMgrCommandImpl;
 
 { TAsfMemPlugInMgrImpl }
 
@@ -65,6 +66,7 @@ begin
   DoAddCommand(TSectorMgrCommandImpl.Create(ASF_COMMAND_ID_SECTORMGR, 'SectorMgr', FAppContext) as ICommand);
   DoAddCommand(TUserSectorMgrCommandImpl.Create(ASF_COMMAND_ID_USERSECTORMGR, 'UserSectorMgr', FAppContext) as ICommand);
   DoAddCommand(TKeySearchEngineCommandImpl.Create(ASF_COMMAND_ID_KEYSEARCHENGINE, 'KeySearchEngine', FAppContext) as ICommand);
+  DoAddCommand(TUserAttentionMgrCommandImpl.Create(ASF_COMMAND_ID_USERATTENTIONMGR, 'UserAttentionMgr', FAppContext) as ICommand);
 end;
 
 end.

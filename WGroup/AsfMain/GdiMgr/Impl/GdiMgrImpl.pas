@@ -83,6 +83,30 @@ type
     FColorRefLoadProcessCaptionText: COLORREF;
     // Load Process Caption Back
     FColorRefLoadProcessCaptionBack: COLORREF;
+    // ColorRefButtonBack
+    FColorRefButtonBack: COLORREF;
+    // ColorRefButtonBorder
+    FColorRefButtonBorder: COLORREF;
+    // ColorRefButtonText
+    FColorRefButtonText: COLORREF;
+    // ColorRefButtonHotBack
+    FColorRefButtonHotBack: COLORREF;
+    // ColorRefButtonHotBorder
+    FColorRefButtonHotBorder: COLORREF;
+    // ColorRefButtonHotText
+    FColorRefButtonHotText: COLORREF;
+    // ColorRefButtonDownBack
+    FColorRefButtonDownBack: COLORREF;
+    // ColorRefButtonDownBorder
+    FColorRefButtonDownBorder: COLORREF;
+    // ColorRefButtonDownText
+    FColorRefButtonDownText: COLORREF;
+    // ColorRefButtonDisableBack
+    FColorRefButtonDisableBack: COLORREF;
+    // ColorRefButtonDisableBorder
+    FColorRefButtonDisableBorder: COLORREF;
+    // ColorRefButtonDisableText
+    FColorRefButtonDisableText: COLORREF;
 
     // Font Obj Height 18
     FFontObjHeight18: HFONT;
@@ -128,78 +152,102 @@ type
 
     { IGdiMgr }
 
-    // Get Img App Logo
+    // GetImgAppLogo
     function GetImgAppLogo: TResourceStream;
-    // Get Img App Logo Small
+    // GetImgAppLogoSmall
     function GetImgAppLogoS: TResourceStream;
-    // Get Img App Close
+    // GetImgAppClose
     function GetImgAppClose: TResourceStream;
-    // Get Img App Restore
+    // GetImgAppRestore
     function GetImgAppRestore: TResourceStream;
-    // Get Img App Maximize
+    // GetImgAppMaximize
     function GetImgAppMaximize: TResourceStream;
-    // Get Img App Minimize
+    // GetImgAppMinimize
     function GetImgAppMinimize: TResourceStream;
-    // Get Font Obj Height 18
+    // GetFontObjHeight18
     function GetFontObjHeight18: HFONT;
-    // Get Font Obj Height 20
+    // GetFontObjHeight20
     function GetFontObjHeight20: HFONT;
-    // Get Font Obj Height 22
+    // GetFontObjHeight22
     function GetFontObjHeight22: HFONT;
-    // Get Font Obj Height 24
+    // GetFontObjHeight24
     function GetFontObjHeight24: HFONT;
-    // Get Form Border
+    // GetFormBorder
     function GetBrushObjFormBorder: HGDIOBJ;
-    // Get Master Border
+    // GetMasterBorder
     function GetBrushObjMasterBorder: HGDIOBJ;
-    // Get Master Child Border
+    // GetMasterChildBorder
     function GetBrushObjMasterChildBorder: HGDIOBJ;
-    // Get LoadProcessInfo Border
+    // GetLoadProcessBorder
     function GetBrushObjLoadProcessBorder: HGDIOBJ;
-    // Get Hq Red
+    // GetHqRed
     function GetColorRefHqRed: COLORREF;
-    // Get Hq Green
+    // GetHqGreen
     function GetColorRefHqGreen: COLORREF;
-    // Get Hq Turnover
+    // GetHqTurnover
     function GetColorRefHqTurnover: COLORREF;
-    // Get Form Back
+    // GetFormBack
     function GetColorRefFormBack: COLORREF;
-    // Get Form Border
+    // GetFormBorder
     function GetColorRefFormBorder: COLORREF;
-    // Get Form Caption Text
+    // GetFormCaptionText
     function GetColorRefFormCaptionText: COLORREF;
-    // Get Form Caption Back
+    // GetFormCaptionBack
     function GetColorRefFormCaptionBack: COLORREF;
-    // Get Master Back
+    // GetMasterBack
     function GetColorRefMasterBack: COLORREF;
-    // Get Master Border
+    // GetMasterBorder
     function GetColorRefMasterBorder: COLORREF;
-    // Get Master Caption Text
+    // GetMasterCaptionText
     function GetColorRefMasterCaptionText: COLORREF;
-    // Get Master Caption Back
+    // GetMasterCaptionBack
     function GetColorRefMasterCaptionBack: COLORREF;
-    // Get Master Caption Super Tab Back
+    // GetMasterCaptionSuperTabBack
     function GetColorRefMasterSuperTabBack: COLORREF;
-    // Get Master StatusBar Back
+    // GetMasterStatusBarBack
     function GetColorRefMasterStatusBarBack: COLORREF;
-    // Get Master StatusBar Text
+    // GetMasterStatusBarText
     function GetColorRefMasterStatusBarText: COLORREF;
-    // Get Master Child Back
+    // GetMasterChildBack
     function GetColorRefMasterChildBack: COLORREF;
-    // Get Master Child Border
+    // GetMasterChildBorder
     function GetColorRefMasterChildBorder: COLORREF;
-    // Get Master Child Caption Text
+    // GetMasterChildCaptionText
     function GetColorRefMasterChildCaptionText: COLORREF;
-    // Get Master Child Caption Back
+    // GetMasterChildCaptionBack
     function GetColorRefMasterChildCaptionBack: COLORREF;
-    // Get LoadProcess Back
+    // GetLoadProcessBack
     function GetColorRefLoadProcessBack: COLORREF;
-    // Get LoadProcess Border
+    // GetLoadProcessBorder
     function GetColorRefLoadProcessBorder: COLORREF;
-    // Get LoadProcess Caption Text
+    // GetLoadProcessCaptionText
     function GetColorRefLoadProcessCaptionText: COLORREF;
-    // Get LoadProcess Caption Back
+    // GetLoadProcessCaptionBack
     function GetColorRefLoadProcessCaptionBack: COLORREF;
+    // GetColorRefButtonBack
+    function GetColorRefButtonBack: COLORREF;
+    // GetColorRefButtonBorder
+    function GetColorRefButtonBorder: COLORREF;
+    // GetColorRefButtonText
+    function GetColorRefButtonText: COLORREF;
+    // GetColorRefButtonHotBack
+    function GetColorRefButtonHotBack: COLORREF;
+    // GetColorRefButtonHotBorder
+    function GetColorRefButtonHotBorder: COLORREF;
+    // GetColorRefButtonHotText
+    function GetColorRefButtonHotText: COLORREF;
+    // GetColorRefButtonDownBack
+    function GetColorRefButtonDownBack: COLORREF;
+    // GetColorRefButtonDownBorder
+    function GetColorRefButtonDownBorder: COLORREF;
+    // GetColorRefButtonDownText
+    function GetColorRefButtonDownText: COLORREF;
+    // GetColorRefButtonDisableBack
+    function GetColorRefButtonDisableBack: COLORREF;
+    // GetColorRefButtonDisableBorder
+    function GetColorRefButtonDisableBorder: COLORREF;
+    // GetColorRefButtonDisableText
+    function GetColorRefButtonDisableText: COLORREF;
   end;
 
 implementation
@@ -298,6 +346,19 @@ begin
   FColorRefLoadProcessBorder := RGB(24, 131, 215);
   FColorRefLoadProcessCaptionText := RGB(124, 124, 124);
   FColorRefLoadProcessCaptionBack := RGB(35, 35, 35);
+
+  FColorRefButtonBack := RGB(68, 68, 68);
+  FColorRefButtonBorder := RGB(204, 204, 204);
+  FColorRefButtonText := RGB(214, 214, 214);
+  FColorRefButtonHotBack  := RGB(253, 143, 0);
+  FColorRefButtonHotBorder := RGB(253, 143, 0);
+  FColorRefButtonHotText := RGB(255, 255, 255);
+  FColorRefButtonDownBack := RGB(153, 57, 4);
+  FColorRefButtonDownBorder := RGB(153, 57, 4);
+  FColorRefButtonDownText := RGB(255, 255, 255);
+  FColorRefButtonDisableBack := RGB(160, 160, 160);
+  FColorRefButtonDisableBorder := RGB(160, 160, 160);
+  FColorRefButtonDisableText := RGB(180, 180, 180);
 end;
 
 procedure TGdiMgrImpl.DoInitBrushs;
@@ -536,6 +597,66 @@ end;
 function TGdiMgrImpl.GetColorRefLoadProcessCaptionBack: COLORREF;
 begin
   Result := FColorRefLoadProcessCaptionBack;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonBack: COLORREF;
+begin
+  Result := FColorRefButtonBack;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonBorder: COLORREF;
+begin
+  Result := FColorRefButtonBorder;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonText: COLORREF;
+begin
+  Result := FColorRefButtonText;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonHotBack: COLORREF;
+begin
+  Result := FColorRefButtonHotBack;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonHotBorder: COLORREF;
+begin
+  Result := FColorRefButtonHotBorder;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonHotText: COLORREF;
+begin
+  Result := FColorRefButtonHotText;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonDownBack: COLORREF;
+begin
+  Result := FColorRefButtonDownBack;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonDownBorder: COLORREF;
+begin
+  Result := FColorRefButtonDownBorder;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonDownText: COLORREF;
+begin
+  Result := FColorRefButtonDownText;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonDisableBack: COLORREF;
+begin
+  Result := FColorRefButtonDisableBack;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonDisableBorder: COLORREF;
+begin
+  Result := FColorRefButtonDisableBorder;
+end;
+
+function TGdiMgrImpl.GetColorRefButtonDisableText: COLORREF;
+begin
+  Result := FColorRefButtonDisableText;
 end;
 
 end.

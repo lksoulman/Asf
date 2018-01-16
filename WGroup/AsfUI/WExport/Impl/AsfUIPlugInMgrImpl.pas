@@ -41,6 +41,7 @@ implementation
 
 uses
   HomePageCommandImpl,
+  SectorTreeCommandImpl,
   WebPopBrowserCommandImpl,
   WebPopNewsCommandImpl,
   WebPopAnnouncementCommandImpl,
@@ -66,6 +67,7 @@ end;
 procedure TAsfUIPlugInMgrImpl.Load;
 begin
   DoAddCommand(THomePageCommandImpl.Create(ASF_COMMAND_ID_HOMEPAGE, 'HomePage', FAppContext));
+  DoAddCommand(TSectorTreeCommandImpl.Create(ASF_COMMAND_ID_SECTORTREE, 'SectorTree', FAppContext));
   DoAddCommand(TWebPopBrowserCommandImpl.Create(ASF_COMMAND_ID_WEBPOP_BROWSER, 'WebPopBrowser', FAppContext));
   DoAddCommand(TWebPopNewsCommandImpl.Create(ASF_COMMAND_ID_WEBPOP_NEWS, 'WebPopNews', FAppContext));
   DoAddCommand(TWebPopAnnouncementCommandImpl.Create(ASF_COMMAND_ID_WEBPOP_ANNOUNCEMENT, 'WebPopAnnouncement', FAppContext));

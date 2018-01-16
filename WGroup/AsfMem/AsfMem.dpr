@@ -20,16 +20,15 @@ uses
   KeySearchFilter in 'KeySearchEngine\KeySearchFilter.pas',
   KeySearchEngineImpl in 'KeySearchEngine\Impl\KeySearchEngineImpl.pas',
   KeySearchEngineCommandImpl in 'WCommands\KeySearchEngineCommandImpl.pas',
-  UserSector in 'UserSectorMgr\UserSector.pas',
   UserSectorImpl in 'UserSectorMgr\UserSectorImpl.pas',
-  UserSectorUpdate in 'UserSectorMgr\UserSectorUpdate.pas',
   UserSectorMgrImpl in 'UserSectorMgr\Impl\UserSectorMgrImpl.pas',
   UserSectorMgrCommandImpl in 'WCommands\UserSectorMgrCommandImpl.pas',
-  Sector in 'SectorMgr\Sector.pas',
   SectorImpl in 'SectorMgr\SectorImpl.pas',
-  SectorUpdate in 'SectorMgr\SectorUpdate.pas',
-  SectorMgr in 'SectorMgr\SectorMgr.pas',
-  SectorMgrImpl in 'SectorMgr\Impl\SectorMgrImpl.pas';
+  SectorMgrImpl in 'SectorMgr\Impl\SectorMgrImpl.pas',
+  SectorMgrCommandImpl in 'WCommands\SectorMgrCommandImpl.pas',
+  AttentionImpl in 'UserAttentionMgr\AttentionImpl.pas',
+  UserAttentionMgrImpl in 'UserAttentionMgr\Impl\UserAttentionMgrImpl.pas',
+  UserAttentionMgrCommandImpl in 'WCommands\UserAttentionMgrCommandImpl.pas';
 
 {$R *.res}
 
