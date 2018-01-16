@@ -16,6 +16,11 @@ uses
   Classes,
   SysUtils;
 
+const
+
+  CACHECFG_KEY_UserAttention = 'UserAttention';
+
+
 type
 
   // CurrentAccountInfo

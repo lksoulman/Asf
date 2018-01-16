@@ -37,11 +37,11 @@ type
     // GetCount
     function GetCount: Integer;
     // GetSector
-    function GetSector(AIndex: Integer): IUserSector;
+    function GetSector(AIndex: Integer): TUserSector;
     // IsExistUserSector
     function IsExistUserSector(AName: string): Boolean;
     // AddUserSector
-    function AddUserSector(AName: string): IUserSector;
+    function AddUserSector(AName: string): TUserSector;
     // GetSelfStockFlag
     function GetSelfStockFlag(AInnerCode: Integer): Integer;
   end;
@@ -49,10 +49,12 @@ type
   // UserSectorMgrUpdate Interface
   IUserSectorMgrUpdate = interface(IInterface)
     ['{27E7C506-24AC-4E22-9A93-BC72C33EF260}']
-    // ClearUserSectors
-    procedure ClearUserSectors;
     // UpdateAllSelfStockFlag
     procedure UpdateSelfStockFlagAll;
+    // RemoveDic
+    procedure RemoveDic(AName: string);
+    // AddDicUserSector
+    procedure AddDicUserSector(AUserSector: TUserSector);
     // UpdateSelfStockFlag
     procedure AddSelfStockFlag(AIndex, AInnerCode: Integer);
     // DeleteSelfStockFlag
