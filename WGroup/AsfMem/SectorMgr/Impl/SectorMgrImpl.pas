@@ -15,6 +15,7 @@ uses
   Windows,
   Classes,
   SysUtils,
+  MsgEx,
   Sector,
   Command,
   LogLevel,
@@ -24,11 +25,33 @@ uses
   BaseObject,
   AppContext,
   CommonLock,
+  CommonPool,
   WNDataSetInf,
   Generics.Collections,
   MsgExSubcriberAdapter;
 
 type
+
+  // SectorPool
+  TSectorPool = class(TObjectPool)
+  private
+    // AppContext
+    FAppContext: IAppContext;
+  protected
+    // Create
+    function DoCreate: TObject; override;
+    // Destroy
+    procedure DoDestroy(AObject: TObject); override;
+    // Allocate Before
+    procedure DoAllocateBefore(AObject: TObject); override;
+    // DeAllocate Before
+    procedure DoDeAllocateBefore(AObject: TObject); override;
+  public
+    // Constructor
+    constructor Create(AContext: IAppContext; APoolSize: Integer = 10); reintroduce;
+    // Destructor
+    destructor Destroy; override;
+  end;
 
   // SectorMgr Implementation
   TSectorMgrImpl = class(TBaseInterfacedObject, ISectorMgr)
@@ -40,6 +63,8 @@ type
     FRoot: TSector;
     // IsLoad
     FIsLoad: Boolean;
+    // SectorPool
+    FSectorPool: TSectorPool;
     // SectorDic
     FSectorDic: TDictionary<Integer, TSector>;
     // MsgExSubcriberAdapter
@@ -47,6 +72,8 @@ type
 
     // Update
     procedure DoUpdate;
+    // DeAllocateSectors
+    procedure DeAllocateSectors;
     // UpdateMsgEx
     procedure DoUpdateMsgEx(AObject: TObject);
   public
@@ -68,13 +95,51 @@ type
     // GetSector
     function GetSector(AId: Integer): TSector;
     // GetSectorElements
-    function GetSectorElements(AId: Integer): string;
+    function GetSectorElements(AId: Integer): TArray<Integer>;
   end;
 
 implementation
 
 uses
   SectorImpl;
+
+{ TSectorPool }
+
+constructor TSectorPool.Create(AContext: IAppContext; APoolSize: Integer);
+begin
+  inherited Create(APoolSize);
+  FAppContext := AContext;
+end;
+
+destructor TSectorPool.Destroy;
+begin
+  FAppContext := nil;
+  inherited;
+end;
+
+function TSectorPool.DoCreate: TObject;
+begin
+  Result := TSectorImpl.Create(FAppContext);
+end;
+
+procedure TSectorPool.DoDestroy(AObject: TObject);
+begin
+  if AObject <> nil then begin
+    AObject.Free;
+  end;
+end;
+
+procedure TSectorPool.DoAllocateBefore(AObject: TObject);
+begin
+
+end;
+
+procedure TSectorPool.DoDeAllocateBefore(AObject: TObject);
+begin
+  if AObject <> nil then begin
+    TSectorImpl(AObject).ResetValue;
+  end;
+end;
 
 { TSectorMgrImpl }
 
@@ -83,8 +148,9 @@ begin
   inherited;
   FIsLoad := False;
   FLock := TCSLock.Create;
+  FSectorPool := TSectorPool.Create(FAppContext, 1010);
   FSectorDic := TDictionary<Integer, TSector>.Create;
-  FRoot := TSectorImpl.Create(FAppContext, nil);
+  FRoot := TSectorImpl.Create(FAppContext);
   TSectorImpl(FRoot).FId := -1;
   TSectorImpl(FRoot).FName := 'Root';
   FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(FAppContext, DoUpdateMsgEx);
@@ -97,8 +163,10 @@ destructor TSectorMgrImpl.Destroy;
 begin
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(False);
   FMsgExSubcriberAdapter.Free;
+  DeAllocateSectors;
   FRoot.Free;
   FSectorDic.Free;
+  FSectorPool.Free;
   FLock.Free;
   inherited;
 end;
@@ -111,15 +179,18 @@ var
   LParentSector, LSector: TSector;
   LPlateCode, LParentPlateCode, LPlateName, LInnerCodes: IWNField;
 begin
-  FSectorDic.Clear;
-  FSectorDic.AddOrSetValue(FRoot.Id, FRoot);
-  TSectorImpl(FRoot).ClearChilds;
-
   LSql := 'SELECT PlateCode,ParentPlateCode,PlateName,OrderNumber,PlateLevel ' +
-   'FROM DW_PlateInfo WHERE Flag = 1 ORDER BY PlateLevel, OrderNumber';
+   'FROM DW_PlateInfo WHERE Flag = 1 and PlateCode > 5 ORDER BY PlateLevel, OrderNumber';
   LDataSet := FAppContext.CacheSyncQuery(ctBaseData, LSql);
   if (LDataSet <> nil) then begin
+
     if LDataSet.RecordCount >= 0 then begin
+
+      TSectorImpl(FRoot).ClearChilds;
+      DeAllocateSectors;
+      FSectorDic.AddOrSetValue(FRoot.Id, FRoot);
+
+
       LPlateCode := LDataSet.FieldByName('PlateCode');
       LParentPlateCode := LDataSet.FieldByName('ParentPlateCode');
       LPlateName := LDataSet.FieldByName('PlateName');
@@ -134,18 +205,38 @@ begin
         if FSectorDic.TryGetValue(LParentId, LParentSector) then begin
           LId := LPlateCode.AsInteger;
           if not FSectorDic.ContainsKey(LId) then begin
-            LSector := TSectorImpl(LParentSector).AddChild(LId);
-            TSectorImpl(LSector).FId := LId;
-            TSectorImpl(LSector).FName := LPlateName.AsString;
-            TSectorImpl(LSector).FElements := '';
-            FSectorDic.AddOrSetValue(LSector.Id, LSector);
+            LSector := TSector(FSectorPool.Allocate);
+            if LSector <> nil then begin
+              TSectorImpl(LParentSector).AddChild(LSector);
+              TSectorImpl(LSector).FId := LId;
+              TSectorImpl(LSector).FName := LPlateName.AsString;
+              TSectorImpl(LSector).FParent := LParentSector;
+              FSectorDic.AddOrSetValue(LSector.Id, LSector);
+            end;
           end;
         end;
         LDataSet.Next;
       end;
+      FAppContext.SendMsgEx(Msg_AsfMem_ReUpdateSectorMgr, '');
     end;
     LDataSet := nil;
   end;
+end;
+
+procedure TSectorMgrImpl.DeAllocateSectors;
+var
+  LIndex: Integer;
+  LSectors: TArray<TSector>;
+begin
+  FSectorDic.Remove(FRoot.Id);
+  LSectors := FSectorDic.Values.ToArray;
+  for LIndex := Low(LSectors) to High(LSectors) do begin
+    if LSectors[LIndex] <> nil then begin
+      FSectorPool.DeAllocate(LSectors[LIndex]);
+    end;
+  end;
+  SetLength(LSectors, 0);
+  FSectorDic.Clear;
 end;
 
 procedure TSectorMgrImpl.DoUpdateMsgEx(AObject: TObject);
@@ -201,14 +292,14 @@ begin
   end;
 end;
 
-function TSectorMgrImpl.GetSectorElements(AId: Integer): string;
+function TSectorMgrImpl.GetSectorElements(AId: Integer): TArray<Integer>;
 var
   LSector: TSector;
 begin
   if FSectorDic.TryGetValue(AId, LSector) then begin
     Result := LSector.Elements;
   end else begin
-    Result := '';
+    Result := [];
   end;
 end;
 

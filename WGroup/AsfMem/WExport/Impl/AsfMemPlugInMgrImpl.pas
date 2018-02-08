@@ -44,7 +44,8 @@ uses
   SectorMgrCommandImpl,
   UserSectorMgrCommandImpl,
   KeySearchEngineCommandImpl,
-  UserAttentionMgrCommandImpl;
+  UserAttentionMgrCommandImpl,
+  UserPositionCategoryMgrCommandImpl;
 
 { TAsfMemPlugInMgrImpl }
 
@@ -67,6 +68,7 @@ begin
   DoAddCommand(TUserSectorMgrCommandImpl.Create(ASF_COMMAND_ID_USERSECTORMGR, 'UserSectorMgr', FAppContext) as ICommand);
   DoAddCommand(TKeySearchEngineCommandImpl.Create(ASF_COMMAND_ID_KEYSEARCHENGINE, 'KeySearchEngine', FAppContext) as ICommand);
   DoAddCommand(TUserAttentionMgrCommandImpl.Create(ASF_COMMAND_ID_USERATTENTIONMGR, 'UserAttentionMgr', FAppContext) as ICommand);
+  DoAddCommand(TUserPositionCategoryMgrCommandImpl.Create(ASF_COMMAND_ID_USERPOSITIONCATEGORYMGR, 'UserPositionCategoryMgr', FAppContext) as ICommand);
 end;
 
 end.

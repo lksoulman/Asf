@@ -25,26 +25,30 @@ type
   private
   protected
   public
-    // Id
-    FId: Integer;
     // Name
     FName: string;
+    // SectorId
+    FSectorId: Integer;
+    // ModuleId
+    FModuleId: Integer;
   public
     // Constructor
-    constructor Create(AContext: IAppContext); override;
+    constructor Create; override;
     // Destructor
     destructor Destroy; override;
-    // GetId
-    function GetId: Integer; override;
     // GetName
     function GetName: string; override;
+    // GetSectorId
+    function GetSectorId: Integer; override;
+    // GetModuleId
+    function GetModuleId: Integer; override;
   end;
 
 implementation
 
 { TAttentionImpl }
 
-constructor TAttentionImpl.Create(AContext: IAppContext);
+constructor TAttentionImpl.Create;
 begin
   inherited;
 
@@ -56,14 +60,19 @@ begin
   inherited;
 end;
 
-function TAttentionImpl.GetId: Integer;
-begin
-  Result := FId;
-end;
-
 function TAttentionImpl.GetName: string;
 begin
   Result := FName;
+end;
+
+function TAttentionImpl.GetSectorId: Integer;
+begin
+  Result := FSectorId;
+end;
+
+function TAttentionImpl.GetModuleId: Integer;
+begin
+  Result := FModuleId;
 end;
 
 end.

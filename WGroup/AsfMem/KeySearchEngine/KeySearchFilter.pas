@@ -29,8 +29,6 @@ type
                ctChinese             // жпнд
                );
 
-  // Result Call Back
-  TOnResultCallBack = procedure(ASecuInfos: TDynArray<PSecuInfo>) of Object;
 
   TKeySearchFilter = class;
 

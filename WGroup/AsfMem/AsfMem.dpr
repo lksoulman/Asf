@@ -11,6 +11,7 @@ library AsfMem;
   using PChar or ShortString parameters. }
 
 uses
+
   System.SysUtils,
   System.Classes,
   WExport in 'WExport\WExport.pas',
@@ -28,9 +29,13 @@ uses
   SectorMgrCommandImpl in 'WCommands\SectorMgrCommandImpl.pas',
   AttentionImpl in 'UserAttentionMgr\AttentionImpl.pas',
   UserAttentionMgrImpl in 'UserAttentionMgr\Impl\UserAttentionMgrImpl.pas',
-  UserAttentionMgrCommandImpl in 'WCommands\UserAttentionMgrCommandImpl.pas';
+  UserAttentionMgrCommandImpl in 'WCommands\UserAttentionMgrCommandImpl.pas',
+  PositionCategoryImpl in 'UserPositionCategoryMgr\PositionCategoryImpl.pas',
+  UserPositionCategoryMgrImpl in 'UserPositionCategoryMgr\Impl\UserPositionCategoryMgrImpl.pas',
+  UserPositionCategoryMgrCommandImpl in 'WCommands\UserPositionCategoryMgrCommandImpl.pas';
 
 {$R *.res}
 
 begin
+
 end.

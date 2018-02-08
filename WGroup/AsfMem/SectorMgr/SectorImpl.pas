@@ -17,9 +17,11 @@ uses
   SysUtils,
   Sector,
   Command,
+  CacheType,
   SectorMgr,
   BaseObject,
   AppContext,
+  WNDataSetInf,
   Generics.Collections;
 
 type
@@ -28,25 +30,31 @@ type
   TSectorImpl = class(TSector)
   private
   protected
-    // Parent
-    FParent: TSector;
     // Childs
     FChilds: TList<TSector>;
 
-    // DoClearChilds
+    // ClearChilds
     procedure DoClearChilds;
+    // LoadElements
+    procedure DoLoadElements;
   public
     // Id
     FId: Integer;
     // Name
     FName: string;
+    // IsLoadElements
+    FIsLoadElements: Boolean;
     // Elements
-    FElements: string;
+    FElements: TArray<Integer>;
+    // Parent
+    FParent: TSector;
   public
     // Constructor
-    constructor Create(AContext: IAppContext; AParent: TSector); reintroduce;
+    constructor Create(AContext: IAppContext); reintroduce;
     // Destructor
     destructor Destroy; override;
+    // ResetValue
+    procedure ResetValue;
     // ClearChilds
     procedure ClearChilds;
     // GetId
@@ -54,7 +62,7 @@ type
     // GetName
     function GetName: string; override;
     // GetElements
-    function GetElements: string; override;
+    function GetElements: TArray<Integer>; override;
     // GetParent
     function GetParent: TSector; override;
     // GetChildCount
@@ -62,27 +70,25 @@ type
     // GetChildByIndex
     function GetChildByIndex(const AIndex: Integer): TSector; override;
     // AddChild
-    function AddChild(AId: Integer): TSector;
+    function AddChild(ASector: TSector): Boolean;
   end;
 
 implementation
 
 { TSectorImpl }
 
-constructor TSectorImpl.Create(AContext: IAppContext; AParent: TSector);
+constructor TSectorImpl.Create(AContext: IAppContext);
 begin
   inherited Create(AContext);
-  FParent := AParent;
   FChilds := TList<TSector>.Create;
 end;
 
 destructor TSectorImpl.Destroy;
 begin
   FName := '';
-  FElements := '';
+  SetLength(FElements, 0);
   DoClearChilds;
   FChilds.Free;
-  FParent := nil;
   inherited;
 end;
 
@@ -94,10 +100,49 @@ begin
   for LIndex := 0 to FChilds.Count - 1 do begin
     LSector := FChilds.Items[LIndex];
     if LSector <> nil then begin
-      LSector.Free;
+      TSectorImpl(LSector).ClearChilds;
     end;
   end;
   FChilds.Clear;
+end;
+
+procedure TSectorImpl.DoLoadElements;
+var
+  LSql: string;
+  LCount: Integer;
+  LInnerCode: IWNField;
+  LDataSet: IWNDataSet;
+begin
+  if not FIsLoadElements then begin
+    LSql := Format('SELECT InnerCode FROM DW_PlateComponent WHERE PlateCode = %d', [FId]);
+    if FAppContext <> nil then begin
+      LDataSet := FAppContext.CacheSyncQuery(ctBaseData, LSql);
+      if LDataSet <> nil then begin
+        SetLength(FElements, LDataSet.RecordCount);
+        if LDataSet.RecordCount > 0 then begin
+          LInnerCode := LDataSet.FieldByName('InnerCode');
+          if LInnerCode <> nil then begin
+            LCount := 0;
+            LDataSet.First;
+            while not LDataSet.Eof do begin
+
+              FElements[LCount] := LInnerCode.AsInteger;
+              Inc(LCount);
+              LDataSet.Next;
+            end;
+          end;
+        end;
+        FIsLoadElements := True;
+      end;
+    end;
+  end;
+end;
+
+procedure TSectorImpl.ResetValue;
+begin
+  FId := 0;
+  FName := '';
+  FIsLoadElements := False;
 end;
 
 procedure TSectorImpl.ClearChilds;
@@ -115,9 +160,14 @@ begin
   Result := FName;
 end;
 
-function TSectorImpl.GetElements: string;
+function TSectorImpl.GetElements: TArray<Integer>;
 begin
-  Result := FElements;
+  if FIsLoadElements then begin
+    Result := FElements;
+  end else begin
+    DoLoadElements;
+    Result := FElements;
+  end;
 end;
 
 function TSectorImpl.GetParent: TSector;
@@ -139,10 +189,10 @@ begin
   end;
 end;
 
-function TSectorImpl.AddChild(AId: Integer): TSector;
+function TSectorImpl.AddChild(ASector: TSector): Boolean;
 begin
-  Result := TSectorImpl.Create(FAppContext, Self);
-  FChilds.Add(Result);
+  Result := True;
+  FChilds.Add(ASector);
 end;
 
 end.
