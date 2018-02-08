@@ -122,7 +122,7 @@ begin
   FSuperTabDatas.Add(LSuperTabData);
 
   New(LSuperTabData);
-  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SIMPLEHQMARKETTEST;
+  LSuperTabData^.FCommandId := ASF_COMMAND_ID_SECTORPRICEHQ;
   LSuperTabData^.FResourceName := 'SKIN_APP_ASSET';
   FSuperTabDatas.Add(LSuperTabData);
 

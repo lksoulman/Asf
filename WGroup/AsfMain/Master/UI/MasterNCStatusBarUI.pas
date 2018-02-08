@@ -1091,7 +1091,9 @@ begin
       FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_WEBPOP_NEWS, Format('FuncName=LoadWebUrl@Url=%s', [LUrl]));
     end;
   end else if AComponent is TStatusNetworkItem then begin
-    FAppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_SECTORTREE, 'FuncName=Show');
+
+  end else if AComponent is TStatusAlarmItem then begin
+
   end;
 end;
 
