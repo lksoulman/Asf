@@ -245,7 +245,11 @@ function TSafeSemaphoreQueue<T>.Dequeue: T;
 begin
   FLock.Lock;
   try
-    Result := FQueue.Dequeue;
+    if FQueue.Count > 0 then begin
+      Result := FQueue.Dequeue;
+    end else begin
+      Result := T(nil);
+    end;
   finally
     FLock.UnLock;
   end;
