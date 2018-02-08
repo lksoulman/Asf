@@ -36,7 +36,7 @@ type
     // GetSector
     function GetSector(AId: Integer): TSector;
     // GetSectorElements
-    function GetSectorElements(AId: Integer): string;
+    function GetSectorElements(AId: Integer): TArray<Integer>;
   end;
 
 implementation

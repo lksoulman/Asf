@@ -29,7 +29,7 @@ type
     // GetName
     function GetName: string; virtual; abstract;
     // GetElements
-    function GetElements: string; virtual; abstract;
+    function GetElements: TArray<Integer>; virtual; abstract;
     // GetParent
     function GetParent: TSector; virtual; abstract;
     // GetChildCount
@@ -39,7 +39,7 @@ type
 
     property Id: Integer read GetId;
     property Name: string read GetName;
-    property Elements: string read GetElements;
+    property Elements: TArray<Integer> read GetElements;
     property Parent: TSector read GetParent;
     property ChildCount: Integer read GetChildCount;
     property Childs[const AIndex : Integer]: TSector read GetChildByIndex;

@@ -30,14 +30,14 @@ type
     procedure Update;
     // SaveData
     procedure SaveData;
-    // ClearAttentions
-    procedure ClearAttentions;
-    // AddAttention
-    procedure AddAttention(AId: Integer; AName: string);
+    // ClearData
+    procedure ClearData;
     // GetCount
     function GetCount: Integer;
     // GetAttention
     function GetAttention(AIndex: Integer): TAttention;
+    // Add
+    procedure Add(ASectorId, AModuleId: Integer; AName: string);
   end;
 
 implementation

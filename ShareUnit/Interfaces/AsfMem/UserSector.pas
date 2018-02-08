@@ -31,6 +31,8 @@ type
     function GetOrderNo: Integer; virtual; abstract;
     // GetInnerCodes
     function GetInnerCodes: string; virtual; abstract;
+    // GetElements
+    function GetElements: TArray<Integer>; virtual; abstract;
     // SetName
     procedure SetName(AName: string); virtual; abstract;
     // SetOrderNo
@@ -45,6 +47,7 @@ type
     property Name: string read GetName write SetName;
     property OrderNo: Integer read GetOrderNo write SetOrderNo;
     property InnerCodes: string read GetInnerCodes write SetInnerCodes;
+    property Elements: TArray<Integer> read GetElements;
   end;
 
 implementation

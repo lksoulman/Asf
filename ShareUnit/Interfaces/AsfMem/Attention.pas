@@ -15,22 +15,25 @@ uses
   Windows,
   Classes,
   SysUtils,
-  BaseObject;
+  CommonRefCounter;
 
 type
 
   // Attention
-  TAttention = class(TBaseObject)
+  TAttention = class(TAutoObject)
   private
   protected
   public
-    // GetId
-    function GetId: Integer; virtual; abstract;
     // GetName
     function GetName: string; virtual; abstract;
+    // GetSectorId
+    function GetSectorId: Integer; virtual; abstract;
+    // GetModuleId
+    function GetModuleId: Integer; virtual; abstract;
 
-    property Id: Integer read GetId;
     property Name: string read GetName;
+    property SectorId: Integer read GetSectorId;
+    property ModuleId: Integer read GetModuleId;
   end;
 
 implementation

@@ -28,37 +28,31 @@ type
     procedure UnLock;
     // Update
     procedure Update;
-    // NotifyMsgEx
-    procedure NotifyMsgEx;
-    // UserSectorsSortByOrderNo
-    procedure UserSectorsSortByOrderNo;
-    // DeleteUserSector
-    procedure DeleteUserSector(AName: string);
+    // UpdateNotify
+    procedure UpdateNotify;
     // GetCount
     function GetCount: Integer;
     // GetSector
-    function GetSector(AIndex: Integer): TUserSector;
-    // IsExistUserSector
-    function IsExistUserSector(AName: string): Boolean;
-    // AddUserSector
-    function AddUserSector(AName: string): TUserSector;
-    // GetSelfStockFlag
-    function GetSelfStockFlag(AInnerCode: Integer): Integer;
+    function GetUserSector(AIndex: Integer): TUserSector;
+    // Add
+    function Add(AName: string): TUserSector;
+    // Delete
+    function Delete(AName: string): Boolean;
+    // GetUserSectorByName
+    function GetUserSectorByName(AName: string): TUserSector;
+    // GetUserSectorStockFlag
+    function GetUserSectorStockFlag(AInnerCode: Integer): Integer;
+    // GetUserPositionStockFlag
+    function GetUserPositionStockFlag(AInnerCode: Integer): Integer;
   end;
 
   // UserSectorMgrUpdate Interface
   IUserSectorMgrUpdate = interface(IInterface)
     ['{27E7C506-24AC-4E22-9A93-BC72C33EF260}']
-    // UpdateAllSelfStockFlag
-    procedure UpdateSelfStockFlagAll;
     // RemoveDic
     procedure RemoveDic(AName: string);
     // AddDicUserSector
-    procedure AddDicUserSector(AUserSector: TUserSector);
-    // UpdateSelfStockFlag
-    procedure AddSelfStockFlag(AIndex, AInnerCode: Integer);
-    // DeleteSelfStockFlag
-    procedure DeleteSelfStockFlag(AIndex, AInnerCode: Integer);
+    procedure AddDic(AUserSector: TUserSector);
   end;
 
 
