@@ -44,7 +44,6 @@ type
 
   TABDisplay = class(TBaseObject)
   public
-    FAppContext: IAppContext;
 //    FGilAppController: IGilAppController;
     FSkinStyle: string;
     TextFont: TFont;
