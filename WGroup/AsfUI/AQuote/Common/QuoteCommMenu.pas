@@ -43,8 +43,8 @@ type
   TDrawIconType = (ditNone, ditCheckBox, ditRadioBox, ditText, ditImage);
   TDrawTriangleType = (dttRight, dttUp, dttDown);
 
-  TDrawTextAlign = (dtaTopLeft, dtaTop, dtaTopRight, dtaLeft, dtaCenter,
-    dtaRight, dtaBottomLeft, dtaBottom, dtaBottomRight);
+  TDrawTextAlignEx = (dtaeTopLeft, dtaeTop, dtaeTopRight, dtaeLeft, dtaeCenter,
+    dtaeRight, dtaeBottomLeft, dtaeBottom, dtaeBottomRight);
 
   TGilPopMenu = class;
   TGilMenuWindow = class;
@@ -270,33 +270,33 @@ type
   end;
 
 procedure DrawTextOutEx(DC: HDC; R: TRect; const Text: string;
-  Align: TDrawTextAlign; AEllipsis: Boolean = False);
+  Align: TDrawTextAlignEx; AEllipsis: Boolean = False);
 
 implementation
 
 procedure DrawTextOutEx(DC: HDC; R: TRect; const Text: string;
-  Align: TDrawTextAlign; AEllipsis: Boolean);
+  Align: TDrawTextAlignEx; AEllipsis: Boolean);
 var
   tmpFormat: Cardinal;
 begin
   case Align of
-    dtaTopLeft:
+    dtaeTopLeft:
       tmpFormat := DT_TOP + DT_LEFT + DT_SINGLELINE;
-    dtaTop:
+    dtaeTop:
       tmpFormat := DT_TOP + DT_CENTER + DT_SINGLELINE;
-    dtaTopRight:
+    dtaeTopRight:
       tmpFormat := DT_TOP + DT_RIGHT + DT_SINGLELINE;
-    dtaLeft:
+    dtaeLeft:
       tmpFormat := DT_LEFT + DT_VCENTER + DT_SINGLELINE;
-    dtaCenter:
+    dtaeCenter:
       tmpFormat := DT_CENTER + DT_VCENTER + DT_SINGLELINE;
-    dtaRight:
+    dtaeRight:
       tmpFormat := DT_RIGHT + DT_VCENTER + DT_SINGLELINE;
-    dtaBottomLeft:
+    dtaeBottomLeft:
       tmpFormat := DT_BOTTOM + DT_LEFT + DT_SINGLELINE;
-    dtaBottom:
+    dtaeBottom:
       tmpFormat := DT_BOTTOM + DT_CENTER + DT_SINGLELINE;
-    dtaBottomRight:
+    dtaeBottomRight:
       tmpFormat := DT_BOTTOM + DT_RIGHT + DT_SINGLELINE;
   else
     tmpFormat := 0;
@@ -407,7 +407,7 @@ begin
     if tmpSkinStyle <> FSkinStyle then
     begin
       FSkinStyle := tmpSkinStyle;
-      TextFont.Name := GetStrFromConfig('TextFontName');
+//      TextFont.Name := GetStrFromConfig('TextFontName');
       BackColor := GetColorFromConfig('BackColor');
       IconRectBackColor := GetColorFromConfig('IconRectBackColor');
       FocusBackColor := GetColorFromConfig('FocusBackColor');
@@ -1187,7 +1187,7 @@ begin
           _Canvas.Brush.Color := _BackColor;
           _Canvas.Font.Color := _FontColor;
           _Canvas.Font.Style := [fsBold];
-          DrawTextOutEx(_Canvas.Handle, _Rect, _MenuItem.IconText, dtaCenter);
+          DrawTextOutEx(_Canvas.Handle, _Rect, _MenuItem.IconText, dtaeCenter);
           _Canvas.Font.Style := [];
         end;
     end;
@@ -1214,7 +1214,7 @@ begin
   _Canvas.Brush.Color := _BackColor;
   _Canvas.Font.Color := _FontColor;
   _MenuItem.IsHint := (_Canvas.TextWidth(_MenuItem.Caption) > _Rect.Width);
-  DrawTextOutEx(_Canvas.Handle, _Rect, _MenuItem.Caption, dtaLeft, True);
+  DrawTextOutEx(_Canvas.Handle, _Rect, _MenuItem.Caption, dtaeLeft, True);
 end;
 
 procedure TGilMenuWindow.DrawMenuItemSubFlag(_Canvas: TCanvas; _Rect: TRect;
@@ -1315,22 +1315,22 @@ end;
 procedure TGilMenuWindow.CreateParams(var params: TCreateParams);
 begin
   inherited;
-  with params do
-  begin
-    Style := WS_POPUP;
-    WindowClass.Style := WindowClass.Style or CS_SAVEBITS;
-
-    if NewStyleControls then
-      ExStyle := WS_EX_TOOLWINDOW;
-    AddBiDiModeExStyle(ExStyle);
-  end;
-  params.WndParent := Screen.ActiveForm.Handle;
-  if (params.WndParent <> 0) and
-    (IsIconic(params.WndParent) or not IsWindowVisible(params.WndParent) or
-    not IsWindowEnabled(params.WndParent)) then
-    params.WndParent := 0;
-  if params.WndParent = 0 then
-    params.WndParent := Application.Handle;
+//  with params do
+//  begin
+//    Style := WS_POPUP;
+//    WindowClass.Style := WindowClass.Style or CS_SAVEBITS;
+//
+//    if NewStyleControls then
+//      ExStyle := WS_EX_TOOLWINDOW;
+//    AddBiDiModeExStyle(ExStyle);
+//  end;
+//  params.WndParent := Screen.ActiveForm.Handle;
+//  if (params.WndParent <> 0) and
+//    (IsIconic(params.WndParent) or not IsWindowVisible(params.WndParent) or
+//    not IsWindowEnabled(params.WndParent)) then
+//    params.WndParent := 0;
+//  if params.WndParent = 0 then
+//    params.WndParent := Application.Handle;
 end;
 
 procedure TGilMenuWindow.WMActivate(var Message: TWMActivate);
@@ -1572,6 +1572,7 @@ begin
   Top := _Pt.Y;
   // SetForegroundWindow 解决托盘上显示的菜单，点击任务栏上的空白区域不消失
   SetForegroundWindow(Application.Handle);
+//  if True then
   Show;
 end;
 
