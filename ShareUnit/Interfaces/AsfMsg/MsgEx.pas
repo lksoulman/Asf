@@ -37,8 +37,12 @@ const
   { AsfMem.dll (103000, 103999] }
 
   Msg_AsfMem_ReUpdateSecuMain                   = 103001;      // 证券主表 SECUMAIN 内存更新
+  Msg_AsfMem_ReUpdateSectorMgr                  = 103002;      // 板块数据内存更新
+  Msg_AsfMem_ReUpdateAttentionMgr               = 103003;      // 用户关注板块更新
+  Msg_AsfMem_ReUpdateUserSectorMgr              = 103004;      // 用户板块表内存更新
+  Msg_AsfMem_ReUpdateUserAttentionMgr           = 103005;      // 用户关注内存更新
+  Msg_AsfMem_ReUpdateUserPositionCategroyMgr    = 103006;      // 用户持仓分类内存更新
 
-  Msg_AsfMem_ReUpdateUserSector                 = 103002;      // 用户板块表 内存更新
 
   { AsfAuth.dll (104000, 104999] }
 
