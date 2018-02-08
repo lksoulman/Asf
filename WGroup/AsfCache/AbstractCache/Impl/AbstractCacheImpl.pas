@@ -88,7 +88,6 @@ type
     // LoadCacheTableInfoFromSysTable
     procedure DoLoadCacheTableInfoFromSysTable;
 
-
     // Get Table By Index
     function GetTableByIndex(AIndex: Integer): TCacheTable;
     // Create Table By Node
@@ -826,7 +825,7 @@ begin
   if ATable.DeleteIndicator <> '' then begin
     LIndicator := StringReplace(ATable.DeleteIndicator, REPLACE_STR_JSID,
       IntToStr(ATable.DelJSID), [rfReplaceAll]);
-    FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFUpdateDataArrive, ATable.IndexID);
+    FAppContext.GFASyncQuery(FServiceType, LIndicator, DoGFDeleteDataArrive, ATable.IndexID);
   end;
 end;
 
@@ -886,44 +885,47 @@ var
   LCacheGF: TCacheGF;
   LTable: TCacheTable;
 begin
-  case FProcessCacheGFQueueThread.WaitForEx(INFINITE) of
-    WAIT_OBJECT_0:
-      begin
-        if FProcessCacheGFQueueThread.IsTerminated then Exit;
+  while not FProcessCacheGFQueueThread.IsTerminated do begin
 
-        if not FArriveCacheGFQueue.IsEmpty then begin
-          LCacheGF := FArriveCacheGFQueue.Dequeue;
-          if LCacheGF <> nil then begin
-            case LCacheGF.OperateType of
-              coInsert:
-                begin
-                  LTable := GetTableByIndex(LCacheGF.ID);
-                  if LTable <> nil then begin
-                    DoInsertCacheTable(LTable, LCacheGF.DataSet);
-                    if LCacheGF.DataSet.RecordCount > 0 then begin
-                      LTable.UpdateVersion := LTable.UpdateVersion + 1;
-                      DoUpdateNotifyCacheTable(LTable, Format('Table=%s Insert Cache Finish.', [LTable.Name]));
+    case FProcessCacheGFQueueThread.WaitForEx(INFINITE) of
+      WAIT_OBJECT_0:
+        begin
+          if FProcessCacheGFQueueThread.IsTerminated then Exit;
+
+          if not FArriveCacheGFQueue.IsEmpty then begin
+            LCacheGF := FArriveCacheGFQueue.Dequeue;
+            if LCacheGF <> nil then begin
+              case LCacheGF.OperateType of
+                coInsert:
+                  begin
+                    LTable := GetTableByIndex(LCacheGF.ID);
+                    if LTable <> nil then begin
+                      DoInsertCacheTable(LTable, LCacheGF.DataSet);
+                      if LCacheGF.DataSet.RecordCount > 0 then begin
+                        LTable.UpdateVersion := LTable.UpdateVersion + 1;
+                        DoUpdateNotifyCacheTable(LTable, Format('Table=%s Insert Cache Finish.', [LTable.Name]));
+                      end;
+                      LCacheGF.DataSet := nil;
                     end;
-                    LCacheGF.DataSet := nil;
                   end;
-                end;
-              coDelete:
-                begin
-                  LTable := GetTableByIndex(LCacheGF.ID);
-                  if LTable <> nil then begin
-                    DoDeleteCacheTable(LTable, LCacheGF.DataSet);
-                    if LCacheGF.DataSet.RecordCount > 0 then begin
-                      LTable.UpdateVersion := LTable.UpdateVersion + 1;
-                      DoUpdateNotifyCacheTable(LTable, Format('Table=%s Delete Cache Finish.', [LTable.Name]));
+                coDelete:
+                  begin
+                    LTable := GetTableByIndex(LCacheGF.ID);
+                    if LTable <> nil then begin
+                      DoDeleteCacheTable(LTable, LCacheGF.DataSet);
+                      if LCacheGF.DataSet.RecordCount > 0 then begin
+                        LTable.UpdateVersion := LTable.UpdateVersion + 1;
+                        DoUpdateNotifyCacheTable(LTable, Format('Table=%s Delete Cache Finish.', [LTable.Name]));
+                      end;
+                      LCacheGF.DataSet := nil;
                     end;
-                    LCacheGF.DataSet := nil;
                   end;
-                end;
+              end;
+              LCacheGF.Free;
             end;
-            LCacheGF.Free;
           end;
         end;
-      end;
+    end;
   end;
 end;
 

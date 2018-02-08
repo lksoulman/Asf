@@ -57,9 +57,9 @@ end;
 
 destructor TCacheGF.Destroy;
 begin
-  if FDataSet <> nil then begin
-    FDataSet := nil;
-  end;
+//  if FDataSet <> nil then begin
+//    FDataSet := nil;
+//  end;
   inherited;
 end;
 
