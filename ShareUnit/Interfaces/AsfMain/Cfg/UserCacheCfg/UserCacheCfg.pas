@@ -18,7 +18,8 @@ uses
 
 const
 
-  CACHECFG_KEY_UserAttention = 'UserAttention';
+  CACHECFG_KEY_UserAttention            = 'UserAttention';
+  CACHECFG_KEY_UserPositionCategory     = 'UserPositionCategory';
 
 
 type
