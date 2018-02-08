@@ -21,7 +21,7 @@ uses
   QuoteCommLibrary;
 
 const
-//  const_Path = 'D:\Work\Source\GildataTerminal\trunk\Source\GilRes\Res\tintSkin\Controls\ScrollBar\';
+
   CONST_Handle_Horz = 'Controls_ScrollBar_Horz';
   CONST_Handle_Horz_Down = 'Controls_ScrollBar_Horz_Down';
   CONST_Handle_Horz_Hot = 'Controls_ScrollBar_Horz_Hot';
@@ -107,7 +107,6 @@ var
   vShowEnabled, vShowHandle: Boolean;
   vClientRect, vBtnRect, vHandleRect: TRect;
   vHorz: Boolean;
-  vClipRgn: HRGN;
 begin
 //  Self.Enabled := not (Self.Min + 1 = Self.Max);
 

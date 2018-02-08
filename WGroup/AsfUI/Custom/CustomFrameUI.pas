@@ -23,6 +23,8 @@ type
   protected
     // Id
     FUniqueId: Integer;
+    // MouseUpPt
+    FMouseUpPt: TPoint;
     // MouseMoveId
     FMouseMoveId: Integer;
     // MouseDownId
@@ -73,16 +75,23 @@ type
     procedure DoCalc(ADC: HDC; ARect: TRect); virtual;
     // Draw
     procedure DoDraw(ADC: HDC; ARect: TRect; AId: Integer = -1); virtual;
+    // DoMouseUpAfter
+    procedure DoMouseUpAfter(AComponent: TComponentUI); virtual;
+    // LClickComponent
+    procedure DoLClickComponent(AComponent: TComponentUI); virtual;
+    // RClickComponent
+    procedure DoRClickComponent(AComponent: TComponentUI); virtual;
     // FindComponent
     function DoFindComponent(APt: TPoint; var AComponent: TComponentUI): Boolean; overload; virtual;
     // FindComponent
     function DoFindComponent(AId: Integer; var AComponent: TComponentUI): Boolean; overload; virtual;
-  protected
+  public
     // Constructor
     constructor Create(AContext: IAppContext); reintroduce; virtual;
     // Destructor
     destructor Destroy; override;
 
+    property RenderDC: TRenderDC read FRenderDC;
     property MouseMoveId: Integer read FMouseMoveId write FMouseMoveId;
     property MouseDownId: Integer read FMouseDownId write FMouseDownId;
   end;
@@ -93,11 +102,13 @@ implementation
 
 constructor TCustomFrameUI.Create(AContext: IAppContext);
 begin
-  FAppContext := nil;
+  FAppContext := AContext;
   inherited Create(nil);
   Self.OnMouseEnter := DoMouseEnter;
   Self.OnMouseLeave := DoMouseLeave;
   FUniqueId := 0;
+  FMouseMoveId := -1;
+  FMouseDownId := -1;
   FLock := TCSLock.Create;
   FRenderDC := TRenderDC.Create;
   FComponents := TList<TComponentUI>.Create;
@@ -167,7 +178,6 @@ end;
 procedure TCustomFrameUI.DoAddComponent(AComponent: TComponentUI);
 begin
   if FComponents.IndexOf(AComponent) < 0 then begin
-    AComponent.Id := GetUniqueId;
     FComponents.Add(AComponent);
     FComponentDic.AddOrSetValue(AComponent.Id, AComponent);
   end;
@@ -180,7 +190,11 @@ end;
 
 procedure TCustomFrameUI.DoMouseLeave(Sender: TObject);
 begin
-
+  if FMouseMoveId <> -1 then begin
+    FMouseMoveId := -1;
+    FMouseDownId := -1;
+    Invalidate;
+  end;
 end;
 
 procedure TCustomFrameUI.DoCalc(ADC: HDC; ARect: TRect);
@@ -218,6 +232,21 @@ begin
   FRenderDC.BitBltX(ADC, ARect);
 end;
 
+procedure TCustomFrameUI.DoMouseUpAfter(AComponent: TComponentUI);
+begin
+
+end;
+
+procedure TCustomFrameUI.DoLClickComponent(AComponent: TComponentUI);
+begin
+
+end;
+
+procedure TCustomFrameUI.DoRClickComponent(AComponent: TComponentUI);
+begin
+
+end;
+
 function TCustomFrameUI.DoFindComponent(APt: TPoint; var AComponent: TComponentUI): Boolean;
 var
   LIndex: Integer;
@@ -251,19 +280,19 @@ var
   LRect: TRect;
 begin
   LDC := Canvas.Handle;
+  LRect := FComponentsRect;
   DoDraw(LDC, LRect);
 end;
 
 procedure TCustomFrameUI.WMSize(var Message: TWMSize);
 var
   LDC: HDC;
-  LRect: TRect;
 begin
   inherited;
   LDC := GetWindowDC(Self.Handle);
   try
-    LRect := GetClientRect;
-    DoCalc(LDC, LRect);
+    FComponentsRect := GetClientRect;
+    DoCalc(LDC, FComponentsRect);
   finally
     ReleaseDC(Self.Handle, LDC);
   end;
@@ -275,18 +304,62 @@ begin
 end;
 
 procedure TCustomFrameUI.MouseMove(Shift: TShiftState; X, Y: Integer);
+var
+  LPt: TPoint;
+  LMouseMoveId: Integer;
+  LComponent: TComponentUI;
 begin
-
+  LPt := Point(X, Y);
+  if DoFindComponent(LPt, LComponent) then begin
+    if FMouseMoveId <> LComponent.Id then begin
+      LMouseMoveId := LComponent.Id;
+    end else begin
+      LMouseMoveId := FMouseMoveId;
+    end;
+  end else begin
+    LMouseMoveId := -1;
+  end;
+  if (FMouseMoveId <> LMouseMoveId)
+    or (FMouseDownId <> LMouseMoveId) then begin
+    FMouseDownId := -1;
+    FMouseMoveId := LMouseMoveId;
+    Invalidate;
+  end;
 end;
 
 procedure TCustomFrameUI.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  LPt: TPoint;
+  LComponent: TComponentUI;
 begin
-
+  if Button = mbLeft then begin
+    LPt := Point(X, Y);
+    if DoFindComponent(LPt, LComponent) then begin
+      if FMouseMoveId = LComponent.Id then begin
+        FMouseDownId := FMouseMoveId;
+        Invalidate;
+      end;
+    end;
+  end;
 end;
 
 procedure TCustomFrameUI.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  LComponent: TComponentUI;
 begin
-
+  if Button = mbLeft then begin
+    FMouseUpPt := Point(X, Y);
+    if DoFindComponent(FMouseUpPt, LComponent) then begin
+      if FMouseMoveId = LComponent.Id then begin
+        FMouseDownId := FMouseMoveId;
+        DoMouseUpAfter(LComponent);
+        Invalidate;
+        DoLClickComponent(LComponent);
+      end;
+    end;
+  end else if Button = mbRight then begin
+    DoRClickComponent(nil);
+  end;
 end;
 
 end.

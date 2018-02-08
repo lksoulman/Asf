@@ -71,6 +71,7 @@ begin
   FQuoteTime := TQuoteTime.Create(FAppContext, smNormal);
   FQuoteTime.Align := alClient;
   FQuoteTime.Parent := FChildPageUI;
+  FQuoteTime.UpdateSkin;
 end;
 
 procedure TSimpleHqTestImpl.DoDestroyObjects;

@@ -34,6 +34,7 @@ uses
   Sector,
   SectorMgr,
   Attention,
+  CommonPool,
   AppContext,
   G32Graphic,
   G32GaugeBar,
@@ -43,14 +44,6 @@ uses
   UserAttentionMgr,
   Generics.Collections,
   MsgExSubcriberAdapter;
-
-const
-
-  DEFAULT_SELFSELECT_ID     = 4;
-  DEFAULT_SELFSELECT_NAME   = '自选';
-  DEFAULT_POSITION_ID       = 5;
-  DEFAULT_POSITION_NAME     = '持仓';
-
 
 type
 
@@ -66,8 +59,8 @@ type
   // SectorRowData
   TSectorRowData = class(TAutoObject)
   private
-    // Id
-    FId: Integer;
+    // SectorId
+    FSectorId: Integer;
     // Name
     FName: string;
   protected
@@ -76,8 +69,37 @@ type
     constructor Create; override;
     // Destructor
     destructor Destroy; override;
-    // Assign
-    procedure Assign(ASectorRowData: TSectorRowData);
+  end;
+
+  // SectorRowDataPool
+  TSectorRowDataPool = class(TObjectPool)
+  private
+  protected
+    // Create
+    function DoCreate: TObject; override;
+    // Destroy
+    procedure DoDestroy(AObject: TObject); override;
+    // Allocate Before
+    procedure DoAllocateBefore(AObject: TObject); override;
+    // DeAllocate Before
+    procedure DoDeAllocateBefore(AObject: TObject); override;
+  end;
+
+  // AttentionRowData
+  TAttentionRowData = class(TAutoObject)
+  private
+    // SectorId
+    FSectorId: Integer;
+    // ModuleId
+    FModuleId: Integer;
+    // Name
+    FName: string;
+  protected
+  public
+    // Constructor
+    constructor Create; override;
+    // Destructor
+    destructor Destroy; override;
   end;
 
   // SectorReportUI
@@ -146,10 +168,12 @@ type
     FCollapseIcon: TPngImage;
     // TreeColumn
     FTreeColumn: TNxTreeColumn;
+    // SectorRowDataPool
+    FSectorRowDataPool: TSectorRowDataPool;
     // AttetionSectorReport
     FAttetionSectorReport: TAttetionSectorReport;
-    // SelectedSectorRowData
-    FSelectedSectorRowDatas: TList<TSectorRowData>;
+    // AttentionRowDatas
+    FAttentionRowDatas: TList<TAttentionRowData>;
   protected
     // ResetPos
     procedure DoResetPos; override;
@@ -163,6 +187,8 @@ type
     procedure DoSelectedSectorRowDatas;
     // LoadSelectedSectorRowDatas
     procedure DoSelectedSectorRowData(ARowIndex: Integer);
+    // DoAddAttentionRowData
+    procedure DoAddAttentionRowData(ARow: TRow; ASectorRowData: TSectorRowData);
     // DoLoadTree
     procedure DoLoadTree(ASector: TSector; ARowIndex: Integer);
     // DoAddChildRow
@@ -191,13 +217,11 @@ type
     FTextColumn: TNxTextColumn;
     // UserAttentionMgr
     FUserAttentionMgr: IUserAttentionMgr;
-    // DefaultDic
-    FDefaultDic: TDictionary<Integer, string>;
     // UserAttentionDic
-    FUserAttentionDic: TDictionary<Integer, TSectorRowData>;
+    FUserAttentionDic: TDictionary<Integer, TAttentionRowData>;
   protected
-    // AddDefaultDic
-    procedure DoAddDefaultDic;
+    // ResetPos
+    procedure DoResetPos; override;
     // ClearRows
     procedure DoClearRows; override;
     // InitGridColumns
@@ -218,11 +242,9 @@ type
     // LoadDefault
     procedure LoadDefault;
     // DeleteSelected
-    procedure DeleteSelected;
+    function DeleteSelected: Boolean;
     // SaveUserAttetions
     procedure SaveUserAttetions;
-    // GetUserAttetionCount
-    function GetUserAttetionCount: Integer;
     // IsHasUserAttetion
     function IsHasUserAttetion(ASectorRowData: TSectorRowData): Boolean;
   end;
@@ -230,12 +252,14 @@ type
   // SectorTreeUI
   TSectorTreeUI = class(TCustomBaseUI)
   private
-    // IsReLoad
-    FIsReLoad: Boolean;
     // IsChangeSkin
     FIsChangeSkin: Boolean;
+    // IsReLoadSectorMgr
+    FIsReLoadSectorMgr: Boolean;
+    // IsReLoadAttention
+    FIsReLoadAttentionMgr: Boolean;
     // IsChangeAttention
-    FIsChangeAttention: Boolean;
+    FIsChangeAttentionMgr: Boolean;
     // Ok
     FBtnOk: TButtonUI;
     // Add
@@ -261,10 +285,8 @@ type
     procedure DoUpdateSkinStyle; override;
     // SetSectorReportsPos
     procedure DoSetSectorReportsPos;
-    // ReLoadSectorTreeAndReport
-    procedure DoReLoadSectorTreeAndReport;
-    // ReLoadMsgEx
-    procedure DoReLoadMsgEx(AObject: TObject);
+    // UpdateMsgEx
+    procedure DoUpdateMsgEx(AObject: TObject);
     // AddUserAttentions
     procedure DoAddUserAttentions;
     // BtnOk
@@ -291,6 +313,71 @@ implementation
 
 {$R *.dfm}
 
+const
+  MAX_COUNT = 20;
+
+
+function GetRootSectorId(ARow: TRow): Integer;
+var
+  LParentRow, LRow: TRow;
+  LSectorRowData: TSectorRowData;
+begin
+  Result := -1;
+  LRow := ARow;
+  while LRow <> nil do begin
+    if LRow.ParentRow = nil then begin
+      Break;
+    end;
+    LRow := LRow.ParentRow;
+  end;
+  if LRow <> nil then begin
+    LSectorRowData := TSectorRowData(LRow.Data);
+    if LSectorRowData <> nil then begin
+      Result := LSectorRowData.FSectorId;
+    end;
+  end;
+end;
+
+function GetModuleId(ASectorId: Integer; ACount: Integer): Integer;
+begin
+  case ASectorId of
+    7, 238:    // 沪深股票
+      begin
+        Result := 2100 + ACount;
+      end;
+    50:   // 股转
+      begin
+        Result := 3100 + ACount;
+      end;
+    174:  // 基金
+      begin
+        Result := 4100 + ACount;
+      end;
+    182:  // 债券
+      begin
+        Result := 5100 + ACount;
+      end;
+    196:  // 港股
+      begin
+        Result := 6100 + ACount;
+      end;
+    243:  // 期货
+      begin
+        Result := 7100 + ACount;
+      end;
+    249:  // 指数
+      begin
+        Result := 8100 + ACount;
+      end;
+    300:  // 美股
+      begin
+        Result := 9100 + ACount;
+      end;
+  else
+    Result := -1;
+  end;
+end;
+
 { TSectorRowData }
 
 constructor TSectorRowData.Create;
@@ -301,16 +388,46 @@ end;
 
 destructor TSectorRowData.Destroy;
 begin
-
+  FName := '';
   inherited;
 end;
 
-procedure TSectorRowData.Assign(ASectorRowData: TSectorRowData);
-begin
-  if ASectorRowData = nil then Exit;
+{ TSectorRowDataPool }
 
-  FId := ASectorRowData.FId;
-  FName := ASectorRowData.FName;
+function TSectorRowDataPool.DoCreate: TObject;
+begin
+  Result := TSectorRowData.Create;
+end;
+
+procedure TSectorRowDataPool.DoDestroy(AObject: TObject);
+begin
+  if AObject <> nil then begin
+    AObject.Free;
+  end;
+end;
+
+procedure TSectorRowDataPool.DoAllocateBefore(AObject: TObject);
+begin
+
+end;
+
+procedure TSectorRowDataPool.DoDeAllocateBefore(AObject: TObject);
+begin
+
+end;
+
+{ TAttentionRowData }
+
+constructor TAttentionRowData.Create;
+begin
+  inherited;
+
+end;
+
+destructor TAttentionRowData.Destroy;
+begin
+  FName := '';
+  inherited;
 end;
 
 { TBaseSectorReport }
@@ -351,7 +468,7 @@ end;
 
 destructor TBaseSectorReport.Destroy;
 begin
-  DoClearRows;
+
   inherited;
 end;
 
@@ -480,7 +597,7 @@ begin
   FVertBar.Enabled := (FSimpleGrid.VertScrollBar.PageSize > 0) and
     (FSimpleGrid.VertScrollBar.PageSize <= FSimpleGrid.VertScrollBar.Max);
   if FVertBar.Enabled then begin
-    FVertBar.Max := FSimpleGrid.VertScrollBar.Max - FSimpleGrid.VertScrollBar.PageSize;
+    FVertBar.Max := FSimpleGrid.VertScrollBar.Max - FSimpleGrid.VertScrollBar.PageSize + 1;
     FVertBar.Min := FSimpleGrid.VertScrollBar.Min;
     FVertBar.LargeChange := FSimpleGrid.VertScrollBar.LargeChange;
     FVertBar.SmallChange := FSimpleGrid.VertScrollBar.SmallChange;
@@ -544,12 +661,15 @@ begin
   FLevelWidth := 20;
   FExpandIcon := TPngImage.Create;
   FCollapseIcon := TPngImage.Create;
-  FSelectedSectorRowDatas := TList<TSectorRowData>.Create;
+  FAttentionRowDatas := TList<TAttentionRowData>.Create;
+  FSectorRowDataPool := TSectorRowDataPool.Create(1000);
 end;
 
 destructor TSectorTreeReport.Destroy;
 begin
-  FSelectedSectorRowDatas.Free;
+  DoClearRows;
+  FSectorRowDataPool.Free;
+  FAttentionRowDatas.Free;
   FCollapseIcon.Free;
   FExpandIcon.Free;
   FSectorMgr := nil;
@@ -571,16 +691,27 @@ end;
 procedure TSectorTreeReport.ReLoadSectorData;
 begin
   if FSectorMgr <> nil then begin
-    DoLoadTree(FSectorMgr.GetRootSector, -1);
+    FSectorMgr.Lock;
+    try
+      FSimpleGrid.BeginUpdate;
+      try
+        DoClearRows;
+        DoLoadTree(FSectorMgr.GetRootSector, -1);
+        DoCollapseNodes;
+      finally
+        FSimpleGrid.EndUpdate;
+      end;
+    finally
+      FSectorMgr.UnLock;
+    end;
   end;
-  DoCollapseNodes;
 end;
 
 procedure TSectorTreeReport.DoResetPos;
 begin
   inherited;
   if FTreeColumn <> nil then begin
-    FTreeColumn.Width := FSimpleGrid.Width - 30;
+    FTreeColumn.Width := FSimpleGrid.Width - 2;
   end;
 end;
 
@@ -595,7 +726,7 @@ begin
     LSectorRowData := TSectorRowData(LRow.Data);
     LRow.Data := nil;
     if LSectorRowData <> nil then begin
-      LSectorRowData.Free;
+      FSectorRowDataPool.DeAllocate(LSectorRowData);
     end;
   end;
   FSimpleGrid.ClearRows;
@@ -639,7 +770,7 @@ end;
 
 procedure TSectorTreeReport.DoSelectedSectorRowDatas;
 begin
-  FSelectedSectorRowDatas.Clear;
+  FAttentionRowDatas.Clear;
   DoSelectedSectorRowData(FSimpleGrid.SelectedRow);
 end;
 
@@ -648,7 +779,7 @@ var
   LRow, LChildRow: TRow;
   LIndex, LCount: Integer; 
 begin
-  if (ARowIndex < 0) 
+  if (ARowIndex < 0)
     or (ARowIndex >= FSimpleGrid.RowCount) then Exit;
   
   LRow := FSimpleGrid.Row[ARowIndex];
@@ -665,18 +796,37 @@ begin
           if LChildRow.HasChildren then begin
             DoSelectedSectorRowData(LIndex);
           end else begin
-            if (FAttetionSectorReport <> nil)
-              and (not FAttetionSectorReport.IsHasUserAttetion(TSectorRowData(LChildRow.Data))) then begin
-              FSelectedSectorRowDatas.Add(TSectorRowData(LChildRow.Data));
-            end;
+            DoAddAttentionRowData(LChildRow, TSectorRowData(LChildRow.Data));
           end;
         end;
       end;
     end;
   end else begin
-    if (FAttetionSectorReport <> nil)
-      and (not FAttetionSectorReport.IsHasUserAttetion(TSectorRowData(LRow.Data))) then begin
-      FSelectedSectorRowDatas.Add(TSectorRowData(LRow.Data));
+    DoAddAttentionRowData(LRow, TSectorRowData(LRow.Data));
+  end;
+end;
+
+procedure TSectorTreeReport.DoAddAttentionRowData(ARow: TRow; ASectorRowData: TSectorRowData);
+var
+  LCount: Integer;
+  LRootSectorId: Integer;
+  LAttentionRowData: TAttentionRowData;
+begin
+  if FAttetionSectorReport <> nil then begin
+    LCount := MAX_COUNT - FAttetionSectorReport.FSimpleGrid.RowCount;
+    if FAttentionRowDatas.Count >= LCount then Exit;
+
+    LCount := FAttetionSectorReport.FSimpleGrid.RowCount + FAttentionRowDatas.Count;
+    if not FAttetionSectorReport.IsHasUserAttetion(ASectorRowData) then begin
+      LRootSectorId := GetRootSectorId(ARow);
+      if LRootSectorId <> -1 then begin
+        Inc(LCount);
+        LAttentionRowData := TAttentionRowData.Create;
+        LAttentionRowData.FSectorId := ASectorRowData.FSectorId;
+        LAttentionRowData.FModuleId := GetModuleId(LRootSectorId, LCount);
+        LAttentionRowData.FName := ASectorRowData.FName;
+        FAttentionRowDatas.Add(LAttentionRowData);
+      end;
     end;
   end;
 end;
@@ -690,9 +840,9 @@ begin
   for LIndex := 0 to ASector.GetChildCount - 1 do begin
     LSector := ASector.Childs[LIndex];
     if LSector <> nil then begin
-      LSectorRowData := TSectorRowData.Create;
-      LSectorRowData.FId := LSector.Id;
-      LSectorRowData.FName := LSector.Name;
+      LSectorRowData := TSectorRowData(FSectorRowDataPool.Allocate);
+      LSectorRowData.FSectorId := LSector.Id;
+      LSectorRowData.FName := Copy(LSector.Name, 1, Length(LSector.Name));
       LRowIndex := DoAddChildRow(ARowIndex, LSectorRowData);
       if (LRowIndex >= 0)
         and (LRowIndex < FSimpleGrid.RowCount) then begin
@@ -740,8 +890,6 @@ begin
       if FHorzBar <> nil then begin
         FSimpleGrid.Columns[0].Width := FSimpleGrid.Width;
       end;
-
-//        DoSelectedSectorRowDatas;
     end;
   end;
 end;
@@ -823,14 +971,13 @@ constructor TAttetionSectorReport.Create(AParent: TWinControl;
 begin
   inherited;
   FUserAttentionMgr := FAppContext.FindInterface(ASF_COMMAND_ID_USERATTENTIONMGR) as IUserAttentionMgr;
-  FDefaultDic := TDictionary<Integer, string>.Create;
-  FUserAttentionDic := TDictionary<Integer, TSectorRowData>.Create;
+  FUserAttentionDic := TDictionary<Integer, TAttentionRowData>.Create;
 end;
 
 destructor TAttetionSectorReport.Destroy;
 begin
+  DoClearRows;
   FUserAttentionDic.Free;
-  FDefaultDic.Free;
   FUserAttentionMgr := nil;
   inherited;
 end;
@@ -846,7 +993,7 @@ var
   LRow: TRow;
   LAttention: TAttention;
   LIndex, LRowIndex: Integer;
-  LSectorRowData: TSectorRowData;
+  LAttentionRowData: TAttentionRowData;
 begin
   if FUserAttentionMgr <> nil then begin
     FUserAttentionMgr.Lock;
@@ -857,12 +1004,13 @@ begin
         for LIndex := 0 to FUserAttentionMgr.GetCount - 1 do begin
           LAttention := FUserAttentionMgr.GetAttention(LIndex);
           if LAttention <> nil then begin
-            LSectorRowData := TSectorRowData.Create;
-            LSectorRowData.FId := LAttention.Id;
-            LSectorRowData.FName := LAttention.Name;
+            LAttentionRowData := TAttentionRowData.Create;
+            LAttentionRowData.FSectorId := LAttention.SectorId;
+            LAttentionRowData.FModuleId := LAttention.ModuleId;
+            LAttentionRowData.FName := LAttention.Name;
             LRowIndex := FSimpleGrid.AddRow();
             LRow := FSimpleGrid.Row[LRowIndex];
-            LRow.Data := LSectorRowData;
+            LRow.Data := LAttentionRowData;
           end;
         end;
       finally
@@ -875,50 +1023,33 @@ begin
 end;
 
 procedure TAttetionSectorReport.LoadDefault;
-var
-  LRow: TRow;
-  LRowIndex: Integer;
-  LSectorRowData: TSectorRowData;
 begin
   FSimpleGrid.BeginUpdate;
   try
     DoClearRows;
-
-    LRowIndex := FSimpleGrid.AddRow();
-    LRow := FSimpleGrid.Row[LRowIndex];
-    LSectorRowData := TSectorRowData.Create;
-    LSectorRowData.FId := DEFAULT_SELFSELECT_ID;
-    LSectorRowData.FName := DEFAULT_SELFSELECT_NAME;
-    LRow.Data := LSectorRowData;
-
-    LRowIndex := FSimpleGrid.AddRow();
-    LRow := FSimpleGrid.Row[LRowIndex];
-    LSectorRowData := TSectorRowData.Create;
-    LSectorRowData.FId := DEFAULT_POSITION_ID;
-    LSectorRowData.FName := DEFAULT_POSITION_NAME;
-    LRow.Data := LSectorRowData;
   finally
     FSimpleGrid.EndUpdate;
   end;
 end;
 
-procedure TAttetionSectorReport.DeleteSelected;
+function TAttetionSectorReport.DeleteSelected: Boolean;
 var
   LRow: TRow;
   LRowIndex: Integer;
-  LSectorRowData: TSectorRowData;
+  LAttentionRowData: TAttentionRowData;
 begin
+  Result := False;
   LRowIndex := FSimpleGrid.SelectedRow;
   if (LRowIndex >= 0)
     and (LRowIndex < FSimpleGrid.RowCount) then begin
+    Result := True;
     LRow := FSimpleGrid.Row[LRowIndex];
-    LSectorRowData := TSectorRowData(LRow.Data);
-    if (LSectorRowData <> nil)
-      and (not FDefaultDic.ContainsKey(LSectorRowData.FId)) then begin
-      FSimpleGrid.DeleteRow(LRowIndex);
-      FSimpleGrid.SelectedRow := -1;
-      LSectorRowData.Free;
+    LAttentionRowData := TAttentionRowData(LRow.Data);
+    if LAttentionRowData <> nil then begin
+      LAttentionRowData.Free;
     end;
+    FSimpleGrid.DeleteRow(LRowIndex);
+    FSimpleGrid.SelectedRow := -1;
   end;
 end;
 
@@ -926,18 +1057,18 @@ procedure TAttetionSectorReport.SaveUserAttetions;
 var
   LRow: TRow;
   LIndex: Integer;
-  LSectorRowData: TSectorRowData;
+  LAttentionRowData: TAttentionRowData;
 begin
   if FUserAttentionMgr = nil then Exit;
 
   FUserAttentionMgr.Lock;
   try
-    FUserAttentionMgr.ClearAttentions;
+    FUserAttentionMgr.ClearData;
     for LIndex := 0 to FSimpleGrid.RowCount - 1 do begin
       LRow := FSimpleGrid.Row[LIndex];
-      LSectorRowData := TSectorRowData(LRow.Data);
-      if LSectorRowData <> nil then begin
-        FUserAttentionMgr.AddAttention(LSectorRowData.FId, LSectorRowData.FName);
+      LAttentionRowData := TAttentionRowData(LRow.Data);
+      if LAttentionRowData <> nil then begin
+        FUserAttentionMgr.Add(LAttentionRowData.FSectorId, LAttentionRowData.FModuleId, LAttentionRowData.FName);
       end;
     end;
     FUserAttentionMgr.SaveData;
@@ -946,37 +1077,34 @@ begin
   end;
 end;
 
-function TAttetionSectorReport.GetUserAttetionCount: Integer;
-begin
-  Result := FSimpleGrid.RowCount;
-end;
-
 function TAttetionSectorReport.IsHasUserAttetion(ASectorRowData: TSectorRowData): Boolean;
 begin
   Result := False;
   if ASectorRowData = nil then Exit;
 
-  Result := FUserAttentionDic.ContainsKey(ASectorRowData.FId);
+  Result := FUserAttentionDic.ContainsKey(ASectorRowData.FSectorId);
 end;
 
-procedure TAttetionSectorReport.DoAddDefaultDic;
+procedure TAttetionSectorReport.DoResetPos;
 begin
-  FDefaultDic.AddOrSetValue(DEFAULT_SELFSELECT_ID, DEFAULT_SELFSELECT_NAME);
-  FDefaultDic.AddOrSetValue(DEFAULT_POSITION_ID, DEFAULT_POSITION_NAME);
+  inherited;
+  if FTextColumn <> nil then begin
+    FTextColumn.Width := FSimpleGrid.Width - 2;
+  end;
 end;
 
 procedure TAttetionSectorReport.DoClearRows;
 var
   LRow: TRow;
   LIndex: Integer;
-  LSectorRowData: TSectorRowData;
+  LAttentionRowData: TAttentionRowData;
 begin
   for LIndex := 0 to FSimpleGrid.RowCount - 1 do begin
     LRow := FSimpleGrid.Row[LIndex];
-    LSectorRowData := TSectorRowData(LRow.Data);
+    LAttentionRowData := TAttentionRowData(LRow.Data);
     LRow.Data := nil;
-    if LSectorRowData <> nil then begin
-      LSectorRowData.Free;
+    if LAttentionRowData <> nil then begin
+      LAttentionRowData.Free;
     end;
   end;
   FSimpleGrid.ClearRows;
@@ -1004,8 +1132,8 @@ procedure TAttetionSectorReport.DoGridCustomDrawCell(Sender: TObject; ACol,
 var
   LRow: TRow;
   LNameRect: TRect;
-  LSectorRowData: TSectorRowData;
   LBackColor, LFontColor: TColor;
+  LAttentionRowData: TAttentionRowData;
 begin
   LRow := FSimpleGrid.Row[ARow];
   if csSelected in CellState then begin
@@ -1019,14 +1147,14 @@ begin
   FG32GraphicBuffer.G32Graphic.FillRect(CellRect);
 
   if LRow <> nil then begin
-    LSectorRowData := TSectorRowData(LRow.Data);
-    if LSectorRowData <> nil then begin
+    LAttentionRowData := TAttentionRowData(LRow.Data);
+    if LAttentionRowData <> nil then begin
       FG32GraphicBuffer.G32Graphic.EmptyPolyText('DrawText');
 
-      if LSectorRowData.FName <> '' then begin
+      if LAttentionRowData.FName <> '' then begin
         LNameRect := CellRect;
         LNameRect.Left := LNameRect.Left + 5;
-        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LNameRect, LSectorRowData.FName, gtaLeft);
+        FG32GraphicBuffer.G32Graphic.AddPolyText('DrawText', LNameRect, LAttentionRowData.FName, gtaLeft);
       end;
       FG32GraphicBuffer.G32Graphic.Ellipsis := True;
       FG32GraphicBuffer.G32Graphic.LineColor := LFontColor;
@@ -1038,8 +1166,22 @@ end;
 procedure TAttetionSectorReport.DoGridDrawCellBackground(Sender: TObject; ACol,
   ARow: Integer; CellRect: TRect; CellState: TCellState;
   var DefaultDrawing: Boolean);
+var
+  LRow: TRow;
+  LWidth: Integer;
+  LAttentionRowData: TAttentionRowData;
 begin
+  if ARow >= FSimpleGrid.RowCount then Exit;
 
+  LRow := FSimpleGrid.Row[ARow];
+  LWidth := 5;
+  LAttentionRowData := TAttentionRowData(LRow.Data);
+  if LAttentionRowData <> nil then begin
+    LWidth := LWidth + FG32GraphicBuffer.G32Graphic.TextWidth(LAttentionRowData.FName);
+  end;
+  if CellRect.Width < LWidth then begin
+    FSimpleGrid.Columns[0].Width := LWidth;
+  end;
 end;
 
 { TSectorTreeUI }
@@ -1047,9 +1189,10 @@ end;
 constructor TSectorTreeUI.Create(AContext: IAppContext);
 begin
   inherited;
-  FIsReLoad := True;
   FIsChangeSkin := True;
-  FIsChangeAttention := False;
+  FIsReLoadSectorMgr := True;
+  FIsReLoadAttentionMgr := True;
+  FIsChangeAttentionMgr := False;
   FBtnOk := TButtonUI.Create(FAppContext);
   FBtnOk.Parent := Self;
   FBtnOk.Caption := '确定';
@@ -1078,9 +1221,9 @@ begin
   FAttetionSectorReport.Align := alCustom;
   FAttetionSectorReport.Parent := Self;
   FSectorTreeReport.FAttetionSectorReport := FAttetionSectorReport;
-  FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(FAppContext, DoReLoadMsgEx);
-//  FMsgExSubcriberAdapter.AddSubcribeMsgEx();
-//  FMsgExSubcriberAdapter.AddSubcribeMsgEx();
+  FMsgExSubcriberAdapter := TMsgExSubcriberAdapter.Create(FAppContext, DoUpdateMsgEx);
+  FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfMem_ReUpdateSectorMgr);
+  FMsgExSubcriberAdapter.AddSubcribeMsgEx(Msg_AsfMain_ReUpdateSkinStyle);
   FMsgExSubcriberAdapter.SubcribeMsgEx;
   FMsgExSubcriberAdapter.SetSubcribeMsgExState(True);
   DoSetSectorReportsPos;
@@ -1102,14 +1245,22 @@ end;
 
 procedure TSectorTreeUI.ShowEx;
 begin
+  if FIsReLoadSectorMgr then begin
+    FSectorTreeReport.ReLoadSectorData;
+    FIsReLoadSectorMgr := False;
+  end;
+  FSectorTreeReport.DoCollapseNodes;
+
+  if FIsChangeAttentionMgr then begin
+    FAttetionSectorReport.ReLoadSectorData;
+    FIsChangeAttentionMgr := True;
+  end;
+
   if FIsChangeSkin then begin
     UpdateSkinStyle;
     FIsChangeSkin := True;
   end;
-  if FIsReLoad then begin
-    DoReLoadSectorTreeAndReport;
-    FIsReLoad := False;
-  end;
+
   SetScreenCenter;
   if not Self.Showing then begin
     Show;
@@ -1162,55 +1313,61 @@ begin
   FBtnCancel.Left := Width - 90;
 end;
 
-procedure TSectorTreeUI.DoReLoadSectorTreeAndReport;
-begin
-  FSectorTreeReport.ReLoadSectorData;
-  FAttetionSectorReport.ReLoadSectorData;
-end;
-
-procedure TSectorTreeUI.DoReLoadMsgEx(AObject: TObject);
+procedure TSectorTreeUI.DoUpdateMsgEx(AObject: TObject);
 var
   LMsgEx: TMsgEx;
 begin
   LMsgEx := TMsgEx(AObject);
-//  case LMsgEx.Id of
-//
-//  end;
-  FIsReLoad := True;
+  case LMsgEx.Id of
+    Msg_AsfMem_ReUpdateSectorMgr:
+      begin
+        if Self.Showing then begin
+          FSectorTreeReport.ReLoadSectorData;
+        end else begin
+          FIsReLoadSectorMgr := True;
+        end;
+      end;
+    Msg_AsfMem_ReUpdateAttentionMgr:
+      begin
+        if Self.Showing then begin
+          FAttetionSectorReport.ReLoadSectorData;
+        end else begin
+          FIsReLoadAttentionMgr := True;
+        end;
+      end;
+    Msg_AsfMain_ReUpdateSkinStyle:
+      begin
+
+      end;
+  end;
 end;
 
 procedure TSectorTreeUI.DoAddUserAttentions;
-const
-  MAX_COUNT = 20;
 var
   LRow: TRow;
-  LIndex, LCount, LRowIndex: Integer;
-  LSectorRowData, LNewSectorRowData: TSectorRowData;
+  LIndex, LRowIndex: Integer;
+  LAttentionRowData: TAttentionRowData;
 begin
   FSectorTreeReport.DoSelectedSectorRowDatas;
-  if FSectorTreeReport.FSelectedSectorRowDatas.Count > 0 then begin
-    LCount := MAX_COUNT - FAttetionSectorReport.GetUserAttetionCount;
-    if FSectorTreeReport.FSelectedSectorRowDatas.Count <= LCount then begin
-      LCount := FSectorTreeReport.FSelectedSectorRowDatas.Count;
+  if FSectorTreeReport.FAttentionRowDatas.Count > 0 then begin
+
+    if FAttetionSectorReport.FTextColumn <> nil then begin
+      FAttetionSectorReport.FTextColumn.Width := FAttetionSectorReport.FSimpleGrid.Width;
     end;
 
-    if LCount <= 0 then Exit;
-
-    FIsChangeAttention := True;
+    FIsChangeAttentionMgr := True;
     FAttetionSectorReport.FSimpleGrid.BeginUpdate;
     try
-      for LIndex := 0 to LCount - 1 do begin
-
-        LSectorRowData := FSectorTreeReport.FSelectedSectorRowDatas.Items[LIndex];
-        if LSectorRowData <> nil then begin
-          LNewSectorRowData := TSectorRowData.Create;
-          LNewSectorRowData.Assign(LSectorRowData);
-          FAttetionSectorReport.FUserAttentionDic.AddOrSetValue(LNewSectorRowData.FId, LNewSectorRowData);
+      for LIndex := 0 to FSectorTreeReport.FAttentionRowDatas.Count - 1 do begin
+        LAttentionRowData := FSectorTreeReport.FAttentionRowDatas.Items[LIndex];
+        if LAttentionRowData <> nil then begin
+          FAttetionSectorReport.FUserAttentionDic.AddOrSetValue(LAttentionRowData.FSectorId, LAttentionRowData);
           LRowIndex := FAttetionSectorReport.FSimpleGrid.AddRow();
           LRow := FAttetionSectorReport.FSimpleGrid.Row[LRowIndex];
-          LRow.Data := LNewSectorRowData;
+          LRow.Data := LAttentionRowData;
         end;
       end;
+      FSectorTreeReport.FAttentionRowDatas.Clear;
     finally
       FAttetionSectorReport.FSimpleGrid.EndUpdate;
     end;
@@ -1221,9 +1378,9 @@ procedure TSectorTreeUI.DoBtnOk(Sender: TObject);
 var
   LIndex: Integer;
 begin
-  if FIsChangeAttention then begin
+  if FIsChangeAttentionMgr then begin
     FAttetionSectorReport.SaveUserAttetions;
-    FIsChangeAttention := False;
+    FIsChangeAttentionMgr := False;
   end;
 end;
 
@@ -1233,8 +1390,13 @@ begin
 end;
 
 procedure TSectorTreeUI.DoBtnDel(Sender: TObject);
+var
+  LIsChange: Boolean;
 begin
-  FAttetionSectorReport.DeleteSelected;
+  LIsChange := FAttetionSectorReport.DeleteSelected;
+  if LIsChange then begin
+    FIsChangeAttentionMgr := True;
+  end;
 end;
 
 procedure TSectorTreeUI.DoBtnCancel(Sender: TObject);

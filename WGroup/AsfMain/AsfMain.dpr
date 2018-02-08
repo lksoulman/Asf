@@ -101,7 +101,7 @@ begin
           LoadAuth;
           LoadCache;
           LoadMaster;
-//          LoadCronJobs;
+          LoadCronJobs;
           LoadDelayJobs;
           Application.Run;
           CloseShowForms;

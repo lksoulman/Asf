@@ -63,7 +63,20 @@ uses
   SectorTree in 'SectorTree\SectorTree.pas',
   SectorTreeUI in 'SectorTree\SectorTreeUI.pas' {SectorTreeUI},
   SectorTreeCommandImpl in 'WCommands\SectorTreeCommandImpl.pas',
-  ButtonUI in 'Custom\ButtonUI.pas';
+  ButtonUI in 'Custom\ButtonUI.pas',
+  UserSectorSet in 'UserSectorSet\UserSectorSet.pas',
+  UserSectorSetImpl in 'UserSectorSet\Impl\UserSectorSetImpl.pas',
+  UserSectorSetUI in 'UserSectorSet\UserSectorSetUI.pas',
+  UserSectorSetCommandImpl in 'WCommands\UserSectorSetCommandImpl.pas',
+  SectorPriceHqImpl in 'SectorPriceHq\Impl\SectorPriceHqImpl.pas',
+  SectorPriceMenuUI in 'SectorPriceHq\SectorPriceMenuUI.pas',
+  SectorPriceHqCommandImpl in 'WCommands\SectorPriceHqCommandImpl.pas',
+  UserSectorMenuUI in 'SectorPriceHq\UserSectorMenuUI.pas',
+  UserPositionMenuUI in 'SectorPriceHq\UserPositionMenuUI.pas',
+  UserPositionSet in 'UserPositionSet\UserPositionSet.pas',
+  UserPositionSetImpl in 'UserPositionSet\Impl\UserPositionSetImpl.pas',
+  UserPositionSetCommandImpl in 'WCommands\UserPositionSetCommandImpl.pas',
+  UserPositionSetUI in 'UserPositionSet\UserPositionSetUI.pas' {UserPositionSetUI};
 
 {$R *.res}
 

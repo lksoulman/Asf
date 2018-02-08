@@ -74,9 +74,9 @@ uses
   procedure LoadAuth;
   begin
     // 同步行情权限
-    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_HQAUTH, 'FuncName=Update');
+//    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_HQAUTH, 'FuncName=Update');
     // 同步产品权限
-    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_PROAUTH, 'FuncName=Update');
+//    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_PROAUTH, 'FuncName=Update');
   end;
 
   // LoadCache
@@ -91,6 +91,8 @@ uses
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_USERCACHE, 'FuncName=ReplaceCreateCacheTables');
     // 同步用户数据
     G_AppContext.GetCommandMgr.ExecuteCmd(ASF_Command_ID_USERCACHE, 'FuncName=InitUpdateTables');
+//    // 同步基础数据
+//    G_AppContext.GetCommandMgr.ExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=UpdateTables');
 
     // 读取同步的用户配置数据
     G_AppContext.GetCfg.ReadServerCacheCfg;
@@ -109,11 +111,14 @@ uses
     // 状态栏新闻数据获取定时任务
     G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_STATUSNEWSDATAMGR, 'FuncName=Update', 600);
 
+    //
     G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_USERCACHE, 'FuncName=UpdateTables', 60);
+
+    // 加载系统板块数据
+//    G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_SECTORMGR, 'FuncName=Update', 30);
 
 //    // 异步方式同步基础缓存数据定时任务
 //    G_AppContext.GetCommandMgr.FixedExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 10);
-
   end;
 
   // LoadDelayJobs
@@ -132,7 +137,7 @@ uses
     G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_SECUMAIN, 'FuncName=AsyncUpdate', 2);
 
     // 异步方式同步基础缓存数据延时任务
-//    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 60);
+//    G_AppContext.GetCommandMgr.DelayExecuteCmd(ASF_COMMAND_ID_BASECACHE, 'FuncName=AsyncUpdateTables', 5);
   end;
 
   // StopServices

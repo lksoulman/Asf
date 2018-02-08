@@ -268,6 +268,7 @@ end;
 procedure TExecutors.DoTaskExecute(AObject: TObject);
 var
   LObject: TObject;
+//  LHttpContext: THttpContext;
   LResult: Cardinal;
   LWorker: TExecutorThread;
 begin
@@ -278,21 +279,16 @@ begin
     case LResult of
       WAIT_OBJECT_0:
         begin
-          while not FSubmitQueue.IsEmpty do begin
+          if LWorker.IsTerminated then Exit;
 
-            if LWorker.IsTerminated then begin
-              Exit;
-            end;
-
-            LObject := FSubmitQueue.Dequeue;
-
+          LObject := FSubmitQueue.Dequeue;
+          if LObject <> nil then begin
             if TExecutorThreadHttp(LWorker).HttpExecutor <> nil then begin
 {$IFDEF DEBUG}
               if FShareMgr.GetAppContext <> nil then begin
 //                  FShareMgr.GetAppContext.SysLog(llDEBUG, Format('[TExecutors][DoTaskExecute] Worker Id is %d and execute.', [LWorker.ID]));
               end;
 {$ENDIF}
-
               TExecutorThreadHttp(LWorker).HttpExecutor.Execute(LObject);
             end;
 
