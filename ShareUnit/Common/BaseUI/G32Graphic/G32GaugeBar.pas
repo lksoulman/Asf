@@ -145,6 +145,9 @@ begin
   if (FBorderValue and 8) > 0 then begin
     Result.Left := Result.Left + 1;
   end;
+
+//  if True then
+
 end;
 
 procedure TG32GaugeBar.RefreshBar;
@@ -324,13 +327,13 @@ var
     Canvas.Draw(LImageRect.Left, LImageRect.Top, AImage);
 
     // Down Round
-    GR32.OffsetRect(LImageRect, 0, R.Height - LImageRect.Height);
+    GR32.OffsetRect(LImageRect, 0, R.Height - FResourceHeight);
     Canvas.Draw(LImageRect.Left, LImageRect.Top, AImage);
 
     // Draw Handle Rectangle
     LRect := R;
     LRect.Top := R.Top + FResourceHeight div 2;
-    LRect.Height := R.Height - FResourceHeight div 2;
+    LRect.Bottom := LRect.Bottom - FResourceHeight div 2;
 
     Canvas.Brush.Color := LHandleColor;
     Canvas.FillRect(LRect);
