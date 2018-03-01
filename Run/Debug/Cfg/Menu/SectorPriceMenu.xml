@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Menus>
+	<Version>1.0</Version>
+	<Level_1 Name='我的关注' MarketID='1000' SectorId='3' UserBehavior='quote-my'>
+		<Level_2 Name='自选' ModuleID='1001' SectorId='4' UserBehavior='quote-my-01'>
+		</Level_2>
+		<Level_2 Name='持仓' ModuleID='1101' SectorId='5' UserBehavior='quote-my-02'>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='综合屏' MarketID='0' SectorId='0' UserBehavior='quote-compquote'>
+		<Level_2 Name='沪深A股' ModuleID='1' SectorId='0' UserBehavior='quote-compquote-01'>
+		</Level_2>
+		<Level_2 Name='A股板块' ModuleID='2' SectorId='0' UserBehavior='quote-compquote-02'>
+		</Level_2>
+		<Level_2 Name='股指期货' ModuleID='3' SectorId='0' UserBehavior='quote-compquote-03'>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='沪深股票' MarketID='2000' SectorId='7' UserBehavior='quote-SH&ZSstocks'>
+		<Level_2 Name='沪深A股' ModuleID='2001' SectorId='8' UserBehavior='quote-SH&ZSstocks-01'>
+		</Level_2>
+		<Level_2 Name='上证A股' ModuleID='2002' SectorId='9' UserBehavior='quote-SH&ZSstocks-02'>
+		</Level_2>
+		<Level_2 Name='深证A股' ModuleID='2003' SectorId='10' UserBehavior='quote-SH&ZSstocks-03'>
+		</Level_2>
+		<Level_2 Name='中小板' ModuleID='2004' SectorId='13' UserBehavior='quote-SH&ZSstocks-04'>
+		</Level_2>
+		<Level_2 Name='创业板' ModuleID='2005' SectorId='14' UserBehavior='quote-SH&ZSstocks-05'>
+		</Level_2>
+		<Level_2 Name='沪深B股' ModuleID='2006' SectorId='15' UserBehavior='quote-SH&ZSstocks-06'>
+		</Level_2>
+		<Level_2 Name='上证B股' ModuleID='2007' SectorId='16' UserBehavior='quote-SH&ZSstocks-07'>
+		</Level_2>
+		<Level_2 Name='深证B股' ModuleID='2008' SectorId='17' UserBehavior='quote-SH&ZSstocks-08'>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='股  转' MarketID='3000' SectorId='50' UserBehavior=''>
+		<Level_2 Name='集合竞价转让' ModuleID='3001' SectorId='54' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='做市转让' ModuleID='3002' SectorId='52' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='两网及退市' ModuleID='3003' SectorId='53' UserBehavior=''>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='港  股' MarketID='6000' SectorId='196' UserBehavior='quote-HKSstocks'>
+		<Level_2 Name='香港主板' ModuleID='6001' SectorId='197' UserBehavior='quote-HKSstocks-01'>
+		</Level_2>
+		<Level_2 Name='创业板' ModuleID='6002' SectorId='198' UserBehavior='quote-HKSstocks-02'>
+		</Level_2>
+		<Level_2 Name='恒指成分股' ModuleID='6003' SectorId='202' UserBehavior='quote-HKSstocks-03'>
+		</Level_2>
+		<Level_2 Name='国指成分股' ModuleID='6004' SectorId='200' UserBehavior='quote-HKSstocks-04'>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='美  股' MarketID='9000' SectorId='300' UserBehavior=''>
+		<Level_2 Name='中概股' ModuleID='9001' SectorId='301' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='明星股' ModuleID='9002' SectorId='302' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='纽交所' ModuleID='9003' SectorId='303' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='美交所' ModuleID='9004' SectorId='304' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='纳斯达克' ModuleID='9005' SectorId='305' UserBehavior=''>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='债  券' MarketID='5000' SectorId='182' UserBehavior='quote-bonds'>
+		<Level_2 Name='上证债券' ModuleID='5001' SectorId='183' UserBehavior='quote-bonds-01'>
+		</Level_2>
+		<Level_2 Name='深证债券' ModuleID='5002' SectorId='187' UserBehavior='quote-bonds-02'>
+		</Level_2>
+		<Level_2 Name='企业债' ModuleID='5003' SectorId='185' UserBehavior='quote-bonds-03'>
+		</Level_2>
+		<Level_2 Name='国  债' ModuleID='5004' SectorId='184' UserBehavior='quote-bonds-04'>
+		</Level_2>
+		<Level_2 Name='公司债' ModuleID='5005' SectorId='184' UserBehavior='quote-bonds-05'>
+		</Level_2>
+		<Level_2 Name='可转债' ModuleID='5006' SectorId='186' UserBehavior='quote-bonds-06'>
+		</Level_2>
+		<Level_2 Name='债券回购' ModuleID='5007' SectorId='191' UserBehavior='quote-bonds-07'>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='期  货' MarketID='7000' SectorId='243' UserBehavior='quote-funtuers'>
+		<Level_2 Name='中金所' ModuleID='7004' SectorId='247' UserBehavior='quote-funtuers-01'>
+		</Level_2>
+		<Level_2 Name='上期所' ModuleID='7001' SectorId='244' UserBehavior='quote-funtuers-02'>
+		</Level_2>
+		<Level_2 Name='大商所' ModuleID='7002' SectorId='246' UserBehavior='quote-funtuers-03'>
+		</Level_2>
+		<Level_2 Name='郑商所' ModuleID='7003' SectorId='245' UserBehavior='quote-funtuers-04'>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='基  金' MarketID='4000' SectorId='174' UserBehavior='quote-funds'>
+		<Level_2 Name='上证基金' ModuleID='4001' SectorId='1248' UserBehavior='quote-funds-01'>
+		</Level_2>
+		<Level_2 Name='深证基金' ModuleID='4002' SectorId='1249' UserBehavior='quote-funds-02'>
+		</Level_2>
+		<Level_2 Name='ETF' ModuleID='4003' SectorId='177' UserBehavior='quote-funds-03'>
+		</Level_2>
+		<Level_2 Name='LOF' ModuleID='4004' SectorId='178' UserBehavior='quote-funds-04'>
+		</Level_2>
+		<Level_2 Name='分级基金' ModuleID='4005' SectorId='176' UserBehavior='quote-funds-05'>
+		</Level_2>
+		<Level_2 Name='封闭基金' ModuleID='4006' SectorId='175' UserBehavior='quote-funds-06'>
+		</Level_2>
+		<Level_2 Name='货币基金' ModuleID='4007' SectorId='262' UserBehavior='quote-funds-07'>
+		</Level_2>
+	</Level_1>
+	<Level_1 Name='指  数' MarketID='8000' SectorId='249' UserBehavior='quote-indices'>
+		<Level_2 Name='沪深指数' ModuleID='8001' SectorId='776' UserBehavior='quote-indices-01'>
+		</Level_2>
+		<Level_2 Name='申万一级' ModuleID='8003' SectorId='255' UserBehavior='quote-indices-02'>
+		</Level_2>
+		<Level_2 Name='申万二级' ModuleID='8004' SectorId='256' UserBehavior='quote-indices-03'>
+		</Level_2>
+		<Level_2 Name='中信一级' ModuleID='8005' SectorId='281' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='中信二级' ModuleID='8006' SectorId='282' UserBehavior=''>
+		</Level_2>
+		<Level_2 Name='国外指数' ModuleID='8007' SectorId='282' UserBehavior=''>
+		</Level_2>
+	</Level_1>
+</Menus>
